@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>gharlan.github</string>
+	<key>connections</key>
+	<dict>
+		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+		<key>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Gregor Harlan</string>
+	<key>description</key>
+	<string>GitHub commands and searches</string>
+	<key>name</key>
+	<string>GitHub</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<true/>
+				<key>output</key>
+				<integer>0</integer>
+				<key>removeextension</key>
+				<false/>
+				<key>sticky</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>GitHub</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>$query = "{query}";
+require 'action.php';</string>
+				<key>type</key>
+				<integer>1</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>keyword</key>
+				<string>gh</string>
+				<key>script</key>
+				<string>$query = "{query}";
+require 'search.php';</string>
+				<key>subtext</key>
+				<string>Search or type a command</string>
+				<key>title</key>
+				<string>gh {query}</string>
+				<key>type</key>
+				<integer>1</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
+		</dict>
+	</array>
+	<key>uidata</key>
+	<dict>
+		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+		<key>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+		<key>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</key>
+		<dict>
+			<key>ypos</key>
+			<real>10</real>
+		</dict>
+	</dict>
+	<key>webaddress</key>
+	<string>https://github.com/gharlan/alfred-github-workflow</string>
+</dict>
+</plist>

@@ -86,10 +86,11 @@ function array2xml(array $data) {
 }
 
 function match($str1, $str2, &$ls = null) {
-  return ($ls = levenshtein($str1, strtolower($str2), 1, 1000, 1000)) < 1000;
+  return ($ls = levenshtein(strtolower($str1), strtolower($str2), 1, 1000, 1000)) < 1000;
 }
 
 function sameCharsFromBeginning($str1, $str2) {
+  $str1 = strtolower($str1);
   $str2 = strtolower($str2);
   $end = min(strlen($str1), strlen($str2));
   for ($i = 0; $i < $end && $str1[$i] === $str2[$i]; ++$i);

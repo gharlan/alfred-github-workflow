@@ -48,8 +48,6 @@ if (empty($users)) {
 
 }
 
-$query = strtolower($query);
-$parts = array_map('strtolower', $parts);
 $isSystem = isset($query[0]) && $query[0] == '>';
 $isUser = isset($query[0]) && $query[0] == '@';
 if ($isUser) {

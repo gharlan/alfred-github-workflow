@@ -41,7 +41,7 @@ function request_cache($url, &$status = null) {
     $cache[$url]['status'] = $status;
     file_put_contents(FILE_CACHE, json_encode($cache));
   }
-  $status == $cache[$url]['status'];
+  $status = $cache[$url]['status'];
   return $cache[$url]['content'];
 }
 

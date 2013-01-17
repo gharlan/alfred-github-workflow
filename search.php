@@ -21,17 +21,15 @@ if ($query == '') {
 $query = ltrim($query);
 $parts = explode(' ', $query);
 
-$users = array();
-$user = '';
-if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login') {
-  $user = isset($parts[2]) ? $parts[2] : '';
-} else {
-  $users = json_decode(request_cache('https://github.com/command_bar/users'), true);
-  $users = $users['users'];
-}
+$users = json_decode(request_cache('https://github.com/command_bar/users'), true);
+$users = $users['users'];
 
 if (empty($users)) {
 
+  $user = null;
+  if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login') {
+    $user = isset($parts[2]) ? $parts[2] : '';
+  }
   $arg = '> login '.($user ?: '<user>');
   $item = array(
     'arg' => $arg,

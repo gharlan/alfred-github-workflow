@@ -28,12 +28,11 @@ function request($url, &$status = null, $post = false, $token = null, array $dat
 function request_cache($url, &$status = null) {
   static $cache;
   if ($cache === null) {
-    $cache = array();
     if (file_exists(FILE_CACHE)) {
       $cache = json_decode(file_get_contents(FILE_CACHE), true);
-      if ($cache['timestamp'] < time() - 60*5) {
-        $cache = array('timestamp' => time());
-      }
+    }
+    if (!isset($cache['timestamp']) || $cache['timestamp'] < time() - 60*5) {
+      $cache = array('timestamp' => time());
     }
   }
   if (!isset($cache[$url])) {

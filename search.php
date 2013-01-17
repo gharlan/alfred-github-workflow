@@ -36,7 +36,7 @@ if (empty($users)) {
   $item = array(
     'arg' => $arg,
     'title' => 'gh '.$arg,
-    'subtitle' => 'Login to GitHub'
+    'subtitle' => 'Log in to GitHub'
   );
   if (!$user) {
     $item['valid'] = 'no';

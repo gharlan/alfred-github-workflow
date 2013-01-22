@@ -9,9 +9,17 @@ class gh
 
   static public function init()
   {
-    self::$fileCookies = __DIR__ . '/cookies';
-    self::$fileUser    = __DIR__ . '/user';
-    self::$fileCache   = __DIR__ . '/cache.json';
+    $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/gharlan.github';
+    $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/gharlan.github';
+    if (!is_dir($dataDir)) {
+      mkdir($dataDir);
+    }
+    if (!is_dir($cacheDir)) {
+      mkdir($cacheDir);
+    }
+    self::$fileCookies = $dataDir . '/cookies';
+    self::$fileUser    = $dataDir . '/user';
+    self::$fileCache   = $cacheDir . '/cache.json';
   }
 
   static public function request($url, &$status = null, $post = false, $token = null, array $data = array())

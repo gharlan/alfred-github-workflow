@@ -28,6 +28,11 @@ $parts = explode(' ', $query);
 $users = json_decode(gh::requestCache('https://github.com/command_bar/users'), true);
 $users = $users['users'];
 
+if (empty($users) && gh::updateWorkflow()) {
+  $users = json_decode(gh::requestCache('https://github.com/command_bar/users'), true);
+  $users = $users['users'];
+}
+
 if (empty($users)) {
 
   $user = null;

@@ -5,7 +5,8 @@ class gh
   static private
     $fileCookies,
     $fileUser,
-    $fileCache;
+    $fileCache,
+    $cache;
 
   static public function init()
   {
@@ -46,28 +47,28 @@ class gh
 
   static public function requestCache($url, &$status = null)
   {
-    static $cache;
-    if ($cache === null) {
+    if (self::$cache === null) {
       if (file_exists(self::$fileCache)) {
-        $cache = json_decode(file_get_contents(self::$fileCache), true);
+        self::$cache = json_decode(file_get_contents(self::$fileCache), true);
       }
-      if (!isset($cache['timestamp']) || $cache['timestamp'] < time() - 60 * 5) {
-        $cache = array('timestamp' => time());
+      if (!isset(self::$cache['timestamp']) || self::$cache['timestamp'] < time() - 60 * 5) {
+        self::$cache = array('timestamp' => time());
       }
     }
-    if (!isset($cache[$url])) {
-      $cache[$url]['content'] = self::request($url, $status);
-      $cache[$url]['status'] = $status;
-      file_put_contents(self::$fileCache, json_encode($cache));
+    if (!isset(self::$cache[$url])) {
+      self::$cache[$url]['content'] = self::request($url, $status);
+      self::$cache[$url]['status'] = $status;
+      file_put_contents(self::$fileCache, json_encode(self::$cache));
     }
-    $status = $cache[$url]['status'];
-    return $cache[$url]['content'];
+    $status = self::$cache[$url]['status'];
+    return self::$cache[$url]['content'];
   }
 
   static public function deleteCache()
   {
     if (file_exists(self::$fileCache))
       unlink(self::$fileCache);
+    self::$cache = null;
   }
 
   static public function deleteCookies()
@@ -134,5 +135,24 @@ class gh
     $end = min(strlen($str1), strlen($str2));
     for ($i = 0; $i < $end && $str1[$i] === $str2[$i]; ++$i);
     return $i;
+  }
+
+  static public function updateWorkflow()
+  {
+    if (file_exists($file = __DIR__ . '/functions.php')) {
+      unlink($file);
+      if (file_exists($file = __DIR__ . '/cache.json')) {
+        unlink($file);
+      }
+      if (file_exists($file = __DIR__ . '/user')) {
+        rename($file, self::$fileUser);
+      }
+      if (file_exists($file = __DIR__ . '/cookies')) {
+        rename($file, self::$fileCookies);
+      }
+      self::deleteCache();
+      return true;
+    }
+    return false;
   }
 }

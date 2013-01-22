@@ -1,19 +1,21 @@
 <?php
 
-class gh {
-
+class gh
+{
   static private
     $fileCookies,
     $fileUser,
     $fileCache;
 
-  static public function init() {
-    self::$fileCookies = __DIR__.'/cookies';
-    self::$fileUser    = __DIR__.'/user';
-    self::$fileCache   = __DIR__.'/cache.json';
+  static public function init()
+  {
+    self::$fileCookies = __DIR__ . '/cookies';
+    self::$fileUser    = __DIR__ . '/user';
+    self::$fileCache   = __DIR__ . '/cache.json';
   }
 
-  static public function request($url, &$status = null, $post = false, $token = null, array $data = array()) {
+  static public function request($url, &$status = null, $post = false, $token = null, array $data = array())
+  {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -25,7 +27,7 @@ class gh {
       curl_setopt($ch, CURLOPT_POST, true);
       curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
       if ($token) {
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-CSRF-Token: '.$token));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-CSRF-Token: ' . $token));
       }
     }
     $o = curl_exec($ch);
@@ -34,13 +36,14 @@ class gh {
     return $status == 200 ? $o : null;
   }
 
-  static public function requestCache($url, &$status = null) {
+  static public function requestCache($url, &$status = null)
+  {
     static $cache;
     if ($cache === null) {
       if (file_exists(self::$fileCache)) {
         $cache = json_decode(file_get_contents(self::$fileCache), true);
       }
-      if (!isset($cache['timestamp']) || $cache['timestamp'] < time() - 60*5) {
+      if (!isset($cache['timestamp']) || $cache['timestamp'] < time() - 60 * 5) {
         $cache = array('timestamp' => time());
       }
     }
@@ -53,19 +56,22 @@ class gh {
     return $cache[$url]['content'];
   }
 
-  static public function deleteCache() {
+  static public function deleteCache()
+  {
     if (file_exists(self::$fileCache))
       unlink(self::$fileCache);
   }
 
-  static public function deleteCookies() {
+  static public function deleteCookies()
+  {
     if (file_exists(self::$fileCookies))
       unlink(self::$fileCookies);
     if (file_exists(self::$fileUser))
       unlink(self::$fileUser);
   }
 
-  static public function getUser() {
+  static public function getUser()
+  {
     static $user;
     if (!$user && file_exists(self::$fileUser)) {
       $user = file_get_contents(self::$fileUser);
@@ -73,18 +79,21 @@ class gh {
     return $user;
   }
 
-  static public function setUser($user) {
+  static public function setUser($user)
+  {
     file_put_contents(self::$fileUser, $user);
   }
 
-  static public function getToken() {
+  static public function getToken()
+  {
     $c = self::request('https://github.com/');
     preg_match('@<meta content="(.*)" name="csrf-token" />@U', $c, $match);
     return $match[1];
   }
 
-  static public function array2xml(array $data) {
-    $items = new SimpleXMLElement("<items></items>");
+  static public function array2xml(array $data)
+  {
+    $items = new SimpleXMLElement('<items></items>');
 
     foreach ($data as $uid => $d) {
       $c = $items->addChild('item');
@@ -105,11 +114,13 @@ class gh {
     return $items->asXML();
   }
 
-  static public function match($str1, $str2, &$ls = null) {
+  static public function match($str1, $str2, &$ls = null)
+  {
     return ($ls = levenshtein(strtolower($str1), strtolower($str2), 1, 1000, 1000)) < 1000;
   }
 
-  static public function sameCharsFromBeginning($str1, $str2) {
+  static public function sameCharsFromBeginning($str1, $str2)
+  {
     $str1 = strtolower($str1);
     $str2 = strtolower($str2);
     $end = min(strlen($str1), strlen($str2));

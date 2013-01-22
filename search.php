@@ -34,10 +34,10 @@ if (empty($users)) {
   if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login') {
     $user = isset($parts[2]) ? $parts[2] : '';
   }
-  $arg = '> login '.($user ?: '<user>');
+  $arg = '> login ' . ($user ?: '<user>');
   $item = array(
     'arg' => $arg,
-    'title' => 'gh '.$arg,
+    'title' => 'gh ' . $arg,
     'subtitle' => 'Log in to GitHub'
   );
   if (!$user) {
@@ -77,16 +77,16 @@ if (!$isSystem) {
         $path = 'issues';
         $url = 'issues';
       }
-      $subs = json_decode(gh::requestCache('https://github.com/command_bar/'.$parts[0].'/'.$path), true);
+      $subs = json_decode(gh::requestCache('https://github.com/command_bar/' . $parts[0] . '/' . $path), true);
       $subs = $subs[$path];
       foreach ($subs as $sub) {
         if (gh::match($parts[1], $sub['command'], $ls)) {
           $name = substr($sub['command'], 1);
-          $items['repo-'.$type.'-'.$parts[0].'-'.$name] = array(
-            'arg' => 'url https://github.com/'.$parts[0].'/'.$url.'/'.$name,
-            'title' => $parts[0].' '.$sub['command'],
+          $items['repo-' . $type . '-' . $parts[0] . '-' . $name] = array(
+            'arg' => 'url https://github.com/' . $parts[0] . '/' . $url . '/' . $name,
+            'title' => $parts[0] . ' ' . $sub['command'],
             'subtitle' => $sub['description'],
-            'autocomplete' => ' '.$parts[0].' '.$sub['command'],
+            'autocomplete' => ' ' . $parts[0] . ' ' . $sub['command'],
             'levenshtein' => $ls,
             'sameChars' => gh::sameCharsFromBeginning($parts[1], $sub['command'])
           );
@@ -105,11 +105,11 @@ if (!$isSystem) {
       );
       foreach ($subs as $key => $sub) {
         if (gh::match($parts[1], $key, $ls)) {
-          $items['repo-'.$key.'-'.$parts[0]] = array(
-            'arg' => 'url https://github.com/'.$parts[0].'/'.$key,
-            'title' => $parts[0].' '.$key,
+          $items['repo-' . $key . '-' . $parts[0]] = array(
+            'arg' => 'url https://github.com/' . $parts[0] . '/' . $key,
+            'title' => $parts[0] . ' ' . $key,
             'subtitle' => $sub,
-            'autocomplete' => ' '.$parts[0].' '.$key,
+            'autocomplete' => ' ' . $parts[0] . ' ' . $key,
             'levenshtein' => $ls,
             'sameChars' => gh::sameCharsFromBeginning($parts[1], $key)
           );
@@ -117,29 +117,29 @@ if (!$isSystem) {
       }
       foreach (array('watch', 'unwatch') as $key) {
         if (gh::match($parts[1], $key, $ls)) {
-          $items['repo-'.$key.'-'.$parts[0]] = array(
-            'arg' => $key.' '.$parts[0],
-            'title' => $parts[0].' '.$key,
-            'subtitle' => ucfirst($key).' '.$parts[0],
-            'autocomplete' => ' '.$parts[0].' '.$key,
+          $items['repo-' . $key . '-' . $parts[0]] = array(
+            'arg' => $key . ' ' . $parts[0],
+            'title' => $parts[0] . ' ' . $key,
+            'subtitle' => ucfirst($key) . ' ' . $parts[0],
+            'autocomplete' => ' ' . $parts[0] . ' ' . $key,
             'levenshtein' => $ls,
             'sameChars' => gh::sameCharsFromBeginning($parts[1], $key)
           );
         }
       }
       if (empty($parts[1])) {
-        $items['repo-issue-'.$parts[0]] = array(
-          'title' => $parts[0].' #…',
+        $items['repo-issue-' . $parts[0]] = array(
+          'title' => $parts[0] . ' #…',
           'subtitle' => 'Show a specific issue by number',
-          'autocomplete' => ' '.$parts[0].' #',
+          'autocomplete' => ' ' . $parts[0] . ' #',
           'valid' => 'no',
           'levenshtein' => 1,
           'sameChars' => 0
         );
-        $items['repo-branch-'.$parts[0]] = array(
-          'title' => $parts[0].' @…',
+        $items['repo-branch-' . $parts[0]] = array(
+          'title' => $parts[0] . ' @…',
           'subtitle' => 'Show a specific branch',
-          'autocomplete' => ' '.$parts[0].' @',
+          'autocomplete' => ' ' . $parts[0] . ' @',
           'valid' => 'no',
           'levenshtein' => 1,
           'sameChars' => 0
@@ -150,18 +150,18 @@ if (!$isSystem) {
 
   } elseif (!$isUser) {
 
-    $path = $isRepo ? 'repos_for/'.$queryUser : 'repos';
-    $repos = json_decode(gh::requestCache('https://github.com/command_bar/'.$path), true);
+    $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
+    $repos = json_decode(gh::requestCache('https://github.com/command_bar/' . $path), true);
     $repos = $repos['repositories'];
 
     foreach ($repos as $repo) {
       $name = $repo['command'];
       if (gh::match($query, $name, $ls)) {
-        $items['repo-'.$name] = array(
-          'arg' => 'url https://github.com/'.$name,
+        $items['repo-' . $name] = array(
+          'arg' => 'url https://github.com/' . $name,
           'title' => $name,
           'subtitle' => $repo['description'],
-          'autocomplete' => ' '.$name.' ',
+          'autocomplete' => ' ' . $name . ' ',
           'levenshtein' => $ls,
           'sameChars' => gh::sameCharsFromBeginning($query, $name),
           'type' => 1
@@ -172,13 +172,13 @@ if (!$isSystem) {
   }
 
   if ($isUser && isset($parts[1])) {
-    foreach(array('follow', 'unfollow') as $key) {
+    foreach (array('follow', 'unfollow') as $key) {
       if (gh::match($parts[1], $key, $ls)) {
-        $items['user-'.$key.'-'.$queryUser] = array(
-          'arg' => $key.' '.$queryUser,
-          'title' => $parts[0].' '.$key,
-          'subtitle' => ucfirst($key).' '.$queryUser,
-          'autocomplete' => ' '.$parts[0].' '.$key,
+        $items['user-' . $key . '-' . $queryUser] = array(
+          'arg' => $key . ' ' . $queryUser,
+          'title' => $parts[0] . ' ' . $key,
+          'subtitle' => ucfirst($key) . ' ' . $queryUser,
+          'autocomplete' => ' ' . $parts[0] . ' ' . $key,
           'levenshtein' => $ls,
           'sameChars' => 1
         );
@@ -189,11 +189,11 @@ if (!$isSystem) {
       $name = substr($user['command'], 1);
       $qu = ltrim($query, '@');
       if (gh::match($qu, $name, $ls)) {
-        $items['user-'.$name] = array(
-          'arg' => 'url https://github.com/'.$name,
+        $items['user-' . $name] = array(
+          'arg' => 'url https://github.com/' . $name,
           'title' => $user['command'],
           'subtitle' => $user['description'],
-          'autocomplete' => ' '.$user['command'].' ',
+          'autocomplete' => ' ' . $user['command'] . ' ',
           'levenshtein' => $ls,
           'sameChars' => gh::sameCharsFromBeginning($qu, $name),
           'type' => 2
@@ -212,14 +212,14 @@ if (!$isSystem) {
     'notifications' => array('notifications', 'View all your notifications')
   );
   foreach ($myPages as $key => $my) {
-    if (gh::match($query, 'my '.$key, $ls)) {
-      $items['my-'.$key] = array(
-        'arg' => 'url https://github.com/'.$my[0],
-        'title' => 'my '.$key,
+    if (gh::match($query, 'my ' . $key, $ls)) {
+      $items['my-' . $key] = array(
+        'arg' => 'url https://github.com/' . $my[0],
+        'title' => 'my ' . $key,
         'subtitle' => $my[1],
-        'autocomplete' => ' my '.$key,
+        'autocomplete' => ' my ' . $key,
         'levenshtein' => $ls,
-        'sameChars' => gh::sameCharsFromBeginning($query, 'my '.$key),
+        'sameChars' => gh::sameCharsFromBeginning($query, 'my ' . $key),
         'type' => 3
       );
     }
@@ -234,9 +234,9 @@ if (!$isSystem) {
   });
 
   if ($query) {
-    $path = $isUser ? $queryUser : 'search?q='.urlencode($query);
-    $items['search-'.$query] = array(
-      'arg' => 'url https://github.com/'.$path,
+    $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
+    $items['search-' . $query] = array(
+      'arg' => 'url https://github.com/' . $path,
       'title' => "Search GitHub for '$query'"
     );
   }
@@ -248,13 +248,13 @@ if (!$isSystem) {
     'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)'
   );
   foreach ($cmds as $cmd => $desc) {
-    if (gh::match($query, '> '.$cmd)) {
+    if (gh::match($query, '> ' . $cmd)) {
       $arg = str_replace(' ', '-', $cmd);
       $items[$arg] = array(
-        'arg' => '> '.$arg,
-        'title' => 'gh > '.$cmd,
+        'arg' => '> ' . $arg,
+        'title' => 'gh > ' . $cmd,
         'subtitle' => $desc,
-        'autocomplete' => ' > '.$cmd
+        'autocomplete' => ' > ' . $cmd
       );
     }
   }

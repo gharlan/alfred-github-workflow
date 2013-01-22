@@ -1,6 +1,8 @@
 <?php
 
-require 'functions.php';
+require 'class.php';
+
+gh::init();
 
 $query = trim($argv[1]);
 $parts = explode(' ', $query);
@@ -20,24 +22,24 @@ tell application "Alfred 2"
 end tell
 END');
 
-        $c = request('https://github.com/session', $status, true, null, array('authenticity_token' => get_token(), 'login' => $parts[2], 'password' => $password));
+        $c = gh::request('https://github.com/session', $status, true, null, array('authenticity_token' => gh::getToken(), 'login' => $parts[2], 'password' => $password));
         if ($status === 302) {
           echo 'Successfully logged in';
-          delete_cache();
-          file_put_contents(FILE_USER, $parts[2]);
+          gh::deleteCache();
+          gh::setUser($parts[2]);
         } else {
           echo 'Login failed';
         }
         break;
 
       case 'logout':
-        delete_cookies();
-        delete_cache();
+        gh::deleteCookies();
+        gh::deleteCache();
         echo 'Successfully logged out';
         break;
 
       case 'delete-cache':
-        delete_cache();
+        gh::deleteCache();
         echo 'Successfully deleted cache';
         break;
     }
@@ -48,22 +50,22 @@ END');
     break;
 
   case 'follow':
-    $c = request('https://github.com/command_bar/'.$parts[1].'/follow', $status, true, get_token());
+    $c = gh::request('https://github.com/command_bar/'.$parts[1].'/follow', $status, true, gh::getToken());
     echo $c == 'true' ? 'You are now following '.$parts[1] : 'Failed to follow '.$parts[1];
     break;
 
   case 'unfollow':
-    $c = request('https://github.com/command_bar/'.$parts[1].'/unfollow', $status, true, get_token());
+    $c = gh::request('https://github.com/command_bar/'.$parts[1].'/unfollow', $status, true, gh::getToken());
     echo $c == 'true' ? 'You are no longer following '.$parts[1] : 'Failed to unfollow '.$parts[1];
     break;
 
   case 'watch':
-    $c = request('https://github.com/command_bar/'.$parts[1].'/watch', $status, true, get_token());
+    $c = gh::request('https://github.com/command_bar/'.$parts[1].'/watch', $status, true, gh::getToken());
     echo $c == 'true' ? 'You are now watching '.$parts[1] : 'Failed to watch '.$parts[1];
     break;
 
   case 'unwatch':
-    $c = request('https://github.com/command_bar/'.$parts[1].'/unwatch', $status, true, get_token());
+    $c = gh::request('https://github.com/command_bar/'.$parts[1].'/unwatch', $status, true, gh::getToken());
     echo $c == 'true' ? 'You are no longer watching '.$parts[1] : 'Failed to unwatch '.$parts[1];
     break;
 

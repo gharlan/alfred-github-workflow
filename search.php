@@ -1,6 +1,8 @@
 <?php
 
-require 'functions.php';
+require 'class.php';
+
+gh::init();
 
 $query = $argv[1];
 
@@ -16,14 +18,14 @@ if ($query == '') {
     'valid' => 'no',
     'autocomplete' => ' '
   );
-  print array2xml($items);
+  print gh::array2xml($items);
   return;
 }
 
 $query = ltrim($query);
 $parts = explode(' ', $query);
 
-$users = json_decode(request_cache('https://github.com/command_bar/users'), true);
+$users = json_decode(gh::requestCache('https://github.com/command_bar/users'), true);
 $users = $users['users'];
 
 if (empty($users)) {
@@ -43,7 +45,7 @@ if (empty($users)) {
     $item['autocomplete'] = ' > login ';
   }
 
-  print array2xml(array('login' => $item));
+  print gh::array2xml(array('login' => $item));
   return;
 
 }
@@ -75,10 +77,10 @@ if (!$isSystem) {
         $path = 'issues';
         $url = 'issues';
       }
-      $subs = json_decode(request_cache('https://github.com/command_bar/'.$parts[0].'/'.$path), true);
+      $subs = json_decode(gh::requestCache('https://github.com/command_bar/'.$parts[0].'/'.$path), true);
       $subs = $subs[$path];
       foreach ($subs as $sub) {
-        if (match($parts[1], $sub['command'], $ls)) {
+        if (gh::match($parts[1], $sub['command'], $ls)) {
           $name = substr($sub['command'], 1);
           $items['repo-'.$type.'-'.$parts[0].'-'.$name] = array(
             'arg' => 'url https://github.com/'.$parts[0].'/'.$url.'/'.$name,
@@ -86,7 +88,7 @@ if (!$isSystem) {
             'subtitle' => $sub['description'],
             'autocomplete' => ' '.$parts[0].' '.$sub['command'],
             'levenshtein' => $ls,
-            'sameChars' => sameCharsFromBeginning($parts[1], $sub['command'])
+            'sameChars' => gh::sameCharsFromBeginning($parts[1], $sub['command'])
           );
         }
       }
@@ -102,26 +104,26 @@ if (!$isSystem) {
         'admin'   => 'Manage this repo'
       );
       foreach ($subs as $key => $sub) {
-        if (match($parts[1], $key, $ls)) {
+        if (gh::match($parts[1], $key, $ls)) {
           $items['repo-'.$key.'-'.$parts[0]] = array(
             'arg' => 'url https://github.com/'.$parts[0].'/'.$key,
             'title' => $parts[0].' '.$key,
             'subtitle' => $sub,
             'autocomplete' => ' '.$parts[0].' '.$key,
             'levenshtein' => $ls,
-            'sameChars' => sameCharsFromBeginning($parts[1], $key)
+            'sameChars' => gh::sameCharsFromBeginning($parts[1], $key)
           );
         }
       }
       foreach (array('watch', 'unwatch') as $key) {
-        if (match($parts[1], $key, $ls)) {
+        if (gh::match($parts[1], $key, $ls)) {
           $items['repo-'.$key.'-'.$parts[0]] = array(
             'arg' => $key.' '.$parts[0],
             'title' => $parts[0].' '.$key,
             'subtitle' => ucfirst($key).' '.$parts[0],
             'autocomplete' => ' '.$parts[0].' '.$key,
             'levenshtein' => $ls,
-            'sameChars' => sameCharsFromBeginning($parts[1], $key)
+            'sameChars' => gh::sameCharsFromBeginning($parts[1], $key)
           );
         }
       }
@@ -149,19 +151,19 @@ if (!$isSystem) {
   } elseif (!$isUser) {
 
     $path = $isRepo ? 'repos_for/'.$queryUser : 'repos';
-    $repos = json_decode(request_cache('https://github.com/command_bar/'.$path), true);
+    $repos = json_decode(gh::requestCache('https://github.com/command_bar/'.$path), true);
     $repos = $repos['repositories'];
 
     foreach ($repos as $repo) {
       $name = $repo['command'];
-      if (match($query, $name, $ls)) {
+      if (gh::match($query, $name, $ls)) {
         $items['repo-'.$name] = array(
           'arg' => 'url https://github.com/'.$name,
           'title' => $name,
           'subtitle' => $repo['description'],
           'autocomplete' => ' '.$name.' ',
           'levenshtein' => $ls,
-          'sameChars' => sameCharsFromBeginning($query, $name),
+          'sameChars' => gh::sameCharsFromBeginning($query, $name),
           'type' => 1
         );
       }
@@ -171,7 +173,7 @@ if (!$isSystem) {
 
   if ($isUser && isset($parts[1])) {
     foreach(array('follow', 'unfollow') as $key) {
-      if (match($parts[1], $key, $ls)) {
+      if (gh::match($parts[1], $key, $ls)) {
         $items['user-'.$key.'-'.$queryUser] = array(
           'arg' => $key.' '.$queryUser,
           'title' => $parts[0].' '.$key,
@@ -186,14 +188,14 @@ if (!$isSystem) {
     foreach ($users as $user) {
       $name = substr($user['command'], 1);
       $qu = ltrim($query, '@');
-      if (match($qu, $name, $ls)) {
+      if (gh::match($qu, $name, $ls)) {
         $items['user-'.$name] = array(
           'arg' => 'url https://github.com/'.$name,
           'title' => $user['command'],
           'subtitle' => $user['description'],
           'autocomplete' => ' '.$user['command'].' ',
           'levenshtein' => $ls,
-          'sameChars' => sameCharsFromBeginning($qu, $name),
+          'sameChars' => gh::sameCharsFromBeginning($qu, $name),
           'type' => 2
         );
       }
@@ -205,19 +207,19 @@ if (!$isSystem) {
     'pulls'         => array('dashboard/pulls', 'View your pull requests'),
     'issues'        => array('dashboard/issues', 'View your issues'),
     'stars'         => array('stars', 'View your starred repositories'),
-    'profile'       => array(file_get_contents(FILE_USER), 'View your public user profile'),
+    'profile'       => array(gh::getUser(), 'View your public user profile'),
     'settings'      => array('settings', 'View or edit your account settings'),
     'notifications' => array('notifications', 'View all your notifications')
   );
   foreach ($myPages as $key => $my) {
-    if (match($query, 'my '.$key, $ls)) {
+    if (gh::match($query, 'my '.$key, $ls)) {
       $items['my-'.$key] = array(
         'arg' => 'url https://github.com/'.$my[0],
         'title' => 'my '.$key,
         'subtitle' => $my[1],
         'autocomplete' => ' my '.$key,
         'levenshtein' => $ls,
-        'sameChars' => sameCharsFromBeginning($query, 'my '.$key),
+        'sameChars' => gh::sameCharsFromBeginning($query, 'my '.$key),
         'type' => 3
       );
     }
@@ -246,7 +248,7 @@ if (!$isSystem) {
     'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)'
   );
   foreach ($cmds as $cmd => $desc) {
-    if (match($query, '> '.$cmd)) {
+    if (gh::match($query, '> '.$cmd)) {
       $arg = str_replace(' ', '-', $cmd);
       $items[$arg] = array(
         'arg' => '> '.$arg,
@@ -259,4 +261,4 @@ if (!$isSystem) {
 
 }
 
-print array2xml($items);
+print gh::array2xml($items);

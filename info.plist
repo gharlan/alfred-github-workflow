@@ -40,6 +40,46 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>keyword</key>
+				<string>gh</string>
+				<key>script</key>
+				<string>php -f search.php -- "{query}"</string>
+				<key>subtext</key>
+				<string>Search or type a command</string>
+				<key>title</key>
+				<string>gh {query}</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>php -f action.php -- "{query}"</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>lastpathcomponent</key>
 				<false/>
 				<key>onlyshowifquerypopulated</key>
@@ -59,48 +99,6 @@
 			<string>alfred.workflow.output.notification</string>
 			<key>uid</key>
 			<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>script</key>
-				<string>$query = "{query}";
-require 'action.php';</string>
-				<key>type</key>
-				<integer>1</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>1</integer>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>keyword</key>
-				<string>gh</string>
-				<key>script</key>
-				<string>$query = "{query}";
-require 'search.php';</string>
-				<key>subtext</key>
-				<string>Search or type a command</string>
-				<key>title</key>
-				<string>gh {query}</string>
-				<key>type</key>
-				<integer>1</integer>
-				<key>withspace</key>
-				<false/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.scriptfilter</string>
-			<key>uid</key>
-			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
 		</dict>
 	</array>
 	<key>uidata</key>

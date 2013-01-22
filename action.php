@@ -2,7 +2,7 @@
 
 require 'functions.php';
 
-$query = trim($query);
+$query = trim($argv[1]);
 $parts = explode(' ', $query);
 
 switch ($parts[0]) {

@@ -2,6 +2,8 @@
 
 require 'functions.php';
 
+$query = $argv[1];
+
 if ($query == '') {
   $items = array();
   $items['main'] = array(

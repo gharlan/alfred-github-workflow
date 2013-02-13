@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>gharlan.github</string>
+	<string>de.gh01.alfred.github</string>
 	<key>connections</key>
 	<dict>
 		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>
@@ -42,21 +42,6 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>script</key>
-				<string>php -f action.php -- "{query}"</string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argumenttype</key>
 				<integer>0</integer>
 				<key>escaping</key>
@@ -84,6 +69,21 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>php -f action.php -- "{query}"</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>lastpathcomponent</key>
 				<false/>
 				<key>onlyshowifquerypopulated</key>
@@ -105,6 +105,8 @@
 			<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
 		</dict>
 	</array>
+	<key>readme</key>
+	<string></string>
 	<key>uidata</key>
 	<dict>
 		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>

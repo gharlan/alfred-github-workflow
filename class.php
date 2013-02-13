@@ -2,7 +2,9 @@
 
 class gh
 {
-  const VERSION = '$Format:%H$';
+  const
+    VERSION = '$Format:%H$',
+    BUNDLE = 'de.gh01.alfred.github';
 
   static private
     $fileCookies,
@@ -15,8 +17,8 @@ class gh
 
   static public function init()
   {
-    $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/gharlan.github';
-    $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/gharlan.github';
+    $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
+    $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/' . self::BUNDLE;
     if (!is_dir($dataDir)) {
       mkdir($dataDir);
     }

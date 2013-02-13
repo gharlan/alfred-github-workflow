@@ -22,7 +22,7 @@ tell application "Alfred 2"
 end tell
 END');
 
-        $c = gh::request('https://github.com/session', $status, true, null, array('authenticity_token' => gh::getToken(), 'login' => $parts[2], 'password' => $password));
+        $c = gh::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => gh::getToken(), 'login' => $parts[2], 'password' => $password));
         if ($status === 302) {
           echo 'Successfully logged in';
           gh::deleteCache();
@@ -50,22 +50,22 @@ END');
     break;
 
   case 'follow':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/follow', $status, true, gh::getToken());
+    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/follow', $status, $etag, true, gh::getToken());
     echo $c == 'true' ? 'You are now following ' . $parts[1] : 'Failed to follow ' . $parts[1];
     break;
 
   case 'unfollow':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unfollow', $status, true, gh::getToken());
+    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unfollow', $status, $etag, true, gh::getToken());
     echo $c == 'true' ? 'You are no longer following ' . $parts[1] : 'Failed to unfollow ' . $parts[1];
     break;
 
   case 'watch':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/watch', $status, true, gh::getToken());
+    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/watch', $status, $etag, true, gh::getToken());
     echo $c == 'true' ? 'You are now watching ' . $parts[1] : 'Failed to watch ' . $parts[1];
     break;
 
   case 'unwatch':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unwatch', $status, true, gh::getToken());
+    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unwatch', $status, $etag, true, gh::getToken());
     echo $c == 'true' ? 'You are no longer watching ' . $parts[1] : 'Failed to unwatch ' . $parts[1];
     break;
 

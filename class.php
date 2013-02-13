@@ -60,10 +60,11 @@ class gh
     self::$configChanged = true;
   }
 
-  static public function request($url, &$status = null, $post = false, $token = null, array $data = array())
+  static public function request($url, &$status = null, &$etag = null, $post = false, $token = null, array $data = array())
   {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_HEADER, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_COOKIEJAR, self::$fileCookies);
     curl_setopt($ch, CURLOPT_COOKIEFILE, self::$fileCookies);
@@ -75,18 +76,28 @@ class gh
       if ($token) {
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-CSRF-Token: ' . $token));
       }
+    } elseif ($etag) {
+      curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
     }
-    $o = curl_exec($ch);
+    list($header, $body) = explode("\r\n\r\n", curl_exec($ch));
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
-    return $status == 200 ? $o : null;
+    if (preg_match('/^ETag: (\V*)/mi', $header, $match)) {
+      $etag = $match[1];
+    }
+    return $status == 200 ? $body : null;
   }
 
-  static public function requestCache($url, &$status = null)
+  static public function requestCache($url, &$status = null, $maxAge = 5)
   {
-    if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * 5) {
-      self::$cache[$url]['content'] = self::request($url, $status);
-      self::$cache[$url]['status'] = $status;
+    if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * $maxAge) {
+      $etag = isset(self::$cache[$url]['etag']) ? self::$cache[$url]['etag'] : null;
+      $content = self::request($url, $status, $etag);
+      if ($status != 304) {
+        self::$cache[$url]['content'] = $content;
+        self::$cache[$url]['status'] = $status;
+      }
+      self::$cache[$url]['etag'] = $etag;
       self::$cache[$url]['timestamp'] = time();
       self::$cacheChanged = true;
     }

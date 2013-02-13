@@ -4,9 +4,11 @@ class gh
 {
   static private
     $fileCookies,
-    $fileUser,
+    $fileConfig,
     $fileCache,
-    $cache,
+    $config = array(),
+    $configChanged = false,
+    $cache = array(),
     $cacheChanged = false;
 
   static public function init()
@@ -20,16 +22,42 @@ class gh
       mkdir($cacheDir);
     }
     self::$fileCookies = $dataDir . '/cookies';
-    self::$fileUser    = $dataDir . '/user';
+    self::$fileConfig  = $dataDir . '/config.json';
     self::$fileCache   = $cacheDir . '/cache.json';
     register_shutdown_function('gh::shutdown');
+    if (file_exists(self::$fileConfig)) {
+      self::$config = json_decode(file_get_contents(self::$fileConfig), true);
+    }
+    if (file_exists(self::$fileCache)) {
+      self::$cache = json_decode(file_get_contents(self::$fileCache), true);
+    }
   }
 
   static public function shutdown()
   {
+    if (self::$configChanged) {
+      file_put_contents(self::$fileConfig, json_encode(self::$config));
+    }
     if (self::$cacheChanged) {
       file_put_contents(self::$fileCache, json_encode(self::$cache));
     }
+  }
+
+  static public function setConfig($key, $value)
+  {
+    self::$config[$key] = $value;
+    self::$configChanged = true;
+  }
+
+  static public function getConfig($key, $default = null)
+  {
+    return isset(self::$config[$key]) ? self::$config[$key] : $default;
+  }
+
+  static public function removeConfig($key)
+  {
+    unset(self::$config[$key]);
+    self::$configChanged = true;
   }
 
   static public function request($url, &$status = null, $post = false, $token = null, array $data = array())
@@ -56,9 +84,6 @@ class gh
 
   static public function requestCache($url, &$status = null)
   {
-    if (self::$cache === null && file_exists(self::$fileCache)) {
-      self::$cache = json_decode(file_get_contents(self::$fileCache), true);
-    }
     if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * 5) {
       self::$cache[$url]['content'] = self::request($url, $status);
       self::$cache[$url]['status'] = $status;
@@ -80,22 +105,7 @@ class gh
   {
     if (file_exists(self::$fileCookies))
       unlink(self::$fileCookies);
-    if (file_exists(self::$fileUser))
-      unlink(self::$fileUser);
-  }
-
-  static public function getUser()
-  {
-    static $user;
-    if (!$user && file_exists(self::$fileUser)) {
-      $user = file_get_contents(self::$fileUser);
-    }
-    return $user;
-  }
-
-  static public function setUser($user)
-  {
-    file_put_contents(self::$fileUser, $user);
+    self::removeConfig('user');
   }
 
   static public function getToken()
@@ -150,7 +160,7 @@ class gh
         unlink($file);
       }
       if (file_exists($file = __DIR__ . '/user')) {
-        rename($file, self::$fileUser);
+        self::setConfig('user', file_get_contents($file));
       }
       if (file_exists($file = __DIR__ . '/cookies')) {
         rename($file, self::$fileCookies);

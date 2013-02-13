@@ -26,7 +26,7 @@ END');
         if ($status === 302) {
           echo 'Successfully logged in';
           gh::deleteCache();
-          gh::setUser($parts[2]);
+          gh::setConfig('user', $parts[2]);
         } else {
           echo 'Login failed';
         }

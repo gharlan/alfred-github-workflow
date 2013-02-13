@@ -215,7 +215,7 @@ if (!$isSystem) {
     'pulls'         => array('dashboard/pulls', 'View your pull requests'),
     'issues'        => array('dashboard/issues', 'View your issues'),
     'stars'         => array('stars', 'View your starred repositories'),
-    'profile'       => array(gh::getUser(), 'View your public user profile'),
+    'profile'       => array(gh::getConfig('user'), 'View your public user profile'),
     'settings'      => array('settings', 'View or edit your account settings'),
     'notifications' => array('notifications', 'View all your notifications')
   );

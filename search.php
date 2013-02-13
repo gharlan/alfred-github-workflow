@@ -6,22 +6,6 @@ gh::init();
 
 $query = $argv[1];
 
-if ($query == '') {
-  $items = array();
-  $items['main'] = array(
-    'arg' => 'url https://github.com',
-    'title' => 'Open GitHub Main Page'
-  );
-  $items['command']  = array(
-    'title' => 'gh …',
-    'subtitle' => 'Search or type a command',
-    'valid' => 'no',
-    'autocomplete' => ' '
-  );
-  print gh::array2xml($items);
-  return;
-}
-
 $query = ltrim($query);
 $parts = explode(' ', $query);
 

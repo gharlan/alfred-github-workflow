@@ -33,6 +33,8 @@
 	<string>Gregor Harlan</string>
 	<key>description</key>
 	<string>GitHub commands and searches</string>
+	<key>disabled</key>
+	<false/>
 	<key>name</key>
 	<string>GitHub</string>
 	<key>objects</key>
@@ -40,12 +42,29 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>php -f action.php -- "{query}"</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>argumenttype</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>escaping</key>
 				<integer>36</integer>
 				<key>keyword</key>
 				<string>gh</string>
+				<key>runningsubtext</key>
+				<string>Loading results…</string>
 				<key>script</key>
 				<string>php -f search.php -- "{query}"</string>
 				<key>subtext</key>
@@ -61,21 +80,6 @@
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>script</key>
-				<string>php -f action.php -- "{query}"</string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
 		</dict>
 		<dict>
 			<key>config</key>

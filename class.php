@@ -165,22 +165,12 @@ class gh
     return $i;
   }
 
-  static public function updateWorkflow()
+  static public function checkUpdate()
   {
-    if (file_exists($file = __DIR__ . '/functions.php')) {
-      unlink($file);
-      if (file_exists($file = __DIR__ . '/cache.json')) {
-        unlink($file);
-      }
-      if (file_exists($file = __DIR__ . '/user')) {
-        self::setConfig('user', file_get_contents($file));
-      }
-      if (file_exists($file = __DIR__ . '/cookies')) {
-        rename($file, self::$fileCookies);
-      }
-      self::deleteCache();
-      return true;
+    if (!self::getConfig('autoupdate', true)) {
+      return false;
     }
-    return false;
+    $version = self::requestCache('http://gh01.de/alfred/github/current', $status, 1440);
+    return $version != self::VERSION;
   }
 }

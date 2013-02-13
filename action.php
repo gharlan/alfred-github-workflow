@@ -42,6 +42,33 @@ END');
         gh::deleteCache();
         echo 'Successfully deleted cache';
         break;
+
+      case 'activate-autoupdate':
+        gh::setConfig('autoupdate', true);
+        echo 'Activated auto updating';
+        break;
+
+      case 'deactivate-autoupdate':
+        gh::setConfig('autoupdate', false);
+        echo 'Deactivated auto updating';
+        break;
+
+      case 'update':
+        $c = gh::request('http://gh01.de/alfred/github/github.alfredworkflow', $status);
+        if ($status != 200) {
+          echo 'Update failed';
+          exit;
+        }
+        $zip = __DIR__ . '/workflow.zip';
+        file_put_contents($zip, $c);
+        $phar = new PharData($zip);
+        //$phar->extractTo(__DIR__ . '/test', null, true);
+        foreach ($phar as $path => $file) {
+          copy($path, __DIR__ . '/' . $file->getFilename());
+        }
+        unlink($zip);
+        echo 'Successfully updated the GitHub Workflow';
+        break;
     }
     break;
 

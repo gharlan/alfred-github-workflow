@@ -9,13 +9,27 @@ $query = $argv[1];
 $query = ltrim($query);
 $parts = explode(' ', $query);
 
+if (gh::checkUpdate()) {
+  $cmds = array(
+    'update' => 'There is an update for this Alfred workflow',
+    'deactivate autoupdate' => 'Deactivate auto updating this Alfred Workflow'
+  );
+  $items = array();
+  foreach ($cmds as $cmd => $desc) {
+    $arg = str_replace(' ', '-', $cmd);
+    $items[$arg] = array(
+      'arg' => '> ' . $arg,
+      'title' => 'gh > ' . $cmd,
+      'subtitle' => $desc,
+      'autocomplete' => ' > ' . $cmd
+    );
+  }
+  print gh::array2xml($items);
+  exit;
+}
+
 $users = json_decode(gh::requestCache('https://github.com/command_bar/users'), true);
 $users = $users['users'];
-
-if (empty($users) && gh::updateWorkflow()) {
-  $users = json_decode(gh::requestCache('https://github.com/command_bar/users'), true);
-  $users = $users['users'];
-}
 
 if (empty($users)) {
 
@@ -253,8 +267,14 @@ if (!$isSystem) {
 
   $cmds = array(
     'logout' => 'Log out from GitHub (only this Alfred Workflow)',
-    'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)'
+    'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)',
+    'update' => 'Update this Alfred workflow'
   );
+  if (gh::getConfig('autoupdate', true)) {
+    $cmds['deactivate autoupdate'] = 'Deactivate auto updating this Alfred Workflow';
+  } else {
+    $cmds['activate autoupdate'] = 'Activate auto updating this Alfred Workflow';
+  }
   foreach ($cmds as $cmd => $desc) {
     if (gh::match($query, '> ' . $cmd)) {
       $arg = str_replace(' ', '-', $cmd);

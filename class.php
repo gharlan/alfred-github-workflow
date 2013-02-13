@@ -6,7 +6,8 @@ class gh
     $fileCookies,
     $fileUser,
     $fileCache,
-    $cache;
+    $cache,
+    $cacheChanged = false;
 
   static public function init()
   {
@@ -21,6 +22,14 @@ class gh
     self::$fileCookies = $dataDir . '/cookies';
     self::$fileUser    = $dataDir . '/user';
     self::$fileCache   = $cacheDir . '/cache.json';
+    register_shutdown_function('gh::shutdown');
+  }
+
+  static public function shutdown()
+  {
+    if (self::$cacheChanged) {
+      file_put_contents(self::$fileCache, json_encode(self::$cache));
+    }
   }
 
   static public function request($url, &$status = null, $post = false, $token = null, array $data = array())
@@ -47,18 +56,14 @@ class gh
 
   static public function requestCache($url, &$status = null)
   {
-    if (self::$cache === null) {
-      if (file_exists(self::$fileCache)) {
-        self::$cache = json_decode(file_get_contents(self::$fileCache), true);
-      }
-      if (!isset(self::$cache['timestamp']) || self::$cache['timestamp'] < time() - 60 * 5) {
-        self::$cache = array('timestamp' => time());
-      }
+    if (self::$cache === null && file_exists(self::$fileCache)) {
+      self::$cache = json_decode(file_get_contents(self::$fileCache), true);
     }
-    if (!isset(self::$cache[$url])) {
+    if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * 5) {
       self::$cache[$url]['content'] = self::request($url, $status);
       self::$cache[$url]['status'] = $status;
-      file_put_contents(self::$fileCache, json_encode(self::$cache));
+      self::$cache[$url]['timestamp'] = time();
+      self::$cacheChanged = true;
     }
     $status = self::$cache[$url]['status'];
     return self::$cache[$url]['content'];
@@ -97,7 +102,7 @@ class gh
   {
     $c = self::request('https://github.com/');
     preg_match('@<meta content="(.*)" name="csrf-token" />@U', $c, $match);
-    return $match[1];
+    return isset($match[1]) ? $match[1] : null;
   }
 
   static public function array2xml(array $data)

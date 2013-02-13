@@ -2,6 +2,8 @@
 
 class gh
 {
+  const VERSION = '$Format:%H$';
+
   static private
     $fileCookies,
     $fileConfig,

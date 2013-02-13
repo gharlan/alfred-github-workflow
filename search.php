@@ -73,28 +73,47 @@ if (!$isSystem) {
 
     if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@'))) {
 
-      if ($parts[1][0] == '@') {
-        $type = 'branch';
-        $path = 'branches';
-        $url = 'tree';
+      if ($parts[1][0] == '#' && isset($parts[1][1]) && intval($parts[1][1]) === 0 && strlen($parts[1]) < 4) {
+        $items['repo-issue-search'] = array(
+          'title' => $parts[0] . ' ' . $parts[1] . '…',
+          'subtitle' => 'Search an issue, type at least 3 letters',
+          'autocomplete' => ' ' . $parts[0] . ' ' . $parts[1],
+          'valid' => 'no',
+          'levenshtein' => 1,
+          'sameChars' => 0
+        );
       } else {
-        $type = 'issue';
-        $path = 'issues';
-        $url = 'issues';
-      }
-      $subs = json_decode(gh::requestCache('https://github.com/command_bar/' . $parts[0] . '/' . $path), true);
-      $subs = $subs[$path];
-      foreach ($subs as $sub) {
-        if (gh::match($parts[1], $sub['command'], $ls)) {
-          $name = substr($sub['command'], 1);
-          $items['repo-' . $type . '-' . $parts[0] . '-' . $name] = array(
-            'arg' => 'url https://github.com/' . $parts[0] . '/' . $url . '/' . $name,
-            'title' => $parts[0] . ' ' . $sub['command'],
-            'subtitle' => $sub['description'],
-            'autocomplete' => ' ' . $parts[0] . ' ' . $sub['command'],
-            'levenshtein' => $ls,
-            'sameChars' => gh::sameCharsFromBeginning($parts[1], $sub['command'])
-          );
+        $pathAdd = '';
+        $compareField = 'command';
+        if ($parts[1][0] == '@') {
+          $type = 'branch';
+          $path = 'branches';
+          $url = 'tree';
+        } else {
+          $type = 'issue';
+          $path = 'issues';
+          $url = 'issues';
+          if (strlen($parts[1]) > 3 && intval($parts[1][1]) == 0) {
+            $pathAdd = '_search?q=' . substr($parts[1], 1);
+            $compareField = 'description';
+          }
+        }
+        $subs = json_decode(gh::requestCache('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd), true);
+        $subs = $subs[$path];
+        foreach ($subs as $sub) {
+          $compare1 = substr($parts[1], 1);
+          $compare2 = ltrim($sub[$compareField], $parts[1][0]);
+          if (gh::match($compare1, $compare2, $ls)) {
+            $name = substr($sub['command'], 1);
+            $items['repo-' . $type . '-' . $parts[0] . '-' . $name] = array(
+              'arg' => 'url https://github.com/' . $parts[0] . '/' . $url . '/' . $name,
+              'title' => $parts[0] . ' ' . $sub['command'],
+              'subtitle' => $sub['description'],
+              'autocomplete' => ' ' . $parts[0] . ' ' . $sub['command'],
+              'levenshtein' => $ls,
+              'sameChars' => gh::sameCharsFromBeginning($compare1, $compare2)
+            );
+          }
         }
       }
 

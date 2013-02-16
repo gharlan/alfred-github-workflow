@@ -83,7 +83,7 @@ class gh
     } elseif ($etag) {
       curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
     }
-    list($header, $body) = explode("\r\n\r\n", curl_exec($ch));
+    list($header, $body) = explode("\r\n\r\n", curl_exec($ch), 2);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if (preg_match('/^ETag: (\V*)/mi', $header, $match)) {

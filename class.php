@@ -66,14 +66,18 @@ class gh
 
   static public function request($url, &$status = null, &$etag = null, $post = false, $token = null, array $data = array())
   {
+    $debug = false;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HEADER, 1);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_COOKIEJAR, self::$fileCookies);
     curl_setopt($ch, CURLOPT_COOKIEFILE, self::$fileCookies);
-    #curl_setopt($ch, CURLOPT_PROXY, 'localhost');
-    #curl_setopt($ch, CURLOPT_PROXYPORT, 8888);
+    if ($debug) {
+      curl_setopt($ch, CURLOPT_PROXY, 'localhost');
+      curl_setopt($ch, CURLOPT_PROXYPORT, 8888);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+    }
     if ($post) {
       curl_setopt($ch, CURLOPT_POST, true);
       curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
@@ -83,7 +87,11 @@ class gh
     } elseif ($etag) {
       curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
     }
-    list($header, $body) = explode("\r\n\r\n", curl_exec($ch), 2);
+    if ($debug) {
+      list(, $header, $body) = explode("\r\n\r\n", curl_exec($ch), 3);
+    } else {
+      list($header, $body) = explode("\r\n\r\n", curl_exec($ch), 2);
+    }
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     if (preg_match('/^ETag: (\V*)/mi', $header, $match)) {

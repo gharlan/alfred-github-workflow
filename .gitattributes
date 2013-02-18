@@ -1,2 +1,2 @@
 .gitattributes export-ignore
-class.php export-subst
+workflow.php export-subst

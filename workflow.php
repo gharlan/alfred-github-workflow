@@ -167,6 +167,12 @@ class Workflow
 
   static public function checkUpdate()
   {
+    if (self::getConfig('version') !== self::VERSION) {
+      if (file_exists($file = __DIR__ . '/class.php')) {
+        unlink($file);
+      }
+      self::setConfig('version', self::VERSION);
+    }
     if (!self::getConfig('autoupdate', true)) {
       return false;
     }

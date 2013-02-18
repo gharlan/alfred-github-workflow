@@ -62,7 +62,6 @@ END');
         $zip = __DIR__ . '/workflow.zip';
         file_put_contents($zip, $c);
         $phar = new PharData($zip);
-        //$phar->extractTo(__DIR__ . '/test', null, true);
         foreach ($phar as $path => $file) {
           copy($path, __DIR__ . '/' . $file->getFilename());
         }

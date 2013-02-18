@@ -1,8 +1,8 @@
 <?php
 
-require 'class.php';
+require 'workflow.php';
 
-gh::init();
+Workflow::init();
 
 $query = trim($argv[1]);
 $parts = explode(' ', $query);
@@ -22,39 +22,39 @@ tell application "Alfred 2"
 end tell
 END');
 
-        $c = gh::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => gh::getToken(), 'login' => $parts[2], 'password' => $password));
+        $c = Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
         if ($status === 302) {
           echo 'Successfully logged in';
-          gh::deleteCache();
-          gh::setConfig('user', $parts[2]);
+          Workflow::deleteCache();
+          Workflow::setConfig('user', $parts[2]);
         } else {
           echo 'Login failed';
         }
         break;
 
       case 'logout':
-        gh::deleteCookies();
-        gh::deleteCache();
+        Workflow::deleteCookies();
+        Workflow::deleteCache();
         echo 'Successfully logged out';
         break;
 
       case 'delete-cache':
-        gh::deleteCache();
+        Workflow::deleteCache();
         echo 'Successfully deleted cache';
         break;
 
       case 'activate-autoupdate':
-        gh::setConfig('autoupdate', true);
+        Workflow::setConfig('autoupdate', true);
         echo 'Activated auto updating';
         break;
 
       case 'deactivate-autoupdate':
-        gh::setConfig('autoupdate', false);
+        Workflow::setConfig('autoupdate', false);
         echo 'Deactivated auto updating';
         break;
 
       case 'update':
-        $c = gh::request('http://gh01.de/alfred/github/github.alfredworkflow', $status);
+        $c = Workflow::request('http://gh01.de/alfred/github/github.alfredworkflow', $status);
         if ($status != 200) {
           echo 'Update failed';
           exit;
@@ -77,22 +77,22 @@ END');
     break;
 
   case 'follow':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/follow', $status, $etag, true, gh::getToken());
+    $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/follow', $status, $etag, true, Workflow::getToken());
     echo $c == 'true' ? 'You are now following ' . $parts[1] : 'Failed to follow ' . $parts[1];
     break;
 
   case 'unfollow':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unfollow', $status, $etag, true, gh::getToken());
+    $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/unfollow', $status, $etag, true, Workflow::getToken());
     echo $c == 'true' ? 'You are no longer following ' . $parts[1] : 'Failed to unfollow ' . $parts[1];
     break;
 
   case 'watch':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/watch', $status, $etag, true, gh::getToken());
+    $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/watch', $status, $etag, true, Workflow::getToken());
     echo $c == 'true' ? 'You are now watching ' . $parts[1] : 'Failed to watch ' . $parts[1];
     break;
 
   case 'unwatch':
-    $c = gh::request('https://github.com/command_bar/' . $parts[1] . '/unwatch', $status, $etag, true, gh::getToken());
+    $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/unwatch', $status, $etag, true, Workflow::getToken());
     echo $c == 'true' ? 'You are no longer watching ' . $parts[1] : 'Failed to unwatch ' . $parts[1];
     break;
 

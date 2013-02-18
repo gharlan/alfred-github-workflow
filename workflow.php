@@ -1,6 +1,8 @@
 <?php
 
-class gh
+require 'item.php';
+
+class Workflow
 {
   const
     VERSION = '$Format:%H$',
@@ -13,10 +15,13 @@ class gh
     $config = array(),
     $configChanged = false,
     $cache = array(),
-    $cacheChanged = false;
+    $cacheChanged = false,
+    $query,
+    $items = array();
 
-  static public function init()
+  static public function init($query = null)
   {
+    self::$query = $query;
     $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
     $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/' . self::BUNDLE;
     if (!is_dir($dataDir)) {
@@ -28,7 +33,7 @@ class gh
     self::$fileCookies = $dataDir . '/cookies';
     self::$fileConfig  = $dataDir . '/config.json';
     self::$fileCache   = $cacheDir . '/cache.json';
-    register_shutdown_function('gh::shutdown');
+    register_shutdown_function(array(__CLASS__, 'shutdown'));
     if (file_exists(self::$fileConfig)) {
       self::$config = json_decode(file_get_contents(self::$fileConfig), true);
     }
@@ -138,43 +143,6 @@ class gh
     return isset($match[1]) ? $match[1] : null;
   }
 
-  static public function array2xml(array $data)
-  {
-    $items = new SimpleXMLElement('<items></items>');
-
-    foreach ($data as $uid => $d) {
-      $c = $items->addChild('item');
-      $c->addAttribute('uid', 'github-' . $uid);
-      $c->addChild('icon', 'icon.png');
-      $keys = array('arg', 'valid', 'autocomplete');
-      foreach ($keys as $key) {
-        if (isset($d[$key]))
-          $c->addAttribute($key, $d[$key]);
-      }
-      $keys = array('title', 'subtitle');
-      foreach ($keys as $key) {
-        if (isset($d[$key]))
-          $c->addChild($key, htmlspecialchars($d[$key]));
-      }
-    }
-
-    return $items->asXML();
-  }
-
-  static public function match($str1, $str2, &$ls = null)
-  {
-    return ($ls = levenshtein(strtolower($str1), strtolower($str2), 1, 1000, 1000)) < 1000;
-  }
-
-  static public function sameCharsFromBeginning($str1, $str2)
-  {
-    $str1 = strtolower($str1);
-    $str2 = strtolower($str2);
-    $end = min(strlen($str1), strlen($str2));
-    for ($i = 0; $i < $end && $str1[$i] === $str2[$i]; ++$i);
-    return $i;
-  }
-
   static public function checkUpdate()
   {
     if (!self::getConfig('autoupdate', true)) {
@@ -182,5 +150,24 @@ class gh
     }
     $version = self::requestCache('http://gh01.de/alfred/github/current', $status, 1440);
     return $version != self::VERSION;
+  }
+
+  static public function addItem(Item $item, $check = true)
+  {
+    if (!$check || $item->match(self::$query)) {
+      self::$items[] = $item;
+    }
+  }
+
+  static public function sortItems()
+  {
+    usort(self::$items, function (Item $a, Item $b) {
+      return $a->compare($b);
+    });
+  }
+
+  static public function getItemsAsXml()
+  {
+    return Item::toXml(self::$items);
   }
 }

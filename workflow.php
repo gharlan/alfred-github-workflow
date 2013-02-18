@@ -148,7 +148,7 @@ class Workflow
   {
     if (file_exists(self::$fileCache))
       unlink(self::$fileCache);
-    self::$cache = null;
+    self::$cache = array();
   }
 
   static public function deleteCookies()
@@ -172,6 +172,7 @@ class Workflow
         unlink($file);
       }
       self::setConfig('version', self::VERSION);
+      self::deleteCache();
     }
     if (!self::getConfig('autoupdate', true)) {
       return false;

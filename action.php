@@ -66,6 +66,7 @@ END');
           copy($path, __DIR__ . '/' . $file->getFilename());
         }
         unlink($zip);
+        Workflow::deleteCache();
         echo 'Successfully updated the GitHub Workflow';
         break;
     }

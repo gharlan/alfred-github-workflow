@@ -47,12 +47,13 @@ if (empty($users)) {
 
 $isSystem = isset($query[0]) && $query[0] == '>';
 $isUser = isset($query[0]) && $query[0] == '@';
+$isRepo = false;
+$queryUser = null;
 if ($isUser) {
   $queryUser = ltrim($parts[0], '@');
-}
-$isRepo = !$isUser && ($pos = strpos($parts[0], '/')) !== false;
-if ($isRepo) {
+} elseif (($pos = strpos($parts[0], '/')) !== false) {
   $queryUser = substr($parts[0], 0, $pos);
+  $isRepo = true;
 }
 
 if (!$isSystem) {
@@ -89,7 +90,7 @@ if (!$isSystem) {
             ->title($parts[0] . ' ' . $sub->command)
             ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub->description : $sub->command))
             ->subtitle($sub->description)
-            ->arg('url https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, 1))
+            ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, 1))
           );
         }
       }
@@ -108,7 +109,7 @@ if (!$isSystem) {
         Workflow::addItem(Item::create()
           ->title($parts[0] . ' ' . $key)
           ->subtitle($sub)
-          ->arg('url https://github.com/' . $parts[0] . '/' . $key)
+          ->arg('https://github.com/' . $parts[0] . '/' . $key)
         );
       }
       foreach (array('watch', 'unwatch') as $key) {
@@ -144,7 +145,7 @@ if (!$isSystem) {
       Workflow::addItem(Item::create()
         ->title($repo->command . ' ')
         ->subtitle($repo->description)
-        ->arg('url https://github.com/' . $repo->command)
+        ->arg('https://github.com/' . $repo->command)
         ->prio(3)
       );
     }
@@ -166,7 +167,7 @@ if (!$isSystem) {
         ->prefix('@', false)
         ->title($name . ' ')
         ->subtitle($user->description)
-        ->arg('url https://github.com/' . $name)
+        ->arg('https://github.com/' . $name)
         ->prio(2)
       );
     }
@@ -185,7 +186,7 @@ if (!$isSystem) {
     Workflow::addItem(Item::create()
       ->title('my ' . $key)
       ->subtitle($my[1])
-      ->arg('url https://github.com/' . $my[0])
+      ->arg('https://github.com/' . $my[0])
       ->prio(1)
     );
   }
@@ -196,7 +197,7 @@ if (!$isSystem) {
     $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
     Workflow::addItem(Item::create()
       ->title("Search GitHub for '$query'")
-      ->arg('url https://github.com/' . $path)
+      ->arg('https://github.com/' . $path)
       ->autocomplete(false)
     , false);
   }

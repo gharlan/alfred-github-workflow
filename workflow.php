@@ -78,6 +78,7 @@ class Workflow
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_COOKIEJAR, self::$fileCookies);
     curl_setopt($ch, CURLOPT_COOKIEFILE, self::$fileCookies);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'alfred-github-workflow');
     if ($debug) {
       curl_setopt($ch, CURLOPT_PROXY, 'localhost');
       curl_setopt($ch, CURLOPT_PROXYPORT, 8888);

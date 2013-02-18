@@ -105,21 +105,43 @@ class Workflow
     return $status == 200 ? $body : null;
   }
 
-  static public function requestCache($url, &$status = null, $maxAge = 5)
+  static public function requestCache($url, $maxAge = 5)
   {
     if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * $maxAge) {
       $etag = isset(self::$cache[$url]['etag']) ? self::$cache[$url]['etag'] : null;
       $content = self::request($url, $status, $etag);
-      if ($status != 304) {
-        self::$cache[$url]['content'] = $content;
-        self::$cache[$url]['status'] = $status;
+      switch ($status) {
+        /** @noinspection PhpMissingBreakStatementInspection */
+        case 200:
+          self::$cache[$url]['content'] = $content;
+          self::$cache[$url]['status'] = $status;
+          // fall trough
+        case 304:
+          self::$cache[$url]['etag'] = $etag;
+          self::$cache[$url]['timestamp'] = time();
+          self::$cacheChanged = true;
+          break;
+
+        default:
+          unset(self::$cache[$url]);
+          self::$cacheChanged = true;
+          return null;
       }
-      self::$cache[$url]['etag'] = $etag;
-      self::$cache[$url]['timestamp'] = time();
-      self::$cacheChanged = true;
     }
-    $status = self::$cache[$url]['status'];
     return self::$cache[$url]['content'];
+  }
+
+  static public function requestCacheJson($url, $key = null, $maxAge = 5)
+  {
+    $content = self::requestCache($url, $maxAge);
+    if (!is_string($content)) {
+      return null;
+    }
+    $content = json_decode($content);
+    if ($key && !isset($content->$key)) {
+      return null;
+    }
+    return $key ? $content->$key : $content;
   }
 
   static public function deleteCache()
@@ -148,8 +170,8 @@ class Workflow
     if (!self::getConfig('autoupdate', true)) {
       return false;
     }
-    $version = self::requestCache('http://gh01.de/alfred/github/current', $status, 1440);
-    return $version != self::VERSION;
+    $version = self::requestCache('http://gh01.de/alfred/github/current', 1440);
+    return $version !== null && $version !== self::VERSION;
   }
 
   static public function addItem(Item $item, $check = true)

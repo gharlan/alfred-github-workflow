@@ -25,8 +25,7 @@ if (Workflow::checkUpdate()) {
   exit;
 }
 
-$users = json_decode(Workflow::requestCache('https://github.com/command_bar/users'), true);
-$users = $users['users'];
+$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'users');
 
 if (empty($users)) {
 
@@ -84,14 +83,13 @@ if (!$isSystem) {
             $compareDescription = true;
           }
         }
-        $subs = json_decode(Workflow::requestCache('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd), true);
-        $subs = $subs[$path];
+        $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, $path);
         foreach ($subs as $sub) {
           Workflow::addItem(Item::create()
-            ->title($parts[0] . ' ' . $sub['command'])
-            ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub['description'] : $sub['command']))
-            ->subtitle($sub['description'])
-            ->arg('url https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub['command'], 1))
+            ->title($parts[0] . ' ' . $sub->command)
+            ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub->description : $sub->command))
+            ->subtitle($sub->description)
+            ->arg('url https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, 1))
           );
         }
       }
@@ -140,14 +138,13 @@ if (!$isSystem) {
   } elseif (!$isUser) {
 
     $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
-    $repos = json_decode(Workflow::requestCache('https://github.com/command_bar/' . $path), true);
-    $repos = $repos['repositories'];
+    $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, 'repositories');
 
     foreach ($repos as $repo) {
       Workflow::addItem(Item::create()
-        ->title($repo['command'] . ' ')
-        ->subtitle($repo['description'])
-        ->arg('url https://github.com/' . $repo['command'])
+        ->title($repo->command . ' ')
+        ->subtitle($repo->description)
+        ->arg('url https://github.com/' . $repo->command)
         ->prio(3)
       );
     }
@@ -164,11 +161,11 @@ if (!$isSystem) {
     }
   } elseif (!$isRepo) {
     foreach ($users as $user) {
-      $name = substr($user['command'], 1);
+      $name = substr($user->command, 1);
       Workflow::addItem(Item::create()
         ->prefix('@', false)
         ->title($name . ' ')
-        ->subtitle($user['description'])
+        ->subtitle($user->description)
         ->arg('url https://github.com/' . $name)
         ->prio(2)
       );

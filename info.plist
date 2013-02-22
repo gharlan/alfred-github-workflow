@@ -40,27 +40,39 @@
 	<key>createdby</key>
 	<string>Gregor Harlan</string>
 	<key>description</key>
-	<string>GitHub commands and searches</string>
+	<string>Unofficial implementation of GitHub command bar for Alfred</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>GitHub</string>
+	<string>GitHub commands</string>
 	<key>objects</key>
 	<array>
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>argumenttype</key>
+				<integer>0</integer>
 				<key>escaping</key>
 				<integer>36</integer>
+				<key>keyword</key>
+				<string>gh</string>
+				<key>runningsubtext</key>
+				<string>Loading results…</string>
 				<key>script</key>
-				<string>php -f action.php -- "{query}"</string>
+				<string>php -f search.php -- "{query}"</string>
+				<key>subtext</key>
+				<string>Search or type a command</string>
+				<key>title</key>
+				<string>gh {query}</string>
 				<key>type</key>
 				<integer>0</integer>
+				<key>withspace</key>
+				<false/>
 			</dict>
 			<key>type</key>
-			<string>alfred.workflow.action.script</string>
+			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
 		</dict>
 		<dict>
 			<key>config</key>
@@ -101,29 +113,17 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>argumenttype</key>
-				<integer>0</integer>
 				<key>escaping</key>
 				<integer>36</integer>
-				<key>keyword</key>
-				<string>gh</string>
-				<key>runningsubtext</key>
-				<string>Loading results…</string>
 				<key>script</key>
-				<string>php -f search.php -- "{query}"</string>
-				<key>subtext</key>
-				<string>Search or type a command</string>
-				<key>title</key>
-				<string>gh {query}</string>
+				<string>php -f action.php -- "{query}"</string>
 				<key>type</key>
 				<integer>0</integer>
-				<key>withspace</key>
-				<false/>
 			</dict>
 			<key>type</key>
-			<string>alfred.workflow.input.scriptfilter</string>
+			<string>alfred.workflow.action.script</string>
 			<key>uid</key>
-			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
 		</dict>
 	</array>
 	<key>readme</key>

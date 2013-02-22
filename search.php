@@ -146,7 +146,7 @@ if (!$isSystem) {
         ->title($repo->command . ' ')
         ->subtitle($repo->description)
         ->arg('https://github.com/' . $repo->command)
-        ->prio(3)
+        ->prio(3 + $repo->multiplier)
       );
     }
 

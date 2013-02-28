@@ -106,7 +106,7 @@ class Workflow
         return $status == 200 ? $body : null;
     }
 
-    static public function requestCache($url, $maxAge = 5)
+    static public function requestCache($url, $maxAge = 10)
     {
         if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * $maxAge) {
             $etag = isset(self::$cache[$url]['etag']) ? self::$cache[$url]['etag'] : null;
@@ -132,7 +132,7 @@ class Workflow
         return self::$cache[$url]['content'];
     }
 
-    static public function requestCacheJson($url, $key = null, $maxAge = 5)
+    static public function requestCacheJson($url, $key = null, $maxAge = 10)
     {
         $content = self::requestCache($url, $maxAge);
         if (!is_string($content)) {

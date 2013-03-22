@@ -95,10 +95,18 @@ if (!$isSystem) {
                 }
             }
 
+        } elseif ('issues' === $parts[1] && isset($parts[2])) {
+
+            Workflow::addItem(Item::create()
+                ->title($parts[0] . ' issues new')
+                ->subtitle('Create new issue')
+                ->arg('https://github.com/' . $parts[0] . '/issues/new')
+            );
+
         } else {
 
             $subs = array(
-                'issues'  => 'List, show and create issues',
+                'issues ' => 'List, show and create issues',
                 'pulls'   => 'Show open pull requests',
                 'wiki'    => 'Pull up the wiki',
                 'graphs'  => 'All the graphs',

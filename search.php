@@ -46,6 +46,7 @@ if (empty($users)) {
 }
 
 $isSystem = isset($query[0]) && $query[0] == '>';
+$isMy = 'my' == $parts[0] && isset($parts[1]);
 $isUser = isset($query[0]) && $query[0] == '@';
 $isRepo = false;
 $queryUser = null;
@@ -58,7 +59,7 @@ if ($isUser) {
 
 if (!$isSystem) {
 
-    if (!$isUser && $isRepo && isset($parts[1])) {
+    if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
         if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@'))) {
 
@@ -144,7 +145,7 @@ if (!$isSystem) {
 
         }
 
-    } elseif (!$isUser) {
+    } elseif (!$isUser && !$isMy) {
 
         $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
         $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, 'repositories');
@@ -160,43 +161,51 @@ if (!$isSystem) {
 
     }
 
-    if ($isUser && isset($parts[1])) {
-        foreach (array('follow', 'unfollow') as $key) {
+    if (!$isMy) {
+        if ($isUser && isset($parts[1])) {
+            foreach (array('follow', 'unfollow') as $key) {
+                Workflow::addItem(Item::create()
+                    ->title($parts[0] . ' ' . $key)
+                    ->subtitle(ucfirst($key) . ' ' . $queryUser)
+                    ->arg($key . ' ' . $queryUser)
+                );
+            }
+        } elseif (!$isRepo) {
+            foreach ($users as $user) {
+                $name = substr($user->command, 1);
+                Workflow::addItem(Item::create()
+                    ->prefix('@', false)
+                    ->title($name . ' ')
+                    ->subtitle($user->description)
+                    ->arg('https://github.com/' . $name)
+                    ->prio(2)
+                );
+            }
+        }
+        Workflow::addItem(Item::create()
+            ->title('my ')
+            ->subtitle('Dashboard, settings, and more')
+            ->prio(1)
+            ->valid(false)
+        );
+    } else {
+        $myPages = array(
+            'dashboard'     => array('', 'View your dashboard'),
+            'pulls'         => array('dashboard/pulls', 'View your pull requests'),
+            'issues'        => array('dashboard/issues', 'View your issues'),
+            'stars'         => array('stars', 'View your starred repositories'),
+            'profile'       => array(Workflow::getConfig('user'), 'View your public user profile'),
+            'settings'      => array('settings', 'View or edit your account settings'),
+            'notifications' => array('notifications', 'View all your notifications')
+        );
+        foreach ($myPages as $key => $my) {
             Workflow::addItem(Item::create()
-                ->title($parts[0] . ' ' . $key)
-                ->subtitle(ucfirst($key) . ' ' . $queryUser)
-                ->arg($key . ' ' . $queryUser)
+                ->title('my ' . $key)
+                ->subtitle($my[1])
+                ->arg('https://github.com/' . $my[0])
+                ->prio(1)
             );
         }
-    } elseif (!$isRepo) {
-        foreach ($users as $user) {
-            $name = substr($user->command, 1);
-            Workflow::addItem(Item::create()
-                ->prefix('@', false)
-                ->title($name . ' ')
-                ->subtitle($user->description)
-                ->arg('https://github.com/' . $name)
-                ->prio(2)
-        );
-        }
-    }
-
-    $myPages = array(
-        'dashboard'     => array('', 'View your dashboard'),
-        'pulls'         => array('dashboard/pulls', 'View your pull requests'),
-        'issues'        => array('dashboard/issues', 'View your issues'),
-        'stars'         => array('stars', 'View your starred repositories'),
-        'profile'       => array(Workflow::getConfig('user'), 'View your public user profile'),
-        'settings'      => array('settings', 'View or edit your account settings'),
-        'notifications' => array('notifications', 'View all your notifications')
-    );
-    foreach ($myPages as $key => $my) {
-        Workflow::addItem(Item::create()
-            ->title('my ' . $key)
-            ->subtitle($my[1])
-            ->arg('https://github.com/' . $my[0])
-            ->prio(1)
-        );
     }
 
     Workflow::sortItems();

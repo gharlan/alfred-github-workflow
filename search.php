@@ -70,7 +70,6 @@ if (!$isSystem) {
                     ->valid(false)
                 );
             } else {
-                $pathAdd = '';
                 $compareDescription = false;
                 if ($parts[1][0] == ':') {
                     $path = 'branches';
@@ -86,11 +85,12 @@ if (!$isSystem) {
                 $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
                 foreach ($subs as $sub) {
                     if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
+                        $endPart = substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0]));
                         Workflow::addItem(Item::create()
                             ->title($sub->command)
-                            ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub->description : $sub->command))
+                            ->comparator($parts[0] . ' ' . $parts[1][0] . ($compareDescription ? $sub->description : $endPart))
                             ->subtitle($sub->description)
-                            ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0])))
+                            ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . $endPart)
                         );
                     }
                 }

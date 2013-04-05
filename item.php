@@ -86,12 +86,12 @@ class Item
             $query = substr($query, strlen($this->prefix));
         }
         $this->sameChars = 0;
-        $k = 0;
         $queryLength = strlen($query);
-        for ($i = 0; $i < $queryLength; ++$i) {
+        for ($i = 0, $k = 0; $i < $queryLength; ++$i, $k++) {
             for (; isset($comparator[$k]) && $comparator[$k] !== $query[$i]; ++$k);
-            if (!isset($comparator[$k]))
+            if (!isset($comparator[$k])) {
                 return false;
+            }
             if ($i === $k)
                 $this->sameChars++;
         }

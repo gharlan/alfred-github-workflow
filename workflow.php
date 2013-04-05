@@ -4,22 +4,20 @@ require 'item.php';
 
 class Workflow
 {
-    const
-        VERSION = '$Format:%H$',
-        BUNDLE = 'de.gh01.alfred.github';
+    const VERSION = '$Format:%H$';
+    const BUNDLE = 'de.gh01.alfred.github';
 
-    static private
-        $fileCookies,
-        $fileConfig,
-        $fileCache,
-        $config = array(),
-        $configChanged = false,
-        $cache = array(),
-        $cacheChanged = false,
-        $query,
-        $items = array();
+    private static $fileCookies;
+    private static $fileConfig;
+    private static $fileCache;
+    private static $config = array();
+    private static $configChanged = false;
+    private static $cache = array();
+    private static $cacheChanged = false;
+    private static $query;
+    private static $items = array();
 
-    static public function init($query = null)
+    public static function init($query = null)
     {
         ini_set('display_errors', false);
         self::$query = $query;
@@ -43,7 +41,7 @@ class Workflow
         }
     }
 
-    static public function shutdown()
+    public static function shutdown()
     {
         if (self::$configChanged) {
             file_put_contents(self::$fileConfig, json_encode(self::$config));
@@ -53,24 +51,24 @@ class Workflow
         }
     }
 
-    static public function setConfig($key, $value)
+    public static function setConfig($key, $value)
     {
         self::$config[$key] = $value;
         self::$configChanged = true;
     }
 
-    static public function getConfig($key, $default = null)
+    public static function getConfig($key, $default = null)
     {
         return isset(self::$config[$key]) ? self::$config[$key] : $default;
     }
 
-    static public function removeConfig($key)
+    public static function removeConfig($key)
     {
         unset(self::$config[$key]);
         self::$configChanged = true;
     }
 
-    static public function request($url, &$status = null, &$etag = null, $post = false, $token = null, array $data = array())
+    public static function request($url, &$status = null, &$etag = null, $post = false, $token = null, array $data = array())
     {
         $debug = false;
         $ch = curl_init();
@@ -107,7 +105,7 @@ class Workflow
         return $status == 200 ? $body : null;
     }
 
-    static public function requestCache($url, $maxAge = 10)
+    public static function requestCache($url, $maxAge = 10)
     {
         if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * $maxAge) {
             $etag = isset(self::$cache[$url]['etag']) ? self::$cache[$url]['etag'] : null;
@@ -133,7 +131,7 @@ class Workflow
         return self::$cache[$url]['content'];
     }
 
-    static public function requestCacheJson($url, $key = null, $maxAge = 10)
+    public static function requestCacheJson($url, $key = null, $maxAge = 10)
     {
         $content = self::requestCache($url, $maxAge);
         if (!is_string($content)) {
@@ -146,28 +144,30 @@ class Workflow
         return $key ? $content->$key : $content;
     }
 
-    static public function deleteCache()
+    public static function deleteCache()
     {
-        if (file_exists(self::$fileCache))
+        if (file_exists(self::$fileCache)) {
             unlink(self::$fileCache);
+        }
         self::$cache = array();
     }
 
-    static public function deleteCookies()
+    public static function deleteCookies()
     {
-        if (file_exists(self::$fileCookies))
+        if (file_exists(self::$fileCookies)) {
             unlink(self::$fileCookies);
+        }
         self::removeConfig('user');
     }
 
-    static public function getToken()
+    public static function getToken()
     {
         $c = self::request('https://github.com/');
         preg_match('@<meta content="(.*)" name="csrf-token" />@U', $c, $match);
         return isset($match[1]) ? $match[1] : null;
     }
 
-    static public function checkUpdate()
+    public static function checkUpdate()
     {
         if (self::getConfig('version') !== self::VERSION) {
             if (file_exists($file = __DIR__ . '/class.php')) {
@@ -183,21 +183,21 @@ class Workflow
         return $version !== null && $version !== self::VERSION;
     }
 
-    static public function addItem(Item $item, $check = true)
+    public static function addItem(Item $item, $check = true)
     {
         if (!$check || $item->match(self::$query)) {
             self::$items[] = $item;
         }
     }
 
-    static public function sortItems()
+    public static function sortItems()
     {
         usort(self::$items, function (Item $a, Item $b) {
             return $a->compare($b);
         });
     }
 
-    static public function getItemsAsXml()
+    public static function getItemsAsXml()
     {
         return Item::toXml(self::$items);
     }

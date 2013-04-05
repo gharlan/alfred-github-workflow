@@ -2,22 +2,21 @@
 
 class Item
 {
-    private
-        $randomUid = false,
-        $prefix = '',
-        $prefixOnlyTitle = true,
-        $title,
-        $comparator,
-        $subtitle,
-        $arg,
-        $valid = true,
-        $add = '…',
-        $autocomplete = true,
-        $prio = 0,
-        $missingChars = 0,
-        $sameChars = 0;
+    private $randomUid = false;
+    private $prefix = '';
+    private $prefixOnlyTitle = true;
+    private $title;
+    private $comparator;
+    private $subtitle;
+    private $arg;
+    private $valid = true;
+    private $add = '…';
+    private $autocomplete = true;
+    private $prio = 0;
+    private $missingChars = 0;
+    private $sameChars = 0;
 
-    static public function create()
+    public static function create()
     {
         return new self;
     }
@@ -92,8 +91,9 @@ class Item
             if (!isset($comparator[$k])) {
                 return false;
             }
-            if ($i === $k)
+            if ($i === $k) {
                 $this->sameChars++;
+            }
         }
         $this->missingChars = strlen($comparator) - $queryLength;
         return true;
@@ -101,10 +101,12 @@ class Item
 
     public function compare(self $another)
     {
-        if ($this->sameChars != $another->sameChars)
+        if ($this->sameChars != $another->sameChars) {
             return $this->sameChars < $another->sameChars ? 1 : -1;
-        if ($this->prio != $another->prio)
+        }
+        if ($this->prio != $another->prio) {
             return $this->prio < $another->prio ? 1 : -1;
+        }
         return $this->missingChars > $another->missingChars ? 1 : -1;
     }
 
@@ -112,7 +114,7 @@ class Item
      * @param self[] $items
      * @return string
      */
-    static public function toXml(array $items)
+    public static function toXml(array $items)
     {
         $xml = new SimpleXMLElement('<items></items>');
         foreach ($items as $item) {
@@ -120,17 +122,20 @@ class Item
             $title = $item->prefix . $item->title;
             $c->addAttribute('uid', $item->randomUid ? md5(time() . $title) : md5($title));
             $c->addChild('icon', 'icon.png');
-            if ($item->arg)
+            if ($item->arg) {
                 $c->addAttribute('arg', $item->arg);
-            if ($item->autocomplete)
+            }
+            if ($item->autocomplete) {
                 $c->addAttribute('autocomplete', ' ' . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+            }
             if (!$item->valid) {
                 $c->addAttribute('valid', 'no');
                 $title .= $item->add;
             }
             $c->addChild('title', htmlspecialchars($title));
-            if ($item->subtitle)
+            if ($item->subtitle) {
                 $c->addChild('subtitle', htmlspecialchars($item->subtitle));
+            }
         }
         return $xml->asXML();
     }

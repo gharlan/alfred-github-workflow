@@ -25,7 +25,7 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'users');
+$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results');
 
 if (empty($users)) {
 
@@ -61,7 +61,7 @@ if (!$isSystem) {
 
     if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
-        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@'))) {
+        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', ':'))) {
 
             if ($parts[1][0] == '#' && isset($parts[1][1]) && intval($parts[1][1]) === 0 && strlen($parts[1]) < 4) {
                 Workflow::addItem(Item::create()
@@ -72,27 +72,27 @@ if (!$isSystem) {
             } else {
                 $pathAdd = '';
                 $compareDescription = false;
-                if ($parts[1][0] == '@') {
-                    $type = 'branch';
+                if ($parts[1][0] == ':') {
                     $path = 'branches';
                     $url = 'tree';
                 } else {
-                    $type = 'issue';
                     $path = 'issues';
                     $url = 'issues';
                     if (strlen($parts[1]) > 3 && intval($parts[1][1]) == 0) {
-                        $pathAdd = '_search?q=' . substr($parts[1], 1);
+                        $pathAdd = '?q=' . substr($parts[1], 1);
                         $compareDescription = true;
                     }
                 }
-                $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, $path);
+                $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
                 foreach ($subs as $sub) {
-                    Workflow::addItem(Item::create()
-                        ->title($parts[0] . ' ' . $sub->command)
-                        ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub->description : $sub->command))
-                        ->subtitle($sub->description)
-                        ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, 1))
-                    );
+                    if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
+                        Workflow::addItem(Item::create()
+                            ->title($sub->command)
+                            ->comparator($parts[0] . ' ' . ($compareDescription ? '#' . $sub->description : $sub->command))
+                            ->subtitle($sub->description)
+                            ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0])))
+                        );
+                    }
                 }
             }
 
@@ -121,17 +121,10 @@ if (!$isSystem) {
                     ->arg('https://github.com/' . $parts[0] . '/' . $key)
                 );
             }
-            foreach (array('watch', 'unwatch') as $key) {
-                Workflow::addItem(Item::create()
-                    ->title($parts[0] . ' ' . $key)
-                    ->subtitle(ucfirst($key) . ' ' . $parts[0])
-                    ->arg($key . ' ' . $parts[0])
-                );
-            }
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
-                    '@' => 'Show a specific branch'
+                    ':' => 'Show a specific branch'
                 );
                 foreach ($subs as $key => $subtitle) {
                     Workflow::addItem(Item::create()
@@ -148,7 +141,7 @@ if (!$isSystem) {
     } elseif (!$isUser && !$isMy) {
 
         $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
-        $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, 'repositories');
+        $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, $isRepo ? 'repositories' : 'results');
 
         foreach ($repos as $repo) {
             Workflow::addItem(Item::create()
@@ -162,20 +155,12 @@ if (!$isSystem) {
     }
 
     if (!$isMy) {
-        if ($isUser && isset($parts[1])) {
-            foreach (array('follow', 'unfollow') as $key) {
-                Workflow::addItem(Item::create()
-                    ->title($parts[0] . ' ' . $key)
-                    ->subtitle(ucfirst($key) . ' ' . $queryUser)
-                    ->arg($key . ' ' . $queryUser)
-                );
-            }
-        } elseif (!$isRepo) {
+        if (!$isRepo) {
             foreach ($users as $user) {
                 $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()
                     ->prefix('@', false)
-                    ->title($name . ' ')
+                    ->title($name)
                     ->subtitle($user->description)
                     ->arg('https://github.com/' . $name)
                     ->prio(2)

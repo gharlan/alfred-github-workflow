@@ -72,26 +72,6 @@ END');
         }
         break;
 
-    case 'follow':
-        $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/follow', $status, $etag, true, Workflow::getToken());
-        echo $c == 'true' ? 'You are now following ' . $parts[1] : 'Failed to follow ' . $parts[1];
-        break;
-
-    case 'unfollow':
-        $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/unfollow', $status, $etag, true, Workflow::getToken());
-        echo $c == 'true' ? 'You are no longer following ' . $parts[1] : 'Failed to unfollow ' . $parts[1];
-        break;
-
-    case 'watch':
-        $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/watch', $status, $etag, true, Workflow::getToken());
-        echo $c == 'true' ? 'You are now watching ' . $parts[1] : 'Failed to watch ' . $parts[1];
-        break;
-
-    case 'unwatch':
-        $c = Workflow::request('https://github.com/command_bar/' . $parts[1] . '/unwatch', $status, $etag, true, Workflow::getToken());
-        echo $c == 'true' ? 'You are no longer watching ' . $parts[1] : 'Failed to unwatch ' . $parts[1];
-        break;
-
     default:
         exec('osascript -e "open location \"' . $query . '\""');
 

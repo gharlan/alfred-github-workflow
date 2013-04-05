@@ -25,9 +25,7 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results');
-
-if (empty($users)) {
+if (!Workflow::getConfig('user')) {
 
     $user = null;
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
@@ -156,6 +154,7 @@ if (!$isSystem) {
 
     if (!$isMy) {
         if (!$isRepo) {
+            $users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results');
             foreach ($users as $user) {
                 $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()

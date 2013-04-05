@@ -40,7 +40,7 @@
 	<key>createdby</key>
 	<string>Gregor Harlan</string>
 	<key>description</key>
-	<string>Unofficial implementation of GitHub command bar for Alfred</string>
+	<string>GitHub command bar for Alfred</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>

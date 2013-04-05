@@ -21,6 +21,7 @@ class Workflow
 
     static public function init($query = null)
     {
+        ini_set('display_errors', false);
         self::$query = $query;
         $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
         $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/' . self::BUNDLE;

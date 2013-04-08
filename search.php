@@ -98,6 +98,7 @@ if (!$isSystem) {
                         ->comparator($parts[0] . ' ' . $parts[1][0] . ($compareDescription ? $sub->description : $endPart))
                         ->subtitle($sub->description)
                         ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . $endPart)
+                        ->prio((isset($sub->multiplier) ? $sub->multiplier : 1))
                     );
                 }
             }
@@ -155,7 +156,7 @@ if (!$isSystem) {
                 ->title($repo->command . ' ')
                 ->subtitle($repo->description)
                 ->arg('https://github.com/' . $repo->command)
-                ->prio(3 + $repo->multiplier)
+                ->prio(30 + (isset($repo->multiplier) ? $repo->multiplier : 1))
             );
         }
 
@@ -171,14 +172,14 @@ if (!$isSystem) {
                     ->title($name)
                     ->subtitle($user->description)
                     ->arg('https://github.com/' . $name)
-                    ->prio(2)
+                    ->prio(20 + (isset($user->multiplier) ? $user->multiplier : 1))
                 );
             }
         }
         Workflow::addItem(Item::create()
             ->title('my ')
             ->subtitle('Dashboard, settings, and more')
-            ->prio(1)
+            ->prio(10)
             ->valid(false)
         );
     } else {

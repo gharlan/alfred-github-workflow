@@ -59,38 +59,47 @@ if (!$isSystem) {
 
     if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
-        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', ':'))) {
+        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', ':', '/'))) {
 
-            if ($parts[1][0] == '#' && isset($parts[1][1]) && intval($parts[1][1]) === 0 && strlen($parts[1]) < 4) {
-                Workflow::addItem(Item::create()
-                    ->title($parts[0] . ' ' . $parts[1])
-                    ->subtitle('Search an issue, type at least 3 letters')
-                    ->valid(false)
-                );
-            } else {
-                $compareDescription = false;
-                if ($parts[1][0] == ':') {
+            $compareDescription = false;
+            $pathAdd = '';
+            switch ($parts[1][0]) {
+                case ':':
                     $path = 'branches';
                     $url = 'tree';
-                } else {
+                    break;
+                case '/':
+                    $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch');
+                    $search = $parts[0] . ':' . $masterBranch;
+                    $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
+                    foreach ($branches as $branch) {
+                        if ($branch->display === $search) {
+                            $pathAdd = '?q=&sha=' . $branch->description;
+                            break;
+                        }
+                    }
+                    $path = 'paths';
+                    $url = 'blob/' . $masterBranch;
+                    break;
+                case '#':
                     $path = 'issues';
                     $url = 'issues';
-                    if (strlen($parts[1]) > 3 && intval($parts[1][1]) == 0) {
+                    if (isset($parts[1][1]) && intval($parts[1][1]) == 0) {
                         $pathAdd = '?q=' . substr($parts[1], 1);
                         $compareDescription = true;
                     }
-                }
-                $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
-                foreach ($subs as $sub) {
-                    if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
-                        $endPart = substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0]));
-                        Workflow::addItem(Item::create()
-                            ->title($sub->command)
-                            ->comparator($parts[0] . ' ' . $parts[1][0] . ($compareDescription ? $sub->description : $endPart))
-                            ->subtitle($sub->description)
-                            ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . $endPart)
-                        );
-                    }
+                    break;
+            }
+            $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
+            foreach ($subs as $sub) {
+                if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
+                    $endPart = substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0]));
+                    Workflow::addItem(Item::create()
+                        ->title($sub->command)
+                        ->comparator($parts[0] . ' ' . $parts[1][0] . ($compareDescription ? $sub->description : $endPart))
+                        ->subtitle($sub->description)
+                        ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . $endPart)
+                    );
                 }
             }
 
@@ -122,7 +131,8 @@ if (!$isSystem) {
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
-                    ':' => 'Show a specific branch'
+                    ':' => 'Show a specific branch',
+                    '/' => 'Show a blob'
                 );
                 foreach ($subs as $key => $subtitle) {
                     Workflow::addItem(Item::create()

@@ -70,10 +70,9 @@ if (!$isSystem) {
                     break;
                 case '/':
                     $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch');
-                    $search = $parts[0] . ':' . $masterBranch;
                     $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
-                        if ($branch->display === $search) {
+                        if ($branch->search === $masterBranch) {
                             $pathAdd = '?q=&sha=' . $branch->description;
                             break;
                         }

@@ -59,12 +59,12 @@ if (!$isSystem) {
 
     if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
-        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', ':', '/'))) {
+        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
 
             $compareDescription = false;
             $pathAdd = '';
             switch ($parts[1][0]) {
-                case ':':
+                case '@':
                     $path = 'branches';
                     $url = 'tree';
                     break;
@@ -72,7 +72,7 @@ if (!$isSystem) {
                     $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch');
                     $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
-                        if ($branch->search === $masterBranch) {
+                        if ($branch->display === $masterBranch) {
                             $pathAdd = '?q=&sha=' . $branch->description;
                             break;
                         }
@@ -131,7 +131,7 @@ if (!$isSystem) {
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
-                    ':' => 'Show a specific branch',
+                    '@' => 'Show a specific branch',
                     '/' => 'Show a blob'
                 );
                 foreach ($subs as $key => $subtitle) {

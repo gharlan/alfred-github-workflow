@@ -22,7 +22,7 @@ Commands
 ### Repo commands
 
 * `gh user/repo #123`
-* `gh user/repo :branch`
+* `gh user/repo @branch`
 * `gh user/repo /path/to/file`
 * `gh user/repo issues`
 * `gh user/repo issues new`

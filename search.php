@@ -103,23 +103,16 @@ if (!$isSystem) {
                 }
             }
 
-        } elseif ('issues' === $parts[1] && isset($parts[2])) {
-
-            Workflow::addItem(Item::create()
-                ->title($parts[0] . ' issues new')
-                ->subtitle('Create new issue')
-                ->arg('https://github.com/' . $parts[0] . '/issues/new')
-            );
-
         } else {
 
             $subs = array(
-                'issues ' => 'List, show and create issues',
-                'pulls'   => 'Show open pull requests',
-                'wiki'    => 'Pull up the wiki',
+                'admin'   => 'Manage this repo',
                 'graphs'  => 'All the graphs',
+                'issues ' => 'List, show and create issues',
                 'network' => 'See the network',
-                'admin'   => 'Manage this repo'
+                'pulls'   => 'Show open pull requests',
+                'pulse'   => 'See recent activity',
+                'wiki'    => 'Pull up the wiki'
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()
@@ -128,6 +121,16 @@ if (!$isSystem) {
                     ->arg('https://github.com/' . $parts[0] . '/' . $key)
                 );
             }
+            Workflow::addItem(Item::create()
+                ->title($parts[0] . ' new issue')
+                ->subtitle('Create new issue')
+                ->arg('https://github.com/' . $parts[0] . '/issues/new?source=c')
+            );
+            Workflow::addItem(Item::create()
+                ->title($parts[0] . ' new pull')
+                ->subtitle('Create new pull request')
+                ->arg('https://github.com/' . $parts[0] . '/pull/new?source=c')
+            );
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
@@ -149,7 +152,7 @@ if (!$isSystem) {
     } elseif (!$isUser && !$isMy) {
 
         $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
-        $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, $isRepo ? 'repositories' : 'results');
+        $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, 'results');
 
         foreach ($repos as $repo) {
             Workflow::addItem(Item::create()

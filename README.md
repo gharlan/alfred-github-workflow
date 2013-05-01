@@ -24,22 +24,25 @@ Commands
 * `gh user/repo #123`
 * `gh user/repo @branch`
 * `gh user/repo /path/to/file`
-* `gh user/repo issues`
-* `gh user/repo issues new`
-* `gh user/repo pulls`
-* `gh user/repo wiki`
-* `gh user/repo network`
-* `gh user/repo graphs`
 * `gh user/repo admin`
+* `gh user/repo graphs`
+* `gh user/repo issues`
+* `gh user/repo network`
+* `gh user/repo new issue`
+* `gh user/repo new pull`
+* `gh user/repo pulls`
+* `gh user/repo pulse`
+* `gh user/repo wiki`
 
 ### "My" commands
 
-* `gh my pulls`
-* `gh my stars`
-* `gh my issues`
-* `gh my profile`
 * `gh my dashboard`
+* `gh my issues`
 * `gh my notifications`
+* `gh my profile`
+* `gh my pulls`
+* `gh my settings`
+* `gh my stars`
 
 ### Workflow commands
 

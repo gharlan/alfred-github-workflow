@@ -22,8 +22,9 @@ tell application "Alfred 2"
 end tell
 END');
 
-                $c = Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
+                Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
                 if ($status === 302) {
+                    Workflow::request('https://github.com/');
                     echo 'Successfully logged in';
                     Workflow::deleteCache();
                     Workflow::setConfig('user', $parts[2]);

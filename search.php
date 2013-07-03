@@ -172,7 +172,7 @@ if (!$isSystem) {
 
     if (!$isMy) {
         if (!$isRepo) {
-            $users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results');
+            $users = Workflow::requestCacheJson('https://github.com/command_bar/users?q=' . urlencode($queryUser), 'results');
             foreach ($users as $user) {
                 $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()

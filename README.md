@@ -25,6 +25,7 @@ Commands
 * `gh user/repo @branch`
 * `gh user/repo /path/to/file`
 * `gh user/repo admin`
+* `gh user/repo clone`
 * `gh user/repo graphs`
 * `gh user/repo issues`
 * `gh user/repo network`

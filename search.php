@@ -146,6 +146,11 @@ if (!$isSystem) {
                     );
                 }
             }
+            Workflow::addItem(Item::create()
+                ->title($parts[0] . ' clone')
+                ->subtitle('Clone this repo')
+                ->arg('https://github.com/' . $parts[0] . '.git')
+            );
 
         }
 

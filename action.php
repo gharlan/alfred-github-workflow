@@ -74,6 +74,9 @@ END');
         break;
 
     default:
+        if ('.git' == substr($query, -4)) {
+            $query = 'github-mac://openRepo/' . substr($query, 0, -4);
+        }
         exec('osascript -e "open location \"' . $query . '\""');
 
 }

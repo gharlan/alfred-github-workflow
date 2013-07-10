@@ -170,14 +170,31 @@ if (!$isSystem) {
 
     }
 
-    if (!$isMy) {
+    if ($isUser && isset($parts[1])) {
+        $subs = array(
+            'contributions' => array($queryUser, "View $queryUser's contributions"),
+            'repositories'  => array($queryUser . '?tab=repositories', "View $queryUser's repositories"),
+            'activity'      => array($queryUser . '?tab=activity', "View $queryUser's public activity"),
+            'stars'         => array('stars/' . $queryUser, "View $queryUser's stars")
+        );
+        $prio = count($subs);
+        foreach ($subs as $key => $sub) {
+            Workflow::addItem(Item::create()
+                ->prefix('@', false)
+                ->title($queryUser . ' ' . $key)
+                ->subtitle($sub[1])
+                ->arg('https://github.com/' . $sub[0])
+                ->prio($prio--)
+            );
+        }
+    } elseif (!$isMy) {
         if (!$isRepo) {
             $users = Workflow::requestCacheJson('https://github.com/command_bar/users?q=' . urlencode($queryUser), 'results');
             foreach ($users as $user) {
                 $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()
                     ->prefix('@', false)
-                    ->title($name)
+                    ->title($name . ' ')
                     ->subtitle($user->description)
                     ->arg('https://github.com/' . $name)
                     ->prio(20 + (isset($user->multiplier) ? $user->multiplier : 1))

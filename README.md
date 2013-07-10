@@ -14,13 +14,9 @@ You have to login (`gh > login <user>`) before you can use the workflow. The log
 Commands
 --------
 
-### General
-
-* `gh @user`
-* `gh user/repo`
-
 ### Repo commands
 
+* `gh user/repo`
 * `gh user/repo #123`
 * `gh user/repo @branch`
 * `gh user/repo /path/to/file`
@@ -34,6 +30,14 @@ Commands
 * `gh user/repo pulls`
 * `gh user/repo pulse`
 * `gh user/repo wiki`
+
+### User commands
+
+* `gh @user`
+* `gh @user contributions`
+* `gh @user repositories`
+* `gh @user activity`
+* `gh @user stars`
 
 ### "My" commands
 

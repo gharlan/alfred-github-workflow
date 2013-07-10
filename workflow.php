@@ -92,10 +92,15 @@ class Workflow
         } elseif ($etag) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
         }
+        $response = curl_exec($ch);
+        if (false === $response) {
+            curl_close($ch);
+            return false;
+        }
         if ($debug) {
-            list(, $header, $body) = explode("\r\n\r\n", curl_exec($ch), 3);
+            list(, $header, $body) = explode("\r\n\r\n", $response, 3);
         } else {
-            list($header, $body) = explode("\r\n\r\n", curl_exec($ch), 2);
+            list($header, $body) = explode("\r\n\r\n", $response, 2);
         }
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -110,6 +115,9 @@ class Workflow
         if (!isset(self::$cache[$url]['timestamp']) || self::$cache[$url]['timestamp'] < time() - 60 * $maxAge) {
             $etag = isset(self::$cache[$url]['etag']) ? self::$cache[$url]['etag'] : null;
             $content = self::request($url, $status, $etag);
+            if (false === $content) {
+                return isset(self::$cache[$url]['content']) ? self::$cache[$url]['content'] : null;
+            }
             switch ($status) {
                 /** @noinspection PhpMissingBreakStatementInspection */
                 case 200:

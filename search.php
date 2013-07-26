@@ -73,11 +73,11 @@ if (!$isSystem) {
                     $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
                         if ($branch->display === $masterBranch) {
-                            $pathAdd = '?q=&sha=' . $branch->description;
+                            $pathAdd = $masterBranch . '?q=&sha=' . $branch->description;
                             break;
                         }
                     }
-                    $path = 'paths';
+                    $path = 'paths/';
                     $url = 'blob/' . $masterBranch;
                     break;
                 case '#':

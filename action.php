@@ -45,12 +45,12 @@ END');
                 break;
 
             case 'activate-autoupdate':
-                Workflow::setConfig('autoupdate', true);
+                Workflow::setConfig('autoupdate', 1);
                 echo 'Activated auto updating';
                 break;
 
             case 'deactivate-autoupdate':
-                Workflow::setConfig('autoupdate', false);
+                Workflow::setConfig('autoupdate', 0);
                 echo 'Deactivated auto updating';
                 break;
 

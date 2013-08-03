@@ -6,6 +6,7 @@ class Workflow
 {
     const VERSION = '$Format:%H$';
     const BUNDLE = 'de.gh01.alfred.github';
+    const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $fileCookies;
     /** @var PDO */
@@ -36,7 +37,8 @@ class Workflow
                     url TEXT PRIMARY KEY,
                     timestamp INTEGER,
                     etag TEXT,
-                    content TEXT
+                    content TEXT,
+                    refresh INTEGER
                 )
             ');
         }
@@ -108,15 +110,23 @@ class Workflow
         return $status == 200 ? $body : null;
     }
 
-    public static function requestCache($url, $maxAge = 10)
+    public static function requestCache($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
         $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
         $stmt->execute(array($url));
         $stmt->bindColumn('timestamp', $timestamp);
         $stmt->bindColumn('etag', $etag);
         $stmt->bindColumn('content', $content);
+        $stmt->bindColumn('refresh', $refresh);
         $stmt->fetch(PDO::FETCH_BOUND);
         if ($timestamp < time() - 60 * $maxAge) {
+            if ($refreshInBackground && !is_null($content)) {
+                if ($refresh < time() - 60) {
+                    self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
+                    exec('php action.php "> refresh-cache ' . $url . '" > /dev/null 2>&1 &');
+                }
+                return $content;
+            }
             $newContent = self::request($url, $status, $etag);
             if (false === $newContent) {
                 return $content;
@@ -128,7 +138,7 @@ class Workflow
                 // fall trough
                 case 304:
                     $timestamp = time();
-                    self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?)')->execute(array($url, $timestamp, $etag, $content));
+                    self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0)')->execute(array($url, $timestamp, $etag, $content));
                     break;
 
                 default:
@@ -139,7 +149,7 @@ class Workflow
         return $content;
     }
 
-    public static function requestCacheJson($url, $key = null, $maxAge = 10)
+    public static function requestCacheJson($url, $key = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $content = self::requestCache($url, $maxAge);
         if (!is_string($content)) {
@@ -190,7 +200,7 @@ class Workflow
             $cacheFile = $cacheDir . '/cache.json';
             if (file_exists($cacheFile)) {
                 $cache = json_decode(file_get_contents($cacheFile), true);
-                $stmt = self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?)');
+                $stmt = self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0)');
                 foreach ($cache as $url => $c) {
                     $stmt->execute(array($url, $c['timestamp'], $c['etag'], $c['content']));
                 }

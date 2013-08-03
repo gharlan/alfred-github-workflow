@@ -44,6 +44,10 @@ END');
                 echo 'Successfully deleted cache';
                 break;
 
+            case 'refresh-cache':
+                Workflow::requestCache($parts[2], 0, false);
+                break;
+
             case 'activate-autoupdate':
                 Workflow::setConfig('autoupdate', 1);
                 echo 'Activated auto updating';

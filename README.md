@@ -24,6 +24,7 @@ Commands
 * `gh user/repo clone`
 * `gh user/repo graphs`
 * `gh user/repo issues`
+* `gh user/repo milestones`
 * `gh user/repo network`
 * `gh user/repo new issue`
 * `gh user/repo new pull`

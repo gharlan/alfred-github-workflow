@@ -131,6 +131,11 @@ if (!$isSystem) {
                 ->subtitle('Create new pull request')
                 ->arg('https://github.com/' . $parts[0] . '/pull/new?source=c')
             );
+            Workflow::addItem(Item::create()
+                ->title($parts[0] . ' milestones')
+                ->subtitle('View milestones')
+                ->arg('https://github.com/' . $parts[0] . '/issues/milestones')
+            );
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',

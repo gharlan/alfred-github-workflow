@@ -175,10 +175,10 @@ class Workflow
         self::removeConfig('user');
     }
 
-    public static function getToken()
+    public static function getToken($content = null)
     {
-        $c = self::request('https://github.com/');
-        preg_match('@<meta content="(.*)" name="csrf-token" />@U', $c, $match);
+        $content = $content ?: self::request('https://github.com/');
+        preg_match('@<meta content="(.*)" name="csrf-token" />@U', $content, $match);
         return isset($match[1]) ? $match[1] : null;
     }
 

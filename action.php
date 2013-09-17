@@ -22,7 +22,19 @@ tell application "Alfred 2"
 end tell
 END');
 
-                Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
+                $content = Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
+                if ($status === 200 && false === strpos($content, '<title>Sign in · GitHub</title>')) {
+                    $authCode = exec('osascript <<END
+tell application "Alfred 2"
+  activate
+  set alfredPath to (path to application "Alfred 2")
+  set alfredIcon to path to resource "appicon.icns" in bundle (alfredPath as alias)
+  display dialog "Authentication code:" with title "GitHub two-factor authentication" buttons {"OK"} default button "OK" default answer "" with icon alfredIcon with hidden answer
+  set answer to text returned of result
+end tell
+END');
+                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, null, array('authenticity_token' => Workflow::getToken($content), 'otp' => $authCode));
+                }
                 if ($status === 302) {
                     Workflow::request('https://github.com/');
                     echo 'Successfully logged in';

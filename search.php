@@ -73,7 +73,7 @@ if (!$isSystem) {
                     $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
                         if ($branch->display === $masterBranch) {
-                            $pathAdd = $masterBranch . '?q=&sha=' . $branch->description;
+                            $pathAdd = $masterBranch . '?q=' . substr($parts[1], 1) . '&sha=' . $branch->description;
                             break;
                         }
                     }

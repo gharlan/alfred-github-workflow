@@ -182,6 +182,19 @@ class Workflow
         return isset($match[1]) ? $match[1] : null;
     }
 
+    public static function askForPassword($title, $label)
+    {
+        return exec('osascript <<END
+tell application "Alfred 2"
+    activate
+    set alfredPath to (path to application "Alfred 2")
+    set alfredIcon to path to resource "appicon.icns" in bundle (alfredPath as alias)
+    display dialog "' . escapeshellcmd(addslashes($label)) . ':" with title "' . escapeshellcmd(addslashes($title)) . '" buttons {"OK"} default button "OK" default answer "" with icon alfredIcon with hidden answer
+    set answer to text returned of result
+end tell
+END');
+    }
+
     public static function checkUpdate()
     {
         if (self::getConfig('version') !== self::VERSION) {

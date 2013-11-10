@@ -12,28 +12,18 @@ switch ($parts[0]) {
     case '>':
         switch ($parts[1]) {
             case 'login':
-                $password = exec('osascript <<END
-tell application "Alfred 2"
-  activate
-  set alfredPath to (path to application "Alfred 2")
-  set alfredIcon to path to resource "appicon.icns" in bundle (alfredPath as alias)
-  display dialog "Password for \"' . escapeshellcmd($parts[2]) . '\":" with title "GitHub Login" buttons {"OK"} default button "OK" default answer "" with icon alfredIcon with hidden answer
-  set answer to text returned of result
-end tell
-END');
-
-                $content = Workflow::request('https://github.com/session', $status, $etag, true, null, array('authenticity_token' => Workflow::getToken(), 'login' => $parts[2], 'password' => $password));
+                $password = Workflow::askForPassword('GitHub Login', 'Password for "' . $parts[2] . '"');
+                $content = Workflow::request('https://github.com/session', $status, $etag, true, null, array(
+                    'authenticity_token' => Workflow::getToken(),
+                    'login' => $parts[2],
+                    'password' => $password
+                ));
                 if ($status === 200 && false === strpos($content, '<title>Sign in · GitHub</title>')) {
-                    $authCode = exec('osascript <<END
-tell application "Alfred 2"
-  activate
-  set alfredPath to (path to application "Alfred 2")
-  set alfredIcon to path to resource "appicon.icns" in bundle (alfredPath as alias)
-  display dialog "Authentication code:" with title "GitHub two-factor authentication" buttons {"OK"} default button "OK" default answer "" with icon alfredIcon with hidden answer
-  set answer to text returned of result
-end tell
-END');
-                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, null, array('authenticity_token' => Workflow::getToken($content), 'otp' => $authCode));
+                    $authCode = Workflow::askForPassword('GitHub two-factor authentication', 'Authentication code');
+                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, null, array(
+                        'authenticity_token' => Workflow::getToken($content),
+                        'otp' => $authCode
+                    ));
                 }
                 if ($status === 302) {
                     Workflow::request('https://github.com/');

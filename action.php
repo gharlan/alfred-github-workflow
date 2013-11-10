@@ -36,6 +36,9 @@ switch ($parts[0]) {
                 break;
 
             case 'logout':
+                Workflow::request('https://github.com/logout', $status, $etag, true, null, array(
+                    'authenticity_token' => Workflow::getToken()
+                ));
                 Workflow::deleteCookies();
                 Workflow::deleteCache();
                 echo 'Successfully logged out';

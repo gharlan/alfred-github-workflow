@@ -13,14 +13,14 @@ switch ($parts[0]) {
         switch ($parts[1]) {
             case 'login':
                 $password = Workflow::askForPassword('GitHub Login', 'Password for "' . $parts[2] . '"');
-                $content = Workflow::request('https://github.com/session', $status, $etag, true, null, array(
+                $content = Workflow::request('https://github.com/session', $status, $etag, true, array(
                     'authenticity_token' => Workflow::getToken(),
                     'login' => $parts[2],
                     'password' => $password
                 ));
                 if ($status === 200 && false === strpos($content, '<title>Sign in · GitHub</title>')) {
                     $authCode = Workflow::askForPassword('GitHub two-factor authentication', 'Authentication code');
-                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, null, array(
+                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, array(
                         'authenticity_token' => Workflow::getToken($content),
                         'otp' => $authCode
                     ));
@@ -36,7 +36,7 @@ switch ($parts[0]) {
                 break;
 
             case 'logout':
-                Workflow::request('https://github.com/logout', $status, $etag, true, null, array(
+                Workflow::request('https://github.com/logout', $status, $etag, true, array(
                     'authenticity_token' => Workflow::getToken()
                 ));
                 Workflow::deleteCookies();

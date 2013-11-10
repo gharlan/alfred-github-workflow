@@ -68,7 +68,7 @@ class Workflow
         self::getStatement('DELETE FROM config WHERE key = ?')->execute(array($key));
     }
 
-    public static function request($url, &$status = null, &$etag = null, $post = false, $token = null, array $data = array())
+    public static function request($url, &$status = null, &$etag = null, $post = false, array $data = array())
     {
         $debug = false;
         $ch = curl_init();
@@ -86,9 +86,6 @@ class Workflow
         if ($post) {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-            if ($token) {
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('X-CSRF-Token: ' . $token));
-            }
         } elseif ($etag) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
         }

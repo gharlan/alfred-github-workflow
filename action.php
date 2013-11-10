@@ -25,8 +25,7 @@ switch ($parts[0]) {
                         'otp' => $authCode
                     ));
                 }
-                if ($status === 302) {
-                    Workflow::request('https://github.com/');
+                if ($status === 302 && false !== strpos(Workflow::request('https://github.com/'), '<title>GitHub</title>')) {
                     echo 'Successfully logged in';
                     Workflow::deleteCache();
                     Workflow::setConfig('user', $parts[2]);

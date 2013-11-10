@@ -25,7 +25,7 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-if (!Workflow::getConfig('user')) {
+if (!Workflow::getConfig('user') || !$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results')) {
 
     $user = null;
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
@@ -194,7 +194,9 @@ if (!$isSystem) {
         }
     } elseif (!$isMy) {
         if (!$isRepo) {
-            $users = Workflow::requestCacheJson('https://github.com/command_bar/users?q=' . urlencode($queryUser), 'results');
+            if ($queryUser) {
+                $users = Workflow::requestCacheJson('https://github.com/command_bar/users?q=' . urlencode($queryUser), 'results');
+            }
             foreach ($users as $user) {
                 $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()

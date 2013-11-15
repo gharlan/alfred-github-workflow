@@ -25,8 +25,13 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-if (!Workflow::getConfig('user') || !$users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results')) {
+if (
+    !Workflow::getConfig('user') ||
+    !($users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results')) &&
+    !Workflow::requestCache('https://github.com/settings/profile')
+) {
 
+    Workflow::removeConfig('user');
     $user = null;
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
         $user = $parts[2];

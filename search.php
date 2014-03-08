@@ -74,7 +74,7 @@ if (!$isSystem) {
                     $url = 'tree';
                     break;
                 case '/':
-                    $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch');
+                    $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch') ?: 'master';
                     $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
                         if ($branch->display === $masterBranch) {

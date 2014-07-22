@@ -117,7 +117,8 @@ if (!$isSystem) {
                 'network' => 'See the network',
                 'pulls'   => 'Show open pull requests',
                 'pulse'   => 'See recent activity',
-                'wiki'    => 'Pull up the wiki'
+                'wiki'    => 'Pull up the wiki',
+                'commits' => 'View commit history'
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()

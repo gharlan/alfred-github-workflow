@@ -12,26 +12,8 @@ switch ($parts[0]) {
     case '>':
         switch ($parts[1]) {
             case 'login':
-                $password = Workflow::askForPassword('GitHub Login', 'Password for "' . $parts[2] . '"');
-                $content = Workflow::request('https://github.com/session', $status, $etag, true, array(
-                    'authenticity_token' => Workflow::getToken(),
-                    'login' => $parts[2],
-                    'password' => $password
-                ));
-                if ($status === 200 && false === strpos($content, '<title>Sign in · GitHub</title>')) {
-                    $authCode = Workflow::askForPassword('GitHub two-factor authentication', 'Authentication code');
-                    $content = Workflow::request('https://github.com/sessions/two_factor', $status, $etag2, true, array(
-                        'authenticity_token' => Workflow::getToken($content),
-                        'otp' => $authCode
-                    ));
-                }
-                if ($status === 302 && false !== strpos(Workflow::request('https://github.com/'), '<title>GitHub</title>')) {
-                    echo 'Successfully logged in';
-                    Workflow::deleteCache();
-                    Workflow::setConfig('user', $parts[2]);
-                } else {
-                    echo 'Login failed';
-                }
+                Workflow::startServer();
+                exec('open "https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo"');
                 break;
 
             case 'logout':

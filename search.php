@@ -25,28 +25,21 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-if (
-    !Workflow::getConfig('user') ||
-    !($users = Workflow::requestCacheJson('https://github.com/command_bar/users', 'results')) &&
-    !Workflow::requestCache('https://github.com/settings/profile')
-) {
+if (!Workflow::getConfig('access_token') || !Workflow::requestCache('https://api.github.com/user')) {
 
-    Workflow::removeConfig('user');
-    $user = null;
-    if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
-        $user = $parts[2];
-    }
+    Workflow::removeConfig('access_token');
     Workflow::addItem(Item::create()
         ->prefix('gh ')
-        ->title('> login ' . $user)
+        ->title('> login')
         ->subtitle('Log in to GitHub')
-        ->arg('> login ' . $user)
-        ->valid((bool) $user, '<user>')
+        ->arg('> login')
     );
     print Workflow::getItemsAsXml();
     return;
 
 }
+
+Workflow::stopServer();
 
 $isSystem = isset($query[0]) && $query[0] == '>';
 $isMy = 'my' == $parts[0] && isset($parts[1]);
@@ -64,7 +57,7 @@ if (!$isSystem) {
 
     if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
-        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
+        if (false && isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
 
             $compareDescription = false;
             $pathAdd = '';
@@ -142,7 +135,7 @@ if (!$isSystem) {
                 ->subtitle('View milestones')
                 ->arg('https://github.com/' . $parts[0] . '/issues/milestones')
             );
-            if (empty($parts[1])) {
+            if (false && empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
                     '@' => 'Show a specific branch',
@@ -167,15 +160,26 @@ if (!$isSystem) {
 
     } elseif (!$isUser && !$isMy) {
 
-        $path = $isRepo ? 'repos_for/' . $queryUser : 'repos';
-        $repos = Workflow::requestCacheJson('https://github.com/command_bar/' . $path, 'results');
+        if ($isRepo) {
+            $repos = Workflow::requestCacheJson('https://api.github.com/users/' . $queryUser . '/repos?per_page=100');
+        } else {
+            $repos = [];
+            $urls = ['/user/starred', '/user/subscriptions', '/user/repos'];
+            foreach ($urls as $prio => $url) {
+                $urlRepos = Workflow::requestCacheJson('https://api.github.com' . $url . '?per_page=100');
+                foreach ($urlRepos as $repo) {
+                    $repo->prio = $prio;
+                    $repos[$repo->id] = $repo;
+                }
+            }
+        }
 
         foreach ($repos as $repo) {
             Workflow::addItem(Item::create()
-                ->title($repo->command . ' ')
+                ->title($repo->full_name . ' ')
                 ->subtitle($repo->description)
-                ->arg('https://github.com/' . $repo->command)
-                ->prio(30 + (isset($repo->multiplier) ? $repo->multiplier : 1))
+                ->arg('https://github.com/' . $repo->full_name)
+                ->prio(30 + $repo->prio)
             );
         }
 
@@ -200,17 +204,14 @@ if (!$isSystem) {
         }
     } elseif (!$isMy) {
         if (!$isRepo) {
-            if ($queryUser) {
-                $users = Workflow::requestCacheJson('https://github.com/command_bar/users?q=' . urlencode($queryUser), 'results');
-            }
+            $users = Workflow::requestCacheJson('https://api.github.com/user/following?per_page=100');
             foreach ($users as $user) {
-                $name = substr($user->command, 1);
                 Workflow::addItem(Item::create()
                     ->prefix('@', false)
-                    ->title($name . ' ')
-                    ->subtitle($user->description)
-                    ->arg('https://github.com/' . $name)
-                    ->prio(20 + (isset($user->multiplier) ? $user->multiplier : 1))
+                    ->title($user->login . ' ')
+                    ->subtitle($user->type)
+                    ->arg($user->html_url)
+                    ->prio(20)
                 );
             }
         }
@@ -226,7 +227,7 @@ if (!$isSystem) {
             'pulls'         => array('dashboard/pulls', 'View your pull requests'),
             'issues'        => array('dashboard/issues', 'View your issues'),
             'stars'         => array('stars', 'View your starred repositories'),
-            'profile'       => array(Workflow::getConfig('user'), 'View your public user profile'),
+            //'profile'       => array(Workflow::getConfig('user'), 'View your public user profile'),
             'settings'      => array('settings', 'View or edit your account settings'),
             'notifications' => array('notifications', 'View all your notifications')
         );
@@ -254,7 +255,7 @@ if (!$isSystem) {
 } else {
 
     $cmds = array(
-        'logout' => 'Log out from GitHub (only this Alfred Workflow)',
+        //'logout' => 'Log out from GitHub (only this Alfred Workflow)',
         'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)',
         'update' => 'Update this Alfred workflow'
     );

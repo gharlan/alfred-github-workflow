@@ -9,6 +9,7 @@ class Workflow
     const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $fileCookies;
+    private static $filePids;
     /** @var PDO */
     private static $db;
     private static $query;
@@ -17,11 +18,12 @@ class Workflow
     public static function init($query = null)
     {
         self::$query = $query;
-        $dataDir  = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
+        $dataDir  = __DIR__ . '/../../../Workflow Data/' . self::BUNDLE;
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
         }
         self::$fileCookies = $dataDir . '/cookies';
+        self::$filePids = $dataDir . '/pid';
         $fileDb = $dataDir . '/db.sqlite';
         $exists = file_exists($fileDb);
         self::$db = new PDO('sqlite:' . $fileDb, null, null, array(PDO::ATTR_PERSISTENT => true));
@@ -77,6 +79,7 @@ class Workflow
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_COOKIEJAR, self::$fileCookies);
         curl_setopt($ch, CURLOPT_COOKIEFILE, self::$fileCookies);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: token ' . self::getConfig('access_token')));
         curl_setopt($ch, CURLOPT_USERAGENT, 'alfred-github-workflow');
         if ($debug) {
             curl_setopt($ch, CURLOPT_PROXY, 'localhost');
@@ -170,6 +173,23 @@ class Workflow
             unlink(self::$fileCookies);
         }
         self::removeConfig('user');
+    }
+
+    public static function startServer()
+    {
+        self::stopServer();
+        shell_exec('php -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> "' . self::$filePids . '"');
+    }
+
+    public static function stopServer()
+    {
+        if (file_exists(self::$filePids)) {
+            $pids = file(self::$filePids);
+            foreach ($pids as $pid) {
+                shell_exec('kill -9 ' . $pid);
+            }
+            unlink(self::$filePids);
+        }
     }
 
     public static function getToken($content = null)

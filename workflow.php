@@ -8,7 +8,6 @@ class Workflow
     const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
-    private static $fileCookies;
     private static $filePids;
     /** @var PDO */
     private static $db;
@@ -26,7 +25,6 @@ class Workflow
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
         }
-        self::$fileCookies = $dataDir . '/cookies';
         self::$filePids = $dataDir . '/pid';
         $fileDb = $dataDir . '/db.sqlite';
         $exists = file_exists($fileDb);
@@ -81,8 +79,6 @@ class Workflow
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_COOKIEJAR, self::$fileCookies);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, self::$fileCookies);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: token ' . self::getConfig('access_token')));
         curl_setopt($ch, CURLOPT_USERAGENT, 'alfred-github-workflow');
         if ($debug) {
@@ -171,14 +167,6 @@ class Workflow
         self::$db->exec('DELETE FROM request_cache');
     }
 
-    public static function deleteCookies()
-    {
-        if (file_exists(self::$fileCookies)) {
-            unlink(self::$fileCookies);
-        }
-        self::removeConfig('user');
-    }
-
     public static function startServer()
     {
         if (version_compare(PHP_VERSION, '5.4', '>=')) {
@@ -196,26 +184,6 @@ class Workflow
             }
             unlink(self::$filePids);
         }
-    }
-
-    public static function getToken($content = null)
-    {
-        $content = $content ?: self::request('https://github.com/');
-        preg_match('@<meta content="(.*)" name="csrf-token" />@U', $content, $match);
-        return isset($match[1]) ? $match[1] : null;
-    }
-
-    public static function askForPassword($title, $label)
-    {
-        return exec('osascript <<END
-tell application "Alfred 2"
-    activate
-    set alfredPath to (path to application "Alfred 2")
-    set alfredIcon to path to resource "appicon.icns" in bundle (alfredPath as alias)
-    display dialog "' . escapeshellcmd(addslashes($label)) . ':" with title "' . escapeshellcmd(addslashes($title)) . '" buttons {"OK"} default button "OK" default answer "" with icon alfredIcon with hidden answer
-    set answer to text returned of result
-end tell
-END');
     }
 
     public static function checkUpdate()

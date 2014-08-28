@@ -257,7 +257,6 @@ if (!$isSystem) {
 } else {
 
     $cmds = array(
-        //'logout' => 'Log out from GitHub (only this Alfred Workflow)',
         'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)',
         'update' => 'Update this Alfred workflow'
     );

@@ -4,7 +4,7 @@ require 'item.php';
 
 class Workflow
 {
-    const VERSION = '$Format:%H$';
+    const VERSION = '710726c99b2b25f6fb9a950544f72196a19e968f';
     const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
@@ -18,7 +18,7 @@ class Workflow
     public static function init($query = null)
     {
         self::$query = $query;
-        $dataDir  = __DIR__ . '/../../../Workflow Data/' . self::BUNDLE;
+        $dataDir  = $_ENV['alfred_workflow_data'];
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
         }

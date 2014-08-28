@@ -181,8 +181,10 @@ class Workflow
 
     public static function startServer()
     {
-        self::stopServer();
-        shell_exec('php -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> "' . self::$filePids . '"');
+        if (version_compare(PHP_VERSION, '5.4', '>=')) {
+            self::stopServer();
+            shell_exec('php -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> "' . self::$filePids . '"');
+        }
     }
 
     public static function stopServer()

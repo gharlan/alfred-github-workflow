@@ -12,8 +12,12 @@ switch ($parts[0]) {
     case '>':
         switch ($parts[1]) {
             case 'login':
-                Workflow::startServer();
-                exec('open "https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo"');
+                if (isset($parts[2]) && $parts[2]) {
+                    Workflow::setConfig('access_token', $parts[2]);
+                } else {
+                    Workflow::startServer();
+                    exec('open "https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state=' . version_compare(PHP_VERSION, '5.4', '<') . '"');
+                }
                 break;
 
             case 'logout':

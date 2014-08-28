@@ -26,17 +26,19 @@ if (Workflow::checkUpdate()) {
 }
 
 if (!Workflow::getConfig('access_token') || !Workflow::requestCache('https://api.github.com/user')) {
-
     Workflow::removeConfig('access_token');
+    $token = null;
+    if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
+        $token = $parts[2];
+    }
     Workflow::addItem(Item::create()
         ->prefix('gh ')
-        ->title('> login')
-        ->subtitle('Log in to GitHub')
-        ->arg('> login')
+        ->title('> login ' . $token)
+        ->subtitle($token ? 'Save OAuth access token' : 'Log in to GitHub')
+        ->arg('> login ' . $token)
     );
     print Workflow::getItemsAsXml();
     return;
-
 }
 
 Workflow::stopServer();
@@ -163,8 +165,8 @@ if (!$isSystem) {
         if ($isRepo) {
             $repos = Workflow::requestCacheJson('https://api.github.com/users/' . $queryUser . '/repos?per_page=100');
         } else {
-            $repos = [];
-            $urls = ['/user/starred', '/user/subscriptions', '/user/repos'];
+            $repos = array();
+            $urls = array('/user/starred', '/user/subscriptions', '/user/repos');
             foreach ($urls as $prio => $url) {
                 $urlRepos = Workflow::requestCacheJson('https://api.github.com' . $url . '?per_page=100');
                 foreach ($urlRepos as $repo) {

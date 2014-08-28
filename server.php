@@ -5,7 +5,7 @@ require 'workflow.php';
 Workflow::init();
 
 if (!isset($_GET['access_token'])) {
-    echo 'FAILURE!';
+    echo 'FAILURE (missing access_token parameter)!';
     exit;
 }
 

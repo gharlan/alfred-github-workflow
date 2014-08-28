@@ -25,7 +25,7 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-if (!Workflow::getConfig('access_token') || !Workflow::requestCache('https://api.github.com/user')) {
+if (!Workflow::getConfig('access_token') || !($userData = Workflow::requestCacheJson('https://api.github.com/user'))) {
     Workflow::removeConfig('access_token');
     $token = null;
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
@@ -229,7 +229,7 @@ if (!$isSystem) {
             'pulls'         => array('dashboard/pulls', 'View your pull requests'),
             'issues'        => array('dashboard/issues', 'View your issues'),
             'stars'         => array('stars', 'View your starred repositories'),
-            //'profile'       => array(Workflow::getConfig('user'), 'View your public user profile'),
+            'profile'       => array($userData->login, 'View your public user profile'),
             'settings'      => array('settings', 'View or edit your account settings'),
             'notifications' => array('notifications', 'View all your notifications')
         );

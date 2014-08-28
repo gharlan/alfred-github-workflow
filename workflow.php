@@ -4,7 +4,7 @@ require 'item.php';
 
 class Workflow
 {
-    const VERSION = '710726c99b2b25f6fb9a950544f72196a19e968f';
+    const VERSION = '$Format:%H$';
     const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 

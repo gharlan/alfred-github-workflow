@@ -17,7 +17,7 @@ class Workflow
     public static function init($query = null)
     {
         self::$query = $query;
-        if (false && isset($_ENV['alfred_workflow_data'])) {
+        if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
         } else {
             $dataDir = (isset($_ENV['HOME']) ? $_ENV['HOME'] : $_SERVER['HOME']) . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;

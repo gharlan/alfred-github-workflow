@@ -189,30 +189,6 @@ class Workflow
     public static function checkUpdate()
     {
         if (self::getConfig('version') !== self::VERSION) {
-            if (file_exists($file = __DIR__ . '/class.php')) {
-                unlink($file);
-            }
-            $configFile = $_SERVER['HOME'] . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE . '/config.json';
-            if (file_exists($configFile)) {
-                $config = json_decode(file_get_contents($configFile), true);
-                foreach ($config as $key => $value) {
-                    self::setConfig($key, $value);
-                }
-                unlink($configFile);
-            }
-            $cacheDir = $_SERVER['HOME'] . '/Library/Caches/com.runningwithcrayons.Alfred-2/Workflow Data/' . self::BUNDLE;
-            $cacheFile = $cacheDir . '/cache.json';
-            if (file_exists($cacheFile)) {
-                $cache = json_decode(file_get_contents($cacheFile), true);
-                $stmt = self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0)');
-                foreach ($cache as $url => $c) {
-                    $stmt->execute(array($url, $c['timestamp'], $c['etag'], $c['content']));
-                }
-                unlink($cacheFile);
-            }
-            if (is_dir($cacheDir)) {
-                rmdir($cacheDir);
-            }
             self::setConfig('version', self::VERSION);
             self::deleteCache();
         }

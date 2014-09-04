@@ -31,12 +31,23 @@ if (!Workflow::getConfig('access_token') || !($userData = Workflow::requestGithu
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
         $token = $parts[2];
     }
+    if (!$token) {
+        Workflow::addItem(Item::create()
+            ->prefix('gh ')
+            ->title('> login')
+            ->subtitle('Generate OAuth access token')
+            ->arg('> login')
+            ->randomUid()
+        , false);
+    }
     Workflow::addItem(Item::create()
         ->prefix('gh ')
         ->title('> login ' . $token)
-        ->subtitle($token ? 'Save OAuth access token' : 'Log in to GitHub')
+        ->subtitle('Save OAuth access token')
         ->arg('> login ' . $token)
-    );
+        ->valid((bool) $token, '<access_token>')
+        ->randomUid()
+    , false);
     print Workflow::getItemsAsXml();
     return;
 }

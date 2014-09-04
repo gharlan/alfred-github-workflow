@@ -41,13 +41,13 @@ switch ($parts[0]) {
                 break;
 
             case 'update':
-                $c = Workflow::request('http://gh01.de/alfred/github/github.alfredworkflow', $status);
-                if ($status != 200) {
+                $response = Workflow::request('http://gh01.de/alfred/github/github.alfredworkflow');
+                if ($response->status != 200) {
                     echo 'Update failed';
                     exit;
                 }
                 $zip = __DIR__ . '/workflow.zip';
-                file_put_contents($zip, $c);
+                file_put_contents($zip, $response->content);
                 $phar = new PharData($zip);
                 foreach ($phar as $path => $file) {
                     copy($path, __DIR__ . '/' . $file->getFilename());

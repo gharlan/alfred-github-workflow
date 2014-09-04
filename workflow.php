@@ -36,15 +36,7 @@ class Workflow
                     value TEXT
                 )
             ');
-            self::$db->exec('
-                CREATE TABLE request_cache (
-                    url TEXT PRIMARY KEY,
-                    timestamp INTEGER,
-                    etag TEXT,
-                    content TEXT,
-                    refresh INTEGER
-                )
-            ');
+            self::createRequestCacheTable();
         }
         register_shutdown_function(array(__CLASS__, 'shutdown'));
     }
@@ -72,7 +64,7 @@ class Workflow
         self::getStatement('DELETE FROM config WHERE key = ?')->execute(array($key));
     }
 
-    public static function request($url, &$status = null, &$etag = null, $post = false, array $data = array())
+    public static function request($url, $etag = null, $post = false, array $data = array())
     {
         $debug = false;
         $ch = curl_init();
@@ -92,22 +84,35 @@ class Workflow
         } elseif ($etag) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
         }
-        $response = curl_exec($ch);
-        if (false === $response) {
+        $rawResponse = curl_exec($ch);
+        if (false === $rawResponse) {
             curl_close($ch);
-            return false;
+            return null;
         }
         if ($debug) {
-            list(, $header, $body) = explode("\r\n\r\n", $response, 3);
+            list(, $header, $body) = explode("\r\n\r\n", $rawResponse, 3);
         } else {
-            list($header, $body) = explode("\r\n\r\n", $response, 2);
+            list($header, $body) = explode("\r\n\r\n", $rawResponse, 2);
         }
-        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response = new stdClass();
+        $response->status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        if (preg_match('/^ETag: (\V*)/mi', $header, $match)) {
-            $etag = $match[1];
+        $headerNames = array(
+            'etag' => 'ETag',
+            'contentType' => 'Content-Type',
+            'link' => 'Link',
+        );
+        foreach ($headerNames as $key => $name) {
+            if (preg_match('/^' . preg_quote($name, '/') . ': (\V*)/mi', $header, $match)) {
+                $response->$key = $match[1];
+            } else {
+                $response->$key = null;
+            }
         }
-        return $status == 200 ? $body : null;
+        if (200 == $response->status) {
+            $response->content = $body;
+        }
+        return $response;
     }
 
     public static function requestCache($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
@@ -119,47 +124,72 @@ class Workflow
         $stmt->bindColumn('content', $content);
         $stmt->bindColumn('refresh', $refresh);
         $stmt->fetch(PDO::FETCH_BOUND);
-        if ($timestamp < time() - 60 * $maxAge) {
-            if ($refreshInBackground && !is_null($content)) {
-                if ($refresh < time() - 60) {
-                    self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
-                    exec('php action.php "> refresh-cache ' . $url . '" > /dev/null 2>&1 &');
-                }
-                return $content;
-            }
-            $newContent = self::request($url, $status, $etag);
-            if (false === $newContent) {
-                return $content;
-            }
-            switch ($status) {
-                /** @noinspection PhpMissingBreakStatementInspection */
-                case 200:
-                    $content = $newContent;
-                // fall trough
-                case 304:
-                    $timestamp = time();
-                    self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0)')->execute(array($url, $timestamp, $etag, $content));
-                    break;
 
-                default:
-                    self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute(array($url));
-                    return null;
-            }
+        $shouldRefresh = $timestamp < time() - 60 * $maxAge;
+        $refreshInBackground = $refreshInBackground && !is_null($content);
+
+        if ($shouldRefresh && $refreshInBackground && $refresh < time() - 60) {
+            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
+            exec('php action.php "> refresh-cache ' . $url . '" > /dev/null 2>&1 &');
         }
-        return $content;
+
+        if (!$shouldRefresh || $refreshInBackground) {
+            $content = json_decode($content);
+            $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
+            while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
+                $content += json_decode($data->content);
+                $url = $data->url;
+            }
+            return $content;
+        }
+
+        $i = 0;
+        $responses = array();
+        $parent = null;
+        do {
+            $response = self::request($url, $etag);
+            if ($response && in_array($response->status, array(200, 304))) {
+                if (304 == $response->status) {
+                    $response->content = $content;
+                } elseif (false === stripos($response->contentType, 'json')) {
+                    $response->content = json_encode($response->content);
+                }
+                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')->execute(array($url, time(), $response->etag, $response->content, $parent));
+                if ($response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
+                    $nextUrl = $match[1];
+                    $parent = $url;
+                    $stmt->execute(array($nextUrl));
+                    $stmt->bindColumn('etag', $etag);
+                    $stmt->bindColumn('content', $content);
+                    $stmt->fetch(PDO::FETCH_BOUND);
+                    $url = $nextUrl;
+                } else {
+                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute(array($url));
+                    $url = null;
+                }
+                $responses[] = $response->content;
+            } else {
+                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute(array($url));
+                $url = null;
+            }
+            $i++;
+        } while ($url);
+        if (empty($responses)) {
+            return false;
+        }
+        if (1 === count($responses)) {
+            return json_decode($responses[0]);
+        }
+        return array_reduce($responses, function ($content, $response) {
+            return $content + json_decode($response);
+        }, array());
     }
 
-    public static function requestCacheJson($url, $key = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestGithubApi($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
+        $url = 'https://api.github.com' . $url . '?per_page=100';
         $content = self::requestCache($url, $maxAge);
-        if (!is_string($content)) {
-            return null;
-        }
-        $content = json_decode($content);
-        if ($key && !isset($content->$key)) {
-            return null;
-        }
-        return $key ? $content->$key : $content;
+        return $content;
     }
 
     public static function deleteCache()
@@ -190,13 +220,29 @@ class Workflow
     {
         if (self::getConfig('version') !== self::VERSION) {
             self::setConfig('version', self::VERSION);
-            self::deleteCache();
+            //self::deleteCache();
+            self::$db->exec('DROP TABLE request_cache');
+            self::createRequestCacheTable();
         }
         if (!self::getConfig('autoupdate', 1)) {
             return false;
         }
         $version = self::requestCache('http://gh01.de/alfred/github/current', 1440);
         return $version !== null && $version !== self::VERSION;
+    }
+
+    private static function createRequestCacheTable()
+    {
+        self::$db->exec('
+            CREATE TABLE request_cache (
+                url TEXT PRIMARY KEY,
+                timestamp INTEGER,
+                etag TEXT,
+                content TEXT,
+                refresh INTEGER,
+                parent TEXT
+            )
+        ');
     }
 
     public static function addItem(Item $item, $check = true)

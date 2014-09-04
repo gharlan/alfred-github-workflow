@@ -25,7 +25,7 @@ if (Workflow::checkUpdate()) {
     exit;
 }
 
-if (!Workflow::getConfig('access_token') || !($userData = Workflow::requestCacheJson('https://api.github.com/user'))) {
+if (!Workflow::getConfig('access_token') || !($userData = Workflow::requestGithubApi('/user'))) {
     Workflow::removeConfig('access_token');
     $token = null;
     if (count($parts) > 1 && $parts[0] == '>' && $parts[1] == 'login' && isset($parts[2])) {
@@ -69,8 +69,8 @@ if (!$isSystem) {
                     $url = 'tree';
                     break;
                 case '/':
-                    $masterBranch = Workflow::requestCacheJson('https://api.github.com/repos/' . $parts[0], 'master_branch') ?: 'master';
-                    $branches = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
+                    $masterBranch = Workflow::requestGithubApi('/repos/' . $parts[0], 'master_branch') ?: 'master';
+                    $branches = Workflow::requestGithubApi('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
                     foreach ($branches as $branch) {
                         if ($branch->display === $masterBranch) {
                             $pathAdd = $masterBranch . '?q=' . substr($parts[1], 1) . '&sha=' . $branch->description;
@@ -89,7 +89,7 @@ if (!$isSystem) {
                     }
                     break;
             }
-            $subs = Workflow::requestCacheJson('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
+            $subs = Workflow::requestGithubApi('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
             foreach ($subs as $sub) {
                 if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
                     $endPart = substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0]));
@@ -163,12 +163,12 @@ if (!$isSystem) {
     } elseif (!$isUser && !$isMy) {
 
         if ($isRepo) {
-            $repos = Workflow::requestCacheJson('https://api.github.com/users/' . $queryUser . '/repos?per_page=100');
+            $repos = Workflow::requestGithubApi('/users/' . $queryUser . '/repos');
         } else {
             $repos = array();
             $urls = array('/user/starred', '/user/subscriptions', '/user/repos');
             foreach ($urls as $prio => $url) {
-                $urlRepos = Workflow::requestCacheJson('https://api.github.com' . $url . '?per_page=100');
+                $urlRepos = Workflow::requestGithubApi($url);
                 foreach ($urlRepos as $repo) {
                     $repo->prio = $prio;
                     $repos[$repo->id] = $repo;
@@ -206,7 +206,7 @@ if (!$isSystem) {
         }
     } elseif (!$isMy) {
         if (!$isRepo) {
-            $users = Workflow::requestCacheJson('https://api.github.com/user/following?per_page=100');
+            $users = Workflow::requestGithubApi('/user/following');
             foreach ($users as $user) {
                 Workflow::addItem(Item::create()
                     ->prefix('@', false)

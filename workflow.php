@@ -28,7 +28,7 @@ class Workflow
         self::$filePids = $dataDir . '/pid';
         $fileDb = $dataDir . '/db.sqlite';
         $exists = file_exists($fileDb);
-        self::$db = new PDO('sqlite:' . $fileDb, null, null, array(PDO::ATTR_PERSISTENT => true));
+        self::$db = new PDO('sqlite:' . $fileDb, null, null);
         if (!$exists) {
             self::$db->exec('
                 CREATE TABLE config (

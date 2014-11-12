@@ -192,7 +192,7 @@ class Workflow
     public static function requestGithubApi($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $url = 'https://api.github.com' . $url . '?per_page=100';
-        $content = self::requestCache($url, $maxAge);
+        $content = self::requestCache($url, $maxAge) ?: array();
         return $content;
     }
 

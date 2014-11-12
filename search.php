@@ -174,19 +174,18 @@ if (!$isSystem) {
     } elseif (!$isUser && !$isMy) {
 
         if ($isRepo) {
-            $repos = Workflow::requestGithubApi('/users/' . $queryUser . '/repos');
+            $urls = array('/users/' . $queryUser . '/repos', '/orgs/' . $queryUser . '/repos');
         } else {
-            $repos = array();
             $urls = array('/user/starred', '/user/subscriptions', '/user/repos');
-            foreach ($urls as $prio => $url) {
-                $urlRepos = Workflow::requestGithubApi($url);
-                foreach ($urlRepos as $repo) {
-                    $repo->prio = $prio;
-                    $repos[$repo->id] = $repo;
-                }
+        }
+        $repos = array();
+        foreach ($urls as $prio => $url) {
+            $urlRepos = Workflow::requestGithubApi($url);
+            foreach ($urlRepos as $repo) {
+                $repo->prio = $prio;
+                $repos[$repo->id] = $repo;
             }
         }
-
         foreach ($repos as $repo) {
             Workflow::addItem(Item::create()
                 ->title($repo->full_name . ' ')

@@ -9,8 +9,12 @@ class Workflow
     const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;
+
     /** @var PDO */
     private static $db;
+    /** @var PDOStatement[] */
+    private static $statements = array();
+
     private static $query;
     private static $items = array();
 
@@ -221,6 +225,7 @@ class Workflow
         if (self::getConfig('version') !== self::VERSION) {
             self::setConfig('version', self::VERSION);
             //self::deleteCache();
+            self::closeCursors();
             self::$db->exec('DROP TABLE request_cache');
             self::createRequestCacheTable();
         }
@@ -270,10 +275,17 @@ class Workflow
      */
     protected static function getStatement($query)
     {
-        static $stmts = array();
-        if (!isset($stmts[$query])) {
-            $stmts[$query] = self::$db->prepare($query);
+        if (!isset(self::$statements[$query])) {
+            self::$statements[$query] = self::$db->prepare($query);
         }
-        return $stmts[$query];
+        return self::$statements[$query];
+    }
+
+    protected static function closeCursors()
+    {
+        foreach (self::$statements as $statement) {
+            $statement->closeCursor();
+        }
+        self::$statements = array();
     }
 }

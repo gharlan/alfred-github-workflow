@@ -176,7 +176,11 @@ if (!$isSystem) {
         if ($isRepo) {
             $urls = array('/users/' . $queryUser . '/repos', '/orgs/' . $queryUser . '/repos');
         } else {
-            $urls = array('/user/starred', '/user/subscriptions', '/user/repos');
+            $urls = array();
+            foreach (Workflow::requestGithubApi('/user/orgs') as $org) {
+                $urls[] = '/orgs/' . $org->login . '/repos';
+            }
+            array_push($urls, '/user/starred', '/user/subscriptions', '/user/repos');
         }
         $repos = array();
         foreach ($urls as $prio => $url) {

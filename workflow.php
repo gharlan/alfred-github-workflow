@@ -18,8 +18,11 @@ class Workflow
     private static $query;
     private static $items = array();
 
+    private static $refreshUrls = array();
+
     public static function init($query = null)
     {
+        date_default_timezone_set('UTC');
         self::$query = $query;
         if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
@@ -47,7 +50,9 @@ class Workflow
 
     public static function shutdown()
     {
-        self::$db->exec('DELETE FROM request_cache WHERE timestamp < ' . (time() - 30 * 24 * 60 * 60));
+        if (self::$refreshUrls) {
+            exec('php action.php "> refresh-cache ' . implode(',', self::$refreshUrls) . '" > /dev/null 2>&1 &');
+        }
     }
 
     public static function setConfig($key, $value)
@@ -75,7 +80,7 @@ class Workflow
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Authorization: token ' . self::getConfig('access_token')));
+        $header = array('Authorization: token ' . self::getConfig('access_token'));
         curl_setopt($ch, CURLOPT_USERAGENT, 'alfred-github-workflow');
         if ($debug) {
             curl_setopt($ch, CURLOPT_PROXY, 'localhost');
@@ -86,8 +91,9 @@ class Workflow
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         } elseif ($etag) {
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('If-None-Match: ' . $etag));
+            $header[] = 'If-None-Match: ' . $etag;
         }
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         $rawResponse = curl_exec($ch);
         if (false === $rawResponse) {
             curl_close($ch);
@@ -134,7 +140,7 @@ class Workflow
 
         if ($shouldRefresh && $refreshInBackground && $refresh < time() - 60) {
             self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
-            exec('php action.php "> refresh-cache ' . $url . '" > /dev/null 2>&1 &');
+            self::$refreshUrls[] = $url;
         }
 
         if (!$shouldRefresh || $refreshInBackground) {
@@ -194,6 +200,11 @@ class Workflow
         $url = 'https://api.github.com' . $url . '?per_page=100';
         $content = self::requestCache($url, $maxAge) ?: array();
         return $content;
+    }
+
+    public static function cleanCache()
+    {
+        self::$db->exec('DELETE FROM request_cache WHERE timestamp < ' . (time() - 30 * 24 * 60 * 60));
     }
 
     public static function deleteCache()

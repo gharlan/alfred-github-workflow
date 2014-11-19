@@ -27,7 +27,10 @@ switch ($parts[0]) {
                 break;
 
             case 'refresh-cache':
-                Workflow::requestCache($parts[2], 0, false);
+                foreach (explode(',', $parts[2]) as $url) {
+                    Workflow::requestCache($url, 0, false);
+                }
+                Workflow::cleanCache();
                 break;
 
             case 'activate-autoupdate':

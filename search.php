@@ -271,7 +271,8 @@ if (!$isSystem) {
 } else {
 
     $cmds = array(
-        'delete cache' => 'Delete GitHub Cache (only for this Alfred Workflow)',
+        'delete cache' => 'Delete GitHub Cache',
+        'logout' => 'Log out this workflow',
         'update' => 'Update this Alfred workflow'
     );
     if (Workflow::getConfig('autoupdate', true)) {

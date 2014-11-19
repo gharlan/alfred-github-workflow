@@ -21,6 +21,11 @@ switch ($parts[0]) {
                 }
                 break;
 
+            case 'logout':
+                Workflow::removeConfig('access_token');
+                echo 'Successfully logged out';
+                break;
+
             case 'delete-cache':
                 Workflow::deleteCache();
                 echo 'Successfully deleted cache';

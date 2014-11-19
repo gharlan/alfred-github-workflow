@@ -52,7 +52,7 @@ Commands
 
 ### Workflow commands
 
-* `gh > login <user>`
+* `gh > login`
 * `gh > logout`
 * `gh > delete cache`
 * `gh > update`

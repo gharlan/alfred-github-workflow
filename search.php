@@ -70,48 +70,47 @@ if (!$isSystem) {
 
     if (!$isUser && !$isMy && $isRepo && isset($parts[1])) {
 
-        if (false && isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
+        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
 
             $compareDescription = false;
             $pathAdd = '';
             switch ($parts[1][0]) {
                 case '@':
-                    $path = 'branches';
-                    $url = 'tree';
+                    $branches = Workflow::requestGithubApi('/repos/' . $parts[0] . '/branches');
+                    foreach ($branches as $branch) {
+                        Workflow::addItem(Item::create()
+                            ->title('@' . $branch->name)
+                            ->comparator($parts[0] . ' @' . $branch->name)
+                            ->subtitle($branch->commit->sha)
+                            ->arg('https://github.com/' . $parts[0] . '/tree/' . $branch->name)
+                        );
+                    }
                     break;
                 case '/':
-                    $masterBranch = Workflow::requestGithubApi('/repos/' . $parts[0], 'master_branch') ?: 'master';
-                    $branches = Workflow::requestGithubApi('https://github.com/command_bar/' . $parts[0] . '/branches', 'results');
-                    foreach ($branches as $branch) {
-                        if ($branch->display === $masterBranch) {
-                            $pathAdd = $masterBranch . '?q=' . substr($parts[1], 1) . '&sha=' . $branch->description;
-                            break;
+                    $repo = Workflow::requestGithubApi('/repos/' . $parts[0]);
+                    $files = Workflow::requestGithubApi('/repos/' . $parts[0] . '/git/trees/' . $repo->default_branch . '?recursive=1');
+                    foreach ($files->tree as $file) {
+                        if ('blob' === $file->type) {
+                            Workflow::addItem(Item::create()
+                                ->title(basename($file->path))
+                                ->subtitle('/' . $file->path)
+                                ->comparator($parts[0] . ' /' . $file->path)
+                                ->arg('https://github.com/' . $parts[0] . '/blob/' . $repo->default_branch . '/' . $file->path)
+                            );
                         }
                     }
-                    $path = 'paths/';
-                    $url = 'blob/' . $masterBranch;
                     break;
                 case '#':
-                    $path = 'issues';
-                    $url = 'issues';
-                    if (isset($parts[1][1])) {
-                        $pathAdd = '_for?q=' . substr($parts[1], 1);
-                        $compareDescription = 0 === intval($parts[1][1]);
+                    $issues = Workflow::requestGithubApi('/repos/' . $parts[0] . '/issues?sort=updated');
+                    foreach ($issues as $issue) {
+                        Workflow::addItem(Item::create()
+                            ->title('#' . $issue->number)
+                            ->comparator($parts[0] . ' #' . $issue->number)
+                            ->subtitle($issue->title)
+                            ->arg($issue->html_url)
+                        );
                     }
                     break;
-            }
-            $subs = Workflow::requestGithubApi('https://github.com/command_bar/' . $parts[0] . '/' . $path . $pathAdd, 'results');
-            foreach ($subs as $sub) {
-                if (0 === strpos($sub->command, $parts[0] . ' ' . $parts[1][0])) {
-                    $endPart = substr($sub->command, strlen($parts[0] . ' ' . $parts[1][0]));
-                    Workflow::addItem(Item::create()
-                        ->title($sub->command)
-                        ->comparator($parts[0] . ' ' . $parts[1][0] . ($compareDescription ? $sub->description : $endPart))
-                        ->subtitle($sub->description)
-                        ->arg('https://github.com/' . $parts[0] . '/' . $url . '/' . $endPart)
-                        ->prio((isset($sub->multiplier) ? $sub->multiplier : 1))
-                    );
-                }
             }
 
         } else {
@@ -148,7 +147,7 @@ if (!$isSystem) {
                 ->subtitle('View milestones')
                 ->arg('https://github.com/' . $parts[0] . '/issues/milestones')
             );
-            if (false && empty($parts[1])) {
+            if (empty($parts[1])) {
                 $subs = array(
                     '#' => 'Show a specific issue by number',
                     '@' => 'Show a specific branch',

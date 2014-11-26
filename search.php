@@ -17,6 +17,7 @@ if (Workflow::checkUpdate()) {
             ->prefix('gh ')
             ->title('> ' . $cmd)
             ->subtitle($desc)
+            ->icon($cmd)
             ->arg('> ' . str_replace(' ', '-', $cmd))
             ->randomUid()
         , false);
@@ -82,6 +83,7 @@ if (!$isSystem) {
                             ->title('@' . $branch->name)
                             ->comparator($parts[0] . ' @' . $branch->name)
                             ->subtitle($branch->commit->sha)
+                            ->icon('branch')
                             ->arg('https://github.com/' . $parts[0] . '/tree/' . $branch->name)
                         );
                     }
@@ -95,6 +97,7 @@ if (!$isSystem) {
                                 ->title(basename($file->path))
                                 ->subtitle('/' . $file->path)
                                 ->comparator($parts[0] . ' /' . $file->path)
+                                ->icon('file')
                                 ->arg('https://github.com/' . $parts[0] . '/blob/' . $repo->default_branch . '/' . $file->path)
                             );
                         }
@@ -107,6 +110,7 @@ if (!$isSystem) {
                             ->title('#' . $issue->number)
                             ->comparator($parts[0] . ' #' . $issue->number)
                             ->subtitle($issue->title)
+                            ->icon($issue->pull_request ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
                         );
                     }
@@ -116,47 +120,52 @@ if (!$isSystem) {
         } else {
 
             $subs = array(
-                'admin'   => 'Manage this repo',
-                'graphs'  => 'All the graphs',
-                'issues ' => 'List, show and create issues',
-                'network' => 'See the network',
-                'pulls'   => 'Show open pull requests',
-                'pulse'   => 'See recent activity',
-                'wiki'    => 'Pull up the wiki',
-                'commits' => 'View commit history'
+                'admin'   => array('Manage this repo'),
+                'graphs'  => array('All the graphs'),
+                'issues ' => array('List, show and create issues', 'issue'),
+                'network' => array('See the network', 'graphs'),
+                'pulls'   => array('Show open pull requests', 'pull-request'),
+                'pulse'   => array('See recent activity'),
+                'wiki'    => array('Pull up the wiki'),
+                'commits' => array('View commit history')
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()
                     ->title($parts[0] . ' ' . $key)
-                    ->subtitle($sub)
+                    ->subtitle($sub[0])
+                    ->icon(isset($sub[1]) ? $sub[1] : $key)
                     ->arg('https://github.com/' . $parts[0] . '/' . $key)
                 );
             }
             Workflow::addItem(Item::create()
                 ->title($parts[0] . ' new issue')
                 ->subtitle('Create new issue')
+                ->icon('issue')
                 ->arg('https://github.com/' . $parts[0] . '/issues/new?source=c')
             );
             Workflow::addItem(Item::create()
                 ->title($parts[0] . ' new pull')
                 ->subtitle('Create new pull request')
+                ->icon('pull-request')
                 ->arg('https://github.com/' . $parts[0] . '/pull/new?source=c')
             );
             Workflow::addItem(Item::create()
                 ->title($parts[0] . ' milestones')
                 ->subtitle('View milestones')
+                ->icon('milestone')
                 ->arg('https://github.com/' . $parts[0] . '/issues/milestones')
             );
             if (empty($parts[1])) {
                 $subs = array(
-                    '#' => 'Show a specific issue by number',
-                    '@' => 'Show a specific branch',
-                    '/' => 'Show a blob'
+                    '#' => array('Show a specific issue by number', 'issue'),
+                    '@' => array('Show a specific branch', 'branch'),
+                    '/' => array('Show a blob', 'file')
                 );
-                foreach ($subs as $key => $subtitle) {
+                foreach ($subs as $key => $sub) {
                     Workflow::addItem(Item::create()
                         ->title($parts[0] . ' ' . $key)
-                        ->subtitle($subtitle)
+                        ->subtitle($sub[0])
+                        ->icon($sub[1])
                         ->arg($key . ' ' . $parts[0])
                         ->valid(false)
                     );
@@ -165,6 +174,7 @@ if (!$isSystem) {
             Workflow::addItem(Item::create()
                 ->title($parts[0] . ' clone')
                 ->subtitle('Clone this repo')
+                ->icon('clone')
                 ->arg('https://github.com/' . $parts[0] . '.git')
             );
 
@@ -190,9 +200,19 @@ if (!$isSystem) {
             }
         }
         foreach ($repos as $repo) {
+            $icon = 'repo';
+            if ($repo->fork) {
+                $icon = 'fork';
+            } elseif ($repo->mirror_url) {
+                $icon = 'mirror';
+            }
+            if ($repo->private) {
+                $icon = 'private-' . $icon;
+            }
             Workflow::addItem(Item::create()
                 ->title($repo->full_name . ' ')
                 ->subtitle($repo->description)
+                ->icon($icon)
                 ->arg('https://github.com/' . $repo->full_name)
                 ->prio(30 + $repo->prio)
             );
@@ -203,7 +223,7 @@ if (!$isSystem) {
     if ($isUser && isset($parts[1])) {
         $subs = array(
             'contributions' => array($queryUser, "View $queryUser's contributions"),
-            'repositories'  => array($queryUser . '?tab=repositories', "View $queryUser's repositories"),
+            'repositories'  => array($queryUser . '?tab=repositories', "View $queryUser's repositories", 'repo'),
             'activity'      => array($queryUser . '?tab=activity', "View $queryUser's public activity"),
             'stars'         => array('stars/' . $queryUser, "View $queryUser's stars")
         );
@@ -213,6 +233,7 @@ if (!$isSystem) {
                 ->prefix('@', false)
                 ->title($queryUser . ' ' . $key)
                 ->subtitle($sub[1])
+                ->icon(isset($sub[2]) ? $sub[2] : $key)
                 ->arg('https://github.com/' . $sub[0])
                 ->prio($prio--)
             );
@@ -226,6 +247,7 @@ if (!$isSystem) {
                     ->title($user->login . ' ')
                     ->subtitle($user->type)
                     ->arg($user->html_url)
+                    ->icon(lcfirst($user->type))
                     ->prio(20)
                 );
             }
@@ -239,10 +261,10 @@ if (!$isSystem) {
     } else {
         $myPages = array(
             'dashboard'     => array('', 'View your dashboard'),
-            'pulls'         => array('dashboard/pulls', 'View your pull requests'),
-            'issues'        => array('dashboard/issues', 'View your issues'),
+            'pulls'         => array('pulls', 'View your pull requests', 'pull-request'),
+            'issues'        => array('issues', 'View your issues', 'issue'),
             'stars'         => array('stars', 'View your starred repositories'),
-            'profile'       => array($userData->login, 'View your public user profile'),
+            'profile'       => array($userData->login, 'View your public user profile', 'user'),
             'settings'      => array('settings', 'View or edit your account settings'),
             'notifications' => array('notifications', 'View all your notifications')
         );
@@ -250,6 +272,7 @@ if (!$isSystem) {
             Workflow::addItem(Item::create()
                 ->title('my ' . $key)
                 ->subtitle($my[1])
+                ->icon(isset($my[2]) ? $my[2] : $key)
                 ->arg('https://github.com/' . $my[0])
                 ->prio(1)
             );
@@ -262,6 +285,7 @@ if (!$isSystem) {
         $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
         Workflow::addItem(Item::create()
             ->title("Search GitHub for '$query'")
+            ->icon('search')
             ->arg('https://github.com/' . $path)
             ->autocomplete(false)
         , false);
@@ -284,6 +308,7 @@ if (!$isSystem) {
             ->prefix('gh ')
             ->title('> ' . $cmd)
             ->subtitle($desc)
+            ->icon($cmd)
             ->arg('> ' . str_replace(' ', '-', $cmd))
         );
     }

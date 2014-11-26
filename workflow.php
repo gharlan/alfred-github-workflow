@@ -147,7 +147,7 @@ class Workflow
             $content = json_decode($content);
             $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
             while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
-                $content += json_decode($data->content);
+                $content = array_merge($content, json_decode($data->content));
                 $url = $data->url;
             }
             return $content;
@@ -191,7 +191,7 @@ class Workflow
             return json_decode($responses[0]);
         }
         return array_reduce($responses, function ($content, $response) {
-            return $content + json_decode($response);
+            return array_merge($content, json_decode($response));
         }, array());
     }
 

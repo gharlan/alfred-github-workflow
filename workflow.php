@@ -243,6 +243,8 @@ class Workflow
         }
         if (!self::getConfig('autoupdate', 1)) {
             return false;
+        } elseif (!is_dir(__DIR__ . '/icons')) {
+            return true;
         }
         $version = self::requestCache('http://gh01.de/alfred/github/current', 1440);
         return $version !== null && $version !== self::VERSION;

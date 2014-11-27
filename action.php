@@ -56,10 +56,7 @@ switch ($parts[0]) {
                 }
                 $zip = __DIR__ . '/workflow.zip';
                 file_put_contents($zip, $response->content);
-                $phar = new PharData($zip);
-                foreach ($phar as $path => $file) {
-                    copy($path, __DIR__ . '/' . $file->getFilename());
-                }
+                exec('unzip -o workflow.zip');
                 unlink($zip);
                 Workflow::deleteCache();
                 echo 'Successfully updated the GitHub Workflow';

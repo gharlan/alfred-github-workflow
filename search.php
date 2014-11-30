@@ -153,7 +153,7 @@ if (!$isSystem) {
                 ->title($parts[0] . ' milestones')
                 ->subtitle('View milestones')
                 ->icon('milestone')
-                ->arg('https://github.com/' . $parts[0] . '/issues/milestones')
+                ->arg('https://github.com/' . $parts[0] . '/milestones')
             );
             if (empty($parts[1])) {
                 $subs = array(

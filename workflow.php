@@ -1,6 +1,7 @@
 <?php
 
 require 'item.php';
+require 'curl.php';
 
 class Workflow
 {
@@ -73,60 +74,42 @@ class Workflow
         self::getStatement('DELETE FROM config WHERE key = ?')->execute(array($key));
     }
 
-    public static function request($url, $etag = null, $post = false, array $data = array())
+    public static function request($url, Curl $curl = null, $callback = null)
     {
-        $debug = false;
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HEADER, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $header = array('Authorization: token ' . self::getConfig('access_token'));
-        curl_setopt($ch, CURLOPT_USERAGENT, 'alfred-github-workflow');
-        if ($debug) {
-            curl_setopt($ch, CURLOPT_PROXY, 'localhost');
-            curl_setopt($ch, CURLOPT_PROXYPORT, 8888);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        $return = false;
+        $returnValue = null;
+        if (!$curl) {
+            $curl = new Curl();
+            $return = true;
+            $callback = function ($content) use (&$returnValue) {
+                $returnValue = $content;
+            };
         }
-        if ($post) {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        } elseif ($etag) {
-            $header[] = 'If-None-Match: ' . $etag;
-        }
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        $rawResponse = curl_exec($ch);
-        if (false === $rawResponse) {
-            curl_close($ch);
-            return null;
-        }
-        if ($debug) {
-            list(, $header, $body) = explode("\r\n\r\n", $rawResponse, 3);
-        } else {
-            list($header, $body) = explode("\r\n\r\n", $rawResponse, 2);
-        }
-        $response = new stdClass();
-        $response->status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        $headerNames = array(
-            'etag' => 'ETag',
-            'contentType' => 'Content-Type',
-            'link' => 'Link',
-        );
-        foreach ($headerNames as $key => $name) {
-            if (preg_match('/^' . preg_quote($name, '/') . ': (\V*)/mi', $header, $match)) {
-                $response->$key = $match[1];
-            } else {
-                $response->$key = null;
+
+        $curl->add(new CurlRequest($url, null, function (CurlResponse $response) use ($callback) {
+            if (is_callable($callback) && isset($response->content)) {
+                $callback($response->content);
             }
+        }));
+
+        if ($return) {
+            $curl->execute();
         }
-        if (200 == $response->status) {
-            $response->content = $body;
-        }
-        return $response;
+        return $returnValue;
     }
 
-    public static function requestCache($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
+    public static function requestCache($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
+        $return = false;
+        $returnValue = null;
+        if (!$curl) {
+            $curl = new Curl();
+            $return = true;
+            $callback = function ($content) use (&$returnValue) {
+                $returnValue = $content;
+            };
+        }
+
         $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
         $stmt->execute(array($url));
         $stmt->bindColumn('timestamp', $timestamp);
@@ -150,57 +133,82 @@ class Workflow
                 $content = array_merge($content, json_decode($data->content));
                 $url = $data->url;
             }
-            return $content;
+            if (is_callable($callback)) {
+                $callback($content);
+            }
+            return $returnValue;
         }
 
-        $i = 0;
         $responses = array();
-        $parent = null;
-        do {
-            $response = self::request($url, $etag);
+
+        $handleResponse = function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback) {
+            $url = $response->request->url;
             if ($response && in_array($response->status, array(200, 304))) {
+                $checkNext = false;
                 if (304 == $response->status) {
                     $response->content = $content;
+                    $checkNext = true;
                 } elseif (false === stripos($response->contentType, 'json')) {
                     $response->content = json_encode($response->content);
                 }
-                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')->execute(array($url, time(), $response->etag, $response->content, $parent));
-                if ($response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
-                    $nextUrl = $match[1];
-                    $parent = $url;
-                    $stmt->execute(array($nextUrl));
+                $responses[] = $response->content;
+                Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
+                    ->execute(array($url, time(), $response->etag, $response->content, $parent));
+                if ($checkNext || $response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
+                    $stmt = Workflow::getStatement('SELECT * FROM request_cache WHERE parent = ?');
+                    $stmt->execute(array($url));
+                    if ($checkNext) {
+                        $stmt->bindColumn('url', $nextUrl);
+                    } else {
+                        $nextUrl = $match[1];
+                    }
                     $stmt->bindColumn('etag', $etag);
                     $stmt->bindColumn('content', $content);
                     $stmt->fetch(PDO::FETCH_BOUND);
-                    $url = $nextUrl;
+                    if ($nextUrl) {
+                        $curl->add(new CurlRequest($nextUrl, $etag, function (CurlResponse $response) use ($handleResponse, $url, $content) {
+                            $handleResponse($response, $content, $url);
+                        }));
+                        return;
+                    }
                 } else {
-                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute(array($url));
-                    $url = null;
+                    Workflow::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute(array($url));
                 }
-                $responses[] = $response->content;
             } else {
-                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute(array($url));
+                Workflow::getStatement('DELETE FROM request_cache WHERE url = ?')->execute(array($url));
                 $url = null;
             }
-            $i++;
-        } while ($url);
-        if (empty($responses)) {
-            return false;
+
+            if (is_callable($callback)) {
+                if (empty($responses)) {
+                    $callback(array());
+                    return;
+                }
+                if (1 === count($responses)) {
+                    $callback(json_decode($responses[0]));
+                    return;
+                }
+                $callback(array_reduce($responses, function ($content, $response) {
+                    return array_merge($content, json_decode($response));
+                }, array()));
+            }
+        };
+
+        $curl->add(new CurlRequest($url, $etag, function (CurlResponse $response) use (&$responses, $handleResponse, $callback, $content) {
+            $handleResponse($response, $content);
+        }));
+
+        if ($return) {
+            $curl->execute();
         }
-        if (1 === count($responses)) {
-            return json_decode($responses[0]);
-        }
-        return array_reduce($responses, function ($content, $response) {
-            return array_merge($content, json_decode($response));
-        }, array());
+        return $returnValue;
     }
 
-    public static function requestGithubApi($url, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestGithubApi($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $paramStart = false === strpos($url, '?') ? '?' : '&';
         $url = 'https://api.github.com' . $url . $paramStart . 'per_page=100';
-        $content = self::requestCache($url, $maxAge) ?: array();
-        return $content;
+        return self::requestCache($url, $curl, $callback, $maxAge);
     }
 
     public static function cleanCache()
@@ -246,7 +254,7 @@ class Workflow
         } elseif (!is_dir(__DIR__ . '/icons')) {
             return true;
         }
-        $version = self::requestCache('http://gh01.de/alfred/github/current', 1440);
+        $version = self::requestCache('http://gh01.de/alfred/github/current', null, null, 1440);
         return $version !== null && $version !== self::VERSION;
     }
 
@@ -287,7 +295,7 @@ class Workflow
      * @param string $query
      * @return PDOStatement
      */
-    protected static function getStatement($query)
+    public static function getStatement($query)
     {
         if (!isset(self::$statements[$query])) {
             self::$statements[$query] = self::$db->prepare($query);

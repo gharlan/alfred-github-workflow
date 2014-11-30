@@ -33,9 +33,11 @@ switch ($parts[0]) {
                 break;
 
             case 'refresh-cache':
+                $curl = new Curl();
                 foreach (explode(',', $parts[2]) as $url) {
-                    Workflow::requestCache($url, 0, false);
+                    Workflow::requestCache($url, $curl, null, 0, false);
                 }
+                $curl->execute();
                 Workflow::cleanCache();
                 break;
 

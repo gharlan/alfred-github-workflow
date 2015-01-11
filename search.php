@@ -59,13 +59,22 @@ class Search
             Workflow::sortItems();
 
             if ($query) {
+                if (!$isUser && $isRepo && isset($parts[1])) {
+                    $repoQuery = substr($query, strlen($parts[0]) + 1);
+                    Workflow::addItem(Item::create()
+                        ->title("Search '$parts[0]' for '$repoQuery'")
+                        ->icon('search')
+                        ->arg('https://github.com/' . $parts[0] . '/search?q=' . urlencode($repoQuery))
+                        ->autocomplete(false)
+                    , false);
+                }
                 $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
                 Workflow::addItem(Item::create()
                     ->title("Search GitHub for '$query'")
                     ->icon('search')
                     ->arg('https://github.com/' . $path)
                     ->autocomplete(false)
-                    , false);
+                , false);
             }
 
         }

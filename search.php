@@ -318,7 +318,7 @@ class Search
             'activity'      => array($queryUser . '?tab=activity', "View $queryUser's public activity"),
             'stars'         => array('stars/' . $queryUser, "View $queryUser's stars")
         );
-        $prio = count($subs);
+        $prio = count($subs) + 1;
         foreach ($subs as $key => $sub) {
             Workflow::addItem(Item::create()
                 ->prefix('@', false)
@@ -329,6 +329,14 @@ class Search
                 ->prio($prio--)
             );
         }
+        Workflow::addItem(Item::create()
+            ->prefix('@', false)
+            ->title($queryUser . ' gists')
+            ->subtitle("View $queryUser's' gists")
+            ->icon('gists')
+            ->arg('https://gist.github.com/' . $queryUser)
+            ->prio(1)
+        );
     }
 
     private static function addMyCommands()
@@ -351,6 +359,13 @@ class Search
                 ->prio(1)
             );
         }
+        Workflow::addItem(Item::create()
+            ->title('my gists')
+            ->subtitle('View your gists')
+            ->icon('gists')
+            ->arg('https://gist.github.com/' . self::$user->login)
+            ->prio(1)
+        );
     }
 
     private static function addSystemCommands()

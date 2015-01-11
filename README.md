@@ -39,6 +39,7 @@ Commands
 * `gh @user repositories`
 * `gh @user activity`
 * `gh @user stars`
+* `gh @user gists`
 
 ### "My" commands
 
@@ -49,6 +50,7 @@ Commands
 * `gh my pulls`
 * `gh my settings`
 * `gh my stars`
+* `gh my gists`
 
 ### Workflow commands
 

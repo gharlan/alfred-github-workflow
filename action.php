@@ -53,12 +53,12 @@ switch ($parts[0]) {
 
             case 'update':
                 $response = Workflow::request('http://gh01.de/alfred/github/github.alfredworkflow');
-                if ($response->status != 200) {
+                if (!$response) {
                     echo 'Update failed';
                     exit;
                 }
                 $zip = __DIR__ . '/workflow.zip';
-                file_put_contents($zip, $response->content);
+                file_put_contents($zip, $response);
                 exec('unzip -o workflow.zip');
                 unlink($zip);
                 Workflow::deleteCache();

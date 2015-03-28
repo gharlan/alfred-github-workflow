@@ -6,7 +6,7 @@ require 'curl.php';
 class Workflow
 {
     const VERSION = '$Format:%H$';
-    const BUNDLE = 'de.gh01.alfred.github';
+    const BUNDLE = 'de.gh01.alfred.github-dev';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;
@@ -29,6 +29,7 @@ class Workflow
             $dataDir = $_ENV['alfred_workflow_data'];
         } else {
             $dataDir = (isset($_ENV['HOME']) ? $_ENV['HOME'] : $_SERVER['HOME']) . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
+            $_ENV['alfred_workflow_data'] = $dataDir;
         }
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
@@ -225,7 +226,11 @@ class Workflow
     {
         if (version_compare(PHP_VERSION, '5.4', '>=')) {
             self::stopServer();
-            shell_exec('php -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> "' . self::$filePids . '"');
+            shell_exec(sprintf(
+                'alfred_workflow_data=%s php -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
+                escapeshellarg($_ENV['alfred_workflow_data']),
+                escapeshellarg(self::$filePids)
+            ));
         }
     }
 

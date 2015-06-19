@@ -239,7 +239,7 @@ class Search
                             ->title('#' . $issue->number)
                             ->comparator($parts[0] . ' #' . $issue->number)
                             ->subtitle($issue->title)
-                            ->icon($issue->pull_request ? 'pull-request' : 'issue')
+                            ->icon($issue->pull_request ? 'pull-request' : ($issue->state == 'open' ? 'issue-open' : 'issue-closed'))
                             ->arg($issue->html_url)
                         );
                     }

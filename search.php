@@ -233,7 +233,7 @@ class Search
                     }
                     break;
                 case '#':
-                    $issues = Workflow::requestGithubApi('/repos/' . $parts[0] . '/issues?sort=updated');
+                    $issues = Workflow::requestGithubApi('/repos/' . $parts[0] . '/issues?sort=updated&state=all');
                     foreach ($issues as $issue) {
                         Workflow::addItem(Item::create()
                             ->title('#' . $issue->number)

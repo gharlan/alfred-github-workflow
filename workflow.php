@@ -99,6 +99,14 @@ class Workflow
         return $returnValue;
     }
 
+    /**
+     * @param string   $url
+     * @param Curl     $curl
+     * @param callable $callback
+     * @param int      $maxAge
+     * @param bool     $refreshInBackground
+     * @return mixed
+     */
     public static function requestCache($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
         $return = false;

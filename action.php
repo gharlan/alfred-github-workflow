@@ -2,27 +2,42 @@
 
 require 'workflow.php';
 
-Workflow::init();
-
 $query = trim($argv[1]);
+$enterprise = 0 === strpos($query, 'e ');
+if ($enterprise) {
+    $query = substr($query, 2);
+}
 $parts = explode(' ', $query);
+
+Workflow::init($enterprise);
 
 switch ($parts[0]) {
 
     case '>':
         switch ($parts[1]) {
+            case 'enterprise-url':
+                Workflow::setConfig('enterprise_url', $parts[2]);
+                break;
+
+            case 'enterprise-reset':
+                Workflow::removeConfig('enterprise_url');
+                break;
+
             case 'login':
                 if (isset($parts[2]) && $parts[2]) {
-                    Workflow::setConfig('access_token', $parts[2]);
+                    Workflow::setAccessToken($parts[2]);
                     echo 'Successfully logged in';
                 } else {
                     Workflow::startServer();
-                    exec('open "https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state=' . version_compare(PHP_VERSION, '5.4', '<') . '"');
+                    $state = $enterprise ? 'e' : '';
+                    $state .= version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
+                    $url = Workflow::getBaseUrl() . '/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state=' . $state;
+                    exec('open ' . escapeshellarg($url));
                 }
                 break;
 
             case 'logout':
-                Workflow::removeConfig('access_token');
+                Workflow::removeAccessToken();
                 Workflow::deleteCache();
                 echo 'Successfully logged out';
                 break;
@@ -68,6 +83,9 @@ switch ($parts[0]) {
         break;
 
     default:
+        if ('/' === $query[0]) {
+            $query = Workflow::getBaseUrl() . $query;
+        }
         if ('.git' == substr($query, -4)) {
             $query = 'github-mac://openRepo/' . substr($query, 0, -4);
         }

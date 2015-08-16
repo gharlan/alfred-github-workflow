@@ -121,9 +121,10 @@ class Item
      * @param self[] $items
      * @return string
      */
-    public static function toXml(array $items)
+    public static function toXml(array $items, $enterprise = false)
     {
         $xml = new SimpleXMLElement('<items></items>');
+        $prefix = $enterprise ? 'e ' : ' ';
         foreach ($items as $item) {
             $c = $xml->addChild('item');
             $title = $item->prefix . $item->title;
@@ -134,10 +135,10 @@ class Item
                 $c->addChild('icon', 'icon.png');
             }
             if ($item->arg) {
-                $c->addAttribute('arg', $item->arg);
+                $c->addAttribute('arg', ltrim($prefix . $item->arg));
             }
             if ($item->autocomplete) {
-                $c->addAttribute('autocomplete', ' ' . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
             }
             if (!$item->valid) {
                 $c->addAttribute('valid', 'no');

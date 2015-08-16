@@ -6,7 +6,7 @@ require 'curl.php';
 class Workflow
 {
     const VERSION = '$Format:%H$';
-    const BUNDLE = 'de.gh01.alfred.github-dev';
+    const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;

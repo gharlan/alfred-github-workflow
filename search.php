@@ -365,7 +365,7 @@ class Search
             ->title($queryUser . ' gists')
             ->subtitle("View $queryUser's' gists")
             ->icon('gists')
-            ->arg('https://gist.github.com/' . $queryUser)
+            ->arg(Workflow::getGistUrl() . $queryUser)
             ->prio(1)
         );
     }
@@ -394,7 +394,7 @@ class Search
             ->title('my gists')
             ->subtitle('View your gists')
             ->icon('gists')
-            ->arg('https://gist.github.com/' . self::$user->login)
+            ->arg(Workflow::getGistUrl() . self::$user->login)
             ->prio(1)
         );
     }

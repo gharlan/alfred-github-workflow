@@ -6,7 +6,7 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER['REQUEST_URI'])) {
 
 require 'workflow.php';
 
-Workflow::init(isset($_GET['enterprise']) && $_GET['enterprise']);
+Workflow::init();
 
 if (!isset($_GET['access_token'])) {
     echo 'FAILURE (missing access_token parameter)!';

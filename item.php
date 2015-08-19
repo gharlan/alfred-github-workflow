@@ -121,7 +121,7 @@ class Item
      * @param self[] $items
      * @return string
      */
-    public static function toXml(array $items, $enterprise = false)
+    public static function toXml(array $items, $enterprise, $baseUrl)
     {
         $xml = new SimpleXMLElement('<items></items>');
         $prefix = $enterprise ? 'e ' : ' ';
@@ -135,10 +135,20 @@ class Item
                 $c->addChild('icon', 'icon.png');
             }
             if ($item->arg) {
-                $c->addAttribute('arg', ltrim($prefix . $item->arg));
+                $arg = $item->arg;
+                if ('/' === $arg[0]) {
+                    $arg = $baseUrl . $arg;
+                } elseif (false === strpos($arg, '://')) {
+                    $arg = ltrim($prefix . $arg);
+                }
+                $c->addAttribute('arg', $arg);
             }
             if ($item->autocomplete) {
-                $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                if ($item->comparator) {
+                    $c->addAttribute('autocomplete', $prefix . $item->comparator);
+                } else {
+                    $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                }
             }
             if (!$item->valid) {
                 $c->addAttribute('valid', 'no');

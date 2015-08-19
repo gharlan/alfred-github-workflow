@@ -75,15 +75,16 @@ class Search
                     Workflow::addItem(Item::create()
                         ->title("Search '$parts[0]' for '$repoQuery'")
                         ->icon('search')
-                        ->arg(Workflow::getBaseUrl() . '/' . $parts[0] . '/search?q=' . urlencode($repoQuery))
+                        ->arg('/' . $parts[0] . '/search?q=' . urlencode($repoQuery))
                         ->autocomplete(false)
                     , false);
                 }
                 $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
+                $name = self::$enterprise ? 'GitHub Enterprise' : 'GitHub';
                 Workflow::addItem(Item::create()
-                    ->title("Search GitHub for '$query'")
+                    ->title("Search $name for '$query'")
                     ->icon('search')
-                    ->arg(Workflow::getBaseUrl() . '/' . $path)
+                    ->arg('/' . $path)
                     ->autocomplete(false)
                 , false);
             }
@@ -132,7 +133,7 @@ class Search
         if (count(self::$parts) > 1 && self::$parts[0] == '>' && self::$parts[1] == 'login' && isset(self::$parts[2])) {
             $token = self::$parts[2];
         }
-        if (!$token) {
+        if (!$token && !self::$enterprise) {
             Workflow::addItem(Item::create()
                 ->title('> login')
                 ->subtitle('Generate OAuth access token')
@@ -142,12 +143,18 @@ class Search
         }
         Workflow::addItem(Item::create()
             ->title('> login ' . $token)
-            ->subtitle('Save OAuth access token')
+            ->subtitle('Save access token')
             ->arg('> login ' . $token)
             ->valid((bool) $token, '<access_token>')
             ->randomUid()
         , false);
-        if (!$token) {
+        if (!$token && self::$enterprise) {
+            Workflow::addItem(Item::create()
+                ->title('> generate token')
+                ->subtitle('Generate a new access token')
+                ->arg('/settings/applications')
+                ->randomUid()
+            , false);
             Workflow::addItem(Item::create()
                 ->title('> enterprise reset')
                 ->subtitle('Reset the GitHub Enterprise URL')
@@ -365,7 +372,7 @@ class Search
             ->title($queryUser . ' gists')
             ->subtitle("View $queryUser's' gists")
             ->icon('gists')
-            ->arg(Workflow::getGistUrl() . $queryUser)
+            ->arg(Workflow::getGistUrl() . '/' . $queryUser)
             ->prio(1)
         );
     }
@@ -394,7 +401,7 @@ class Search
             ->title('my gists')
             ->subtitle('View your gists')
             ->icon('gists')
-            ->arg(Workflow::getGistUrl() . self::$user->login)
+            ->arg(Workflow::getGistUrl() . '/' . self::$user->login)
             ->prio(1)
         );
     }

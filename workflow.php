@@ -19,6 +19,7 @@ class Workflow
     private static $enterprise;
     private static $baseUrl = 'https://github.com';
     private static $apiUrl = 'https://api.github.com';
+    private static $gistUrl = 'https://gist.github.com';
 
     private static $query;
     private static $items = array();
@@ -55,6 +56,7 @@ class Workflow
         if (self::$enterprise) {
             self::$baseUrl = self::getConfig('enterprise_url');
             self::$apiUrl = self::$baseUrl ? self::$baseUrl . '/api/v3' : null;
+            self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
         }
         register_shutdown_function(array(__CLASS__, 'shutdown'));
     }
@@ -96,7 +98,7 @@ class Workflow
 
     public static function getGistUrl()
     {
-        return self::$enterprise ? self::getBaseUrl() . '/gist/' : 'https://gist.github.com/';
+        return self::$gistUrl;
     }
 
     public static function setAccessToken($token)
@@ -340,7 +342,7 @@ class Workflow
 
     public static function getItemsAsXml()
     {
-        return Item::toXml(self::$items, self::$enterprise);
+        return Item::toXml(self::$items, self::$enterprise, self::getBaseUrl());
     }
 
     /**

@@ -94,6 +94,11 @@ class Workflow
         return self::$apiUrl;
     }
 
+    public static function getGistUrl()
+    {
+        return self::$enterprise ? self::getBaseUrl() . '/gist/' : 'https://gist.github.com/';
+    }
+
     public static function setAccessToken($token)
     {
         self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);

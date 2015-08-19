@@ -93,7 +93,7 @@ class Curl
         $options[CURLOPT_URL] = $request->url;
         $header = array();
         $header[] = 'X-Url: ' . $request->url;
-        $header[] = 'Authorization: token ' . Workflow::getConfig('access_token');
+        $header[] = 'Authorization: token ' . Workflow::getAccessToken();
         if ($request->etag) {
             $header[] = 'If-None-Match: ' . $request->etag;
         }

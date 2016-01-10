@@ -6,7 +6,7 @@ require 'curl.php';
 class Workflow
 {
     const VERSION = '$Format:%H$';
-    const BUNDLE = 'de.gh01.alfred.github-dev';
+    const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;
@@ -16,14 +16,20 @@ class Workflow
     /** @var PDOStatement[] */
     private static $statements = array();
 
+    private static $enterprise;
+    private static $baseUrl = 'https://github.com';
+    private static $apiUrl = 'https://api.github.com';
+    private static $gistUrl = 'https://gist.github.com';
+
     private static $query;
     private static $items = array();
 
     private static $refreshUrls = array();
 
-    public static function init($query = null)
+    public static function init($enterprise = false, $query = null)
     {
         date_default_timezone_set('UTC');
+        self::$enterprise = $enterprise;
         self::$query = $query;
         if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
@@ -46,6 +52,11 @@ class Workflow
                 )
             ');
             self::createRequestCacheTable();
+        }
+        if (self::$enterprise) {
+            self::$baseUrl = self::getConfig('enterprise_url');
+            self::$apiUrl = self::$baseUrl ? self::$baseUrl . '/api/v3' : null;
+            self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
         }
         register_shutdown_function(array(__CLASS__, 'shutdown'));
     }
@@ -75,6 +86,36 @@ class Workflow
         self::getStatement('DELETE FROM config WHERE key = ?')->execute(array($key));
     }
 
+    public static function getBaseUrl()
+    {
+        return self::$baseUrl;
+    }
+
+    public static function getApiUrl()
+    {
+        return self::$apiUrl;
+    }
+
+    public static function getGistUrl()
+    {
+        return self::$gistUrl;
+    }
+
+    public static function setAccessToken($token)
+    {
+        self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);
+    }
+
+    public static function getAccessToken()
+    {
+        return self::getConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+    }
+
+    public static function removeAccessToken()
+    {
+        self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+    }
+
     public static function request($url, Curl $curl = null, $callback = null)
     {
         $return = false;
@@ -99,6 +140,14 @@ class Workflow
         return $returnValue;
     }
 
+    /**
+     * @param string   $url
+     * @param Curl     $curl
+     * @param callable $callback
+     * @param int      $maxAge
+     * @param bool     $refreshInBackground
+     * @return mixed
+     */
     public static function requestCache($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
         $return = false;
@@ -205,10 +254,10 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestGithubApi($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $paramStart = false === strpos($url, '?') ? '?' : '&';
-        $url = 'https://api.github.com' . $url . $paramStart . 'per_page=100';
+        $url = self::getApiUrl() . $url . $paramStart . 'per_page=100';
         return self::requestCache($url, $curl, $callback, $maxAge);
     }
 
@@ -293,7 +342,7 @@ class Workflow
 
     public static function getItemsAsXml()
     {
-        return Item::toXml(self::$items);
+        return Item::toXml(self::$items, self::$enterprise, self::getBaseUrl());
     }
 
     /**

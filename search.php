@@ -11,6 +11,10 @@ class Search
 
     public static function run($query)
     {
+        if (' ' !== $query[0] && 'e' !== $query && 'e ' !== substr($query, 0, 2)) {
+            return '';
+        }
+
         self::$enterprise = 'e' === $query[0];
         if (self::$enterprise) {
             $query = substr($query, 1);

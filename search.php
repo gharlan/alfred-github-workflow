@@ -113,6 +113,14 @@ class Search
                 ->randomUid()
             , false);
         }
+
+        Workflow::addItem(Item::create()
+            ->title('> changelog')
+            ->subtitle('View the changelog')
+            ->icon('file')
+            ->arg('https://github.com/gharlan/alfred-github-workflow/blob/master/CHANGELOG.md')
+            ->randomUid()
+        , false);
     }
 
     private static function addEnterpriseUrlCommand()
@@ -446,6 +454,13 @@ class Search
                 ->arg('> ' . str_replace(' ', '-', $cmd))
             );
         }
+
+        Workflow::addItem(Item::create()
+            ->title('> changelog')
+            ->subtitle('View the changelog')
+            ->icon('file')
+            ->arg('https://github.com/gharlan/alfred-github-workflow/blob/master/CHANGELOG.md')
+        );
     }
 }
 

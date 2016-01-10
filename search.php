@@ -202,9 +202,21 @@ class Search
     private static function addRepoSubCommands()
     {
         $parts = self::$parts;
-        if (isset($parts[1][0]) && in_array($parts[1][0], array('#', '@', '/'))) {
+        if (isset($parts[1][0]) && in_array($parts[1][0], array('*', '#', '@', '/'))) {
 
             switch ($parts[1][0]) {
+                case '*':
+                    $commits = Workflow::requestGithubApi('/repos/' . $parts[0] . '/commits');
+                    foreach ($commits as $commit) {
+                        Workflow::addItem(Item::create()
+                            ->title($commit->commit->message)
+                            ->comparator($parts[0] . ' *' . $commit->sha)
+                            ->subtitle($commit->commit->author->date . '  (' . $commit->sha .')')
+                            ->icon('commits')
+                            ->arg('https://github.com/' . $parts[0] . '/commit/' . $commit->sha)
+                        );
+                    }
+                    break;
                 case '@':
                     $branches = Workflow::requestGithubApi('/repos/' . $parts[0] . '/branches');
                     foreach ($branches as $branch) {
@@ -286,6 +298,7 @@ class Search
             );
             if (empty($parts[1])) {
                 $subs = array(
+                    '*' => array('Show a specific commit', 'commits'),
                     '#' => array('Show a specific issue by number', 'issue'),
                     '@' => array('Show a specific branch', 'branch'),
                     '/' => array('Show a blob', 'file')

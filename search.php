@@ -405,13 +405,17 @@ class Search
     private static function addMyCommands()
     {
         $myPages = array(
-            'dashboard'     => array('', 'View your dashboard'),
-            'pulls'         => array('pulls', 'View your pull requests', 'pull-request'),
-            'issues'        => array('issues', 'View your issues', 'issue'),
-            'stars'         => array('stars', 'View your starred repositories'),
-            'profile'       => array(self::$user->login, 'View your public user profile', 'user'),
-            'settings'      => array('settings', 'View or edit your account settings'),
-            'notifications' => array('notifications', 'View all your notifications')
+            'dashboard'        => array('', 'View your dashboard'),
+            'pulls'            => array('pulls', 'View your pull requests', 'pull-request'),
+            'assigned pulls'   => array('pulls/assigned', 'View your assigned pull requests'),
+            'mentioned pulls'  => array('pulls/mentioned', 'View pull requests that mentioned you'),
+            'issues'           => array('issues', 'View your issues', 'issue'),
+            'assigned issues'  => array('issues/assigned', 'View your assigned issues'),
+            'mentioned issues' => array('issues/mentioned', 'View issues that mentioned you'),
+            'stars'            => array('stars', 'View your starred repositories'),
+            'profile'          => array(self::$user->login, 'View your public user profile', 'user'),
+            'settings'         => array('settings', 'View or edit your account settings'),
+            'notifications'    => array('notifications', 'View all your notifications')
         );
         foreach ($myPages as $key => $my) {
             Workflow::addItem(Item::create()

@@ -263,7 +263,7 @@ class Workflow
 
     public static function cleanCache()
     {
-        self::$db->exec('DELETE FROM request_cache WHERE timestamp < ' . (time() - 30 * 24 * 60 * 60));
+        self::$db->exec('DELETE FROM request_cache WHERE timestamp < ' . (time() - 100 * 24 * 60 * 60));
     }
 
     public static function deleteCache()

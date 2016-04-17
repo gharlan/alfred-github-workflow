@@ -75,6 +75,8 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh > update`
 * `gh > activate autoupdate`
 * `gh > deactivate autoupdate`
+* `gh > help`
+* `gh > changelog`
 * `ghe > url` (GitHub Enterprise only)
 * `ghe > generate token` (GitHub Enterprise only)
 * `ghe > enterprise reset` (GitHub Enterprise only)

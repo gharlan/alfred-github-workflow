@@ -453,12 +453,18 @@ class Search
             );
         }
 
-        Workflow::addItem(Item::create()
-            ->title('> changelog')
-            ->subtitle('View the changelog')
-            ->icon('file')
-            ->arg('https://github.com/gharlan/alfred-github-workflow/blob/master/CHANGELOG.md')
+        $cmds = array(
+            'help' => 'readme',
+            'changelog' => 'changelog',
         );
+        foreach ($cmds as $cmd => $file) {
+            Workflow::addItem(Item::create()
+                ->title('> ' . $cmd)
+                ->subtitle('View the ' . $file)
+                ->icon('file')
+                ->arg('https://github.com/gharlan/alfred-github-workflow/blob/master/' . strtoupper($file) . '.md')
+            );
+        }
     }
 }
 

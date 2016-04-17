@@ -59,10 +59,16 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 ### "My" commands
 
 * `gh my dashboard`
-* `gh my issues`
 * `gh my notifications`
 * `gh my profile`
+* `gh my issues`
+* `gh my issues created`
+* `gh my issues assigned`
+* `gh my issues mentioned`
 * `gh my pulls`
+* `gh my pulls created`
+* `gh my pulls assigned`
+* `gh my pulls mentioned`
 * `gh my settings`
 * `gh my stars`
 * `gh my gists`

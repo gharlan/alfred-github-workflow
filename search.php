@@ -402,10 +402,31 @@ class Search
 
     private static function addMyCommands()
     {
+        $parts = self::$parts;
+        if (isset($parts[2]) && in_array($parts[1], array('pulls', 'issues'))) {
+            $icon = $parts[1] === 'pulls' ? 'pull-request' : 'issue';
+            $items = $icon . 's';
+            $subs = array(
+                'created' => array($parts[1], 'View your ' . $items),
+                'assigned' => array($parts[1] . '/assigned', 'View your assigned ' . $items),
+                'mentioned' => array($parts[1] . '/mentioned', 'View ' . $items . ' that mentioned you'),
+            );
+            foreach ($subs as $key => $sub) {
+                Workflow::addItem(Item::create()
+                    ->title('my ' . $parts[1] . ' ' . $key)
+                    ->subtitle($sub[1])
+                    ->icon($icon)
+                    ->arg('/' . $sub[0])
+                    ->prio(1)
+                );
+            }
+            return;
+        }
+
         $myPages = array(
             'dashboard'     => array('', 'View your dashboard'),
-            'pulls'         => array('pulls', 'View your pull requests', 'pull-request'),
-            'issues'        => array('issues', 'View your issues', 'issue'),
+            'pulls '         => array('pulls', 'View your pull requests', 'pull-request'),
+            'issues '        => array('issues', 'View your issues', 'issue'),
             'stars'         => array('stars', 'View your starred repositories'),
             'profile'       => array(self::$user->login, 'View your public user profile', 'user'),
             'settings'      => array('settings', 'View or edit your account settings'),
@@ -415,7 +436,7 @@ class Search
             Workflow::addItem(Item::create()
                 ->title('my ' . $key)
                 ->subtitle($my[1])
-                ->icon(isset($my[2]) ? $my[2] : $key)
+                ->icon(isset($my[2]) ? $my[2] : rtrim($key))
                 ->arg('/' . $my[0])
                 ->prio(1)
             );

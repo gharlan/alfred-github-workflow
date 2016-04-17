@@ -9,16 +9,14 @@ class Search
     private static $parts;
     private static $user;
 
-    public static function run($query)
+    public static function run($scope, $query)
     {
-        if (' ' !== $query[0] && 'e' !== $query && 'e ' !== substr($query, 0, 2)) {
+        self::$enterprise = 'enterprise' === $scope;
+
+        if (' ' !== $query[0]) {
             return '';
         }
 
-        self::$enterprise = 'e' === $query[0];
-        if (self::$enterprise) {
-            $query = substr($query, 1);
-        }
         $query = ltrim($query);
         self::$query = $query;
         self::$parts = $parts = explode(' ', $query);
@@ -464,4 +462,4 @@ class Search
     }
 }
 
-print Search::run($argv[1]);
+print Search::run($argv[1], $argv[2]);

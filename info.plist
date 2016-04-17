@@ -17,6 +17,25 @@
 				<string></string>
 			</dict>
 		</array>
+		<key>95CD1A63-A0C6-4458-9817-9C6B1A90C827</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>87F10E6D-697C-47CE-BD78-E7174F5DF815</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string>Copy and paste URL</string>
+			</dict>
+		</array>
 		<key>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</key>
 		<array>
 			<dict>
@@ -50,6 +69,25 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>php -f action.php -- "{query}"</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
 				<key>lastpathcomponent</key>
 				<false/>
 				<key>onlyshowifquerypopulated</key>
@@ -75,25 +113,6 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>concurrently</key>
-				<false/>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>script</key>
-				<string>php -f action.php -- "{query}"</string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
-			<key>version</key>
-			<integer>0</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argumenttype</key>
 				<integer>0</integer>
 				<key>escaping</key>
@@ -111,7 +130,7 @@
 				<key>runningsubtext</key>
 				<string>Loading results…</string>
 				<key>script</key>
-				<string>php -f search.php -- "{query}"</string>
+				<string>php -f search.php -- github "{query}"</string>
 				<key>subtext</key>
 				<string>Search or type a command</string>
 				<key>title</key>
@@ -125,6 +144,43 @@
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>keyword</key>
+				<string>ghe</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Loading results…</string>
+				<key>script</key>
+				<string>php -f search.php -- enterprise "{query}"</string>
+				<key>subtext</key>
+				<string>Search or type a command (GitHub Enterprise)</string>
+				<key>title</key>
+				<string>ghe{query}</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>95CD1A63-A0C6-4458-9817-9C6B1A90C827</string>
 			<key>version</key>
 			<integer>0</integer>
 		</dict>
@@ -151,22 +207,27 @@
 		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>
 		<dict>
 			<key>ypos</key>
-			<real>10</real>
+			<real>40</real>
 		</dict>
 		<key>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</key>
 		<dict>
 			<key>ypos</key>
-			<real>10</real>
+			<real>40</real>
 		</dict>
 		<key>87F10E6D-697C-47CE-BD78-E7174F5DF815</key>
 		<dict>
 			<key>ypos</key>
-			<real>130</real>
+			<real>240</real>
+		</dict>
+		<key>95CD1A63-A0C6-4458-9817-9C6B1A90C827</key>
+		<dict>
+			<key>ypos</key>
+			<real>240</real>
 		</dict>
 		<key>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</key>
 		<dict>
 			<key>ypos</key>
-			<real>130</real>
+			<real>120</real>
 		</dict>
 	</dict>
 	<key>webaddress</key>

@@ -1,3 +1,2 @@
 .gitattributes export-ignore
 bin/ export-ignore
-workflow.php export-subst

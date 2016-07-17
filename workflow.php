@@ -5,7 +5,7 @@ require 'curl.php';
 
 class Workflow
 {
-    const VERSION = '$Format:%H$';
+    const VERSION = '1.4-dev';
     const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 
@@ -304,7 +304,7 @@ class Workflow
             self::$db->exec('DROP TABLE request_cache');
             self::createRequestCacheTable();
         }
-        if (!isset($_ENV['alfred_version']) || $_ENV['alfred_version'] < 3 || !self::getConfig('autoupdate', 1)) {
+        if (!self::getConfig('autoupdate', 1)) {
             return false;
         }
         $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, 1);
@@ -312,7 +312,7 @@ class Workflow
             return false;
         }
         $version = ltrim($release->tag_name, 'v');
-        return version_compare($version, '1.3') > 0;
+        return version_compare($version, self::VERSION) > 0;
     }
 
     private static function createRequestCacheTable()

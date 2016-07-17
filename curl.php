@@ -66,6 +66,11 @@ class Curl
                 curl_close($ch);
                 curl_multi_remove_handle(self::$multiHandle, $ch);
             }
+            if ($running || !$finish) {
+                if (curl_multi_select(self::$multiHandle, 1) === -1) {
+                    usleep(250);
+                }
+            }
         } while ($running || !$finish);
 
         $this->running = false;

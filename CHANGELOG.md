@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.3 – 2016-17-07
+------------------------
+
+**Important:** This is the last version for Alfred 2.
+
+* Disabled updates in Alfred 2
+* Updates in Alfred 3 are loaded from new location (GitHub releases)
+
+
 Version 1.2 – 2016-04-17
 ------------------------
 

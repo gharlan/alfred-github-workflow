@@ -316,7 +316,8 @@ class Search
                 'pulls'   => array('Show open pull requests', 'pull-request'),
                 'pulse'   => array('See recent activity'),
                 'wiki'    => array('Pull up the wiki'),
-                'commits' => array('View commit history')
+                'commits' => array('View commit history'),
+                'releases'=> array('See latest releases')
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()

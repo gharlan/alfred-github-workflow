@@ -34,7 +34,7 @@ class Workflow
         if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
         } else {
-            $dataDir = (isset($_ENV['HOME']) ? $_ENV['HOME'] : $_SERVER['HOME']) . '/Library/Application Support/Alfred 2/Workflow Data/' . self::BUNDLE;
+            $dataDir = (isset($_ENV['HOME']) ? $_ENV['HOME'] : $_SERVER['HOME']) . '/Library/Application Support/Alfred 3/Workflow Data/' . self::BUNDLE;
             $_ENV['alfred_workflow_data'] = $dataDir;
         }
         if (!is_dir($dataDir)) {

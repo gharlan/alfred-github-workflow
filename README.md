@@ -43,6 +43,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh user/repo new pull`
 * `gh user/repo pulls`
 * `gh user/repo pulse`
+* `gh user/repo releases`
 * `gh user/repo wiki`
 
 ### User commands

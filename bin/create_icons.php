@@ -27,6 +27,7 @@ $icons = array(
         'f01f' => 'commits',
         'f020' => 'branch',
         'f04c' => 'clone',
+        'f015' => 'releases',
 
         'f07d' => 'dashboard',
         'f02f' => 'settings',

@@ -116,7 +116,7 @@ class Workflow
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
-    public static function request($url, Curl $curl = null, $callback = null)
+    public static function request($url, Curl $curl = null, $callback = null, $withAuthorization = true)
     {
         $return = false;
         $returnValue = null;
@@ -128,7 +128,8 @@ class Workflow
             };
         }
 
-        $curl->add(new CurlRequest($url, null, function (CurlResponse $response) use ($callback) {
+        $token = $withAuthorization ? self::getAccessToken() : null;
+        $curl->add(new CurlRequest($url, null, $token, function (CurlResponse $response) use ($callback) {
             if (is_callable($callback) && isset($response->content)) {
                 $callback($response->content);
             }
@@ -216,7 +217,7 @@ class Workflow
                     $stmt->bindColumn('content', $content);
                     $stmt->fetch(PDO::FETCH_BOUND);
                     if ($nextUrl) {
-                        $curl->add(new CurlRequest($nextUrl, $etag, function (CurlResponse $response) use ($handleResponse, $url, $content) {
+                        $curl->add(new CurlRequest($nextUrl, $etag, Workflow::getAccessToken(), function (CurlResponse $response) use ($handleResponse, $url, $content) {
                             $handleResponse($response, $content, $url);
                         }));
                         return;
@@ -244,7 +245,7 @@ class Workflow
             }
         };
 
-        $curl->add(new CurlRequest($url, $etag, function (CurlResponse $response) use (&$responses, $handleResponse, $callback, $content) {
+        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), function (CurlResponse $response) use (&$responses, $handleResponse, $callback, $content) {
             $handleResponse($response, $content);
         }));
 
@@ -303,13 +304,15 @@ class Workflow
             self::$db->exec('DROP TABLE request_cache');
             self::createRequestCacheTable();
         }
-        if (!self::getConfig('autoupdate', 1)) {
+        if (!isset($_ENV['alfred_version']) || $_ENV['alfred_version'] < 3 || !self::getConfig('autoupdate', 1)) {
             return false;
-        } elseif (!is_dir(__DIR__ . '/icons')) {
-            return true;
         }
-        $version = self::requestCache('http://gh01.de/alfred/github/current', null, null, 1440);
-        return $version !== null && $version !== self::VERSION;
+        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, 1);
+        if (!$release) {
+            return false;
+        }
+        $version = ltrim($release->tag_name, 'v');
+        return version_compare($version, '1.3') > 0;
     }
 
     private static function createRequestCacheTable()

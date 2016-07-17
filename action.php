@@ -75,7 +75,12 @@ switch ($parts[1]) {
         break;
 
     case 'update':
-        $response = Workflow::request('http://gh01.de/alfred/github/github.alfredworkflow');
+        $release = json_decode(Workflow::request('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest'));
+        if (!isset($release->assets[0]->browser_download_url)) {
+            echo 'Update failed';
+            exit;
+        }
+        $response = Workflow::request($release->assets[0]->browser_download_url, null, null, false);
         if (!$response) {
             echo 'Update failed';
             exit;

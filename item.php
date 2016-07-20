@@ -124,7 +124,6 @@ class Item
     public static function toXml(array $items, $enterprise, $baseUrl)
     {
         $xml = new SimpleXMLElement('<items></items>');
-        $prefix = $enterprise ? 'e ' : ' ';
         foreach ($items as $item) {
             $c = $xml->addChild('item');
             $title = $item->prefix . $item->title;
@@ -139,15 +138,15 @@ class Item
                 if ('/' === $arg[0]) {
                     $arg = $baseUrl . $arg;
                 } elseif (false === strpos($arg, '://')) {
-                    $arg = ltrim($prefix . $arg);
+                    $arg = ($enterprise ? 'e ' : '') . $arg;
                 }
                 $c->addAttribute('arg', $arg);
             }
             if ($item->autocomplete) {
                 if ($item->comparator) {
-                    $c->addAttribute('autocomplete', $prefix . $item->comparator);
+                    $c->addAttribute('autocomplete', ' ' . $item->comparator);
                 } else {
-                    $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                    $c->addAttribute('autocomplete', ' ' . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
                 }
             }
             if (!$item->valid) {

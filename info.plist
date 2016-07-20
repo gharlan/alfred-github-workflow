@@ -33,11 +33,24 @@
 			</dict>
 			<dict>
 				<key>destinationuid</key>
-				<string>87F10E6D-697C-47CE-BD78-E7174F5DF815</string>
+				<string>9715D8FA-0199-450F-99B8-64796B5AC6CB</string>
 				<key>modifiers</key>
 				<integer>1048576</integer>
 				<key>modifiersubtext</key>
 				<string>Copy and paste URL</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>9715D8FA-0199-450F-99B8-64796B5AC6CB</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>87F10E6D-697C-47CE-BD78-E7174F5DF815</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
 				<key>vitoclose</key>
 				<false/>
 			</dict>
@@ -56,7 +69,7 @@
 			</dict>
 			<dict>
 				<key>destinationuid</key>
-				<string>87F10E6D-697C-47CE-BD78-E7174F5DF815</string>
+				<string>9715D8FA-0199-450F-99B8-64796B5AC6CB</string>
 				<key>modifiers</key>
 				<integer>1048576</integer>
 				<key>modifiersubtext</key>
@@ -69,57 +82,13 @@
 	<key>createdby</key>
 	<string>Gregor Harlan</string>
 	<key>description</key>
-	<string>GitHub command bar for Alfred</string>
+	<string>GitHub for Alfred</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
-	<string>GitHub commands</string>
+	<string>GitHub</string>
 	<key>objects</key>
 	<array>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>concurrently</key>
-				<false/>
-				<key>escaping</key>
-				<integer>36</integer>
-				<key>script</key>
-				<string>php -f action.php -- "{query}"</string>
-				<key>scriptargtype</key>
-				<integer>0</integer>
-				<key>scriptfile</key>
-				<string></string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
-			<key>version</key>
-			<integer>2</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>lastpathcomponent</key>
-				<false/>
-				<key>onlyshowifquerypopulated</key>
-				<true/>
-				<key>removeextension</key>
-				<false/>
-				<key>text</key>
-				<string>{query}</string>
-				<key>title</key>
-				<string>GitHub</string>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.output.notification</string>
-			<key>uid</key>
-			<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -160,6 +129,50 @@
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>lastpathcomponent</key>
+				<false/>
+				<key>onlyshowifquerypopulated</key>
+				<true/>
+				<key>removeextension</key>
+				<false/>
+				<key>text</key>
+				<string>{query}</string>
+				<key>title</key>
+				<string>GitHub</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.notification</string>
+			<key>uid</key>
+			<string>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>36</integer>
+				<key>script</key>
+				<string>php -f action.php -- "{query}"</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>29045171-6618-4FA4-BAB0-39C10422CF31</string>
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
@@ -223,6 +236,25 @@
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>inputstring</key>
+				<string>{query}</string>
+				<key>matchcasesensitive</key>
+				<false/>
+				<key>matchmode</key>
+				<integer>2</integer>
+				<key>matchstring</key>
+				<string>^\w+://</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.filter</string>
+			<key>uid</key>
+			<string>9715D8FA-0199-450F-99B8-64796B5AC6CB</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
 	</array>
 	<key>readme</key>
 	<string></string>
@@ -231,37 +263,52 @@
 		<key>29045171-6618-4FA4-BAB0-39C10422CF31</key>
 		<dict>
 			<key>xpos</key>
-			<integer>500</integer>
+			<integer>520</integer>
 			<key>ypos</key>
-			<real>40</real>
+			<integer>40</integer>
 		</dict>
 		<key>67ADBB8D-C705-4981-BB9B-7C9238BEFF2E</key>
 		<dict>
 			<key>xpos</key>
-			<integer>700</integer>
+			<integer>710</integer>
 			<key>ypos</key>
-			<real>40</real>
+			<integer>40</integer>
 		</dict>
 		<key>87F10E6D-697C-47CE-BD78-E7174F5DF815</key>
 		<dict>
 			<key>xpos</key>
-			<integer>700</integer>
+			<integer>710</integer>
 			<key>ypos</key>
-			<real>240</real>
+			<integer>230</integer>
 		</dict>
 		<key>95CD1A63-A0C6-4458-9817-9C6B1A90C827</key>
 		<dict>
+			<key>colorindex</key>
+			<integer>9</integer>
+			<key>note</key>
+			<string>GitHub Enterprise</string>
 			<key>xpos</key>
-			<integer>300</integer>
+			<integer>250</integer>
 			<key>ypos</key>
-			<real>240</real>
+			<integer>230</integer>
+		</dict>
+		<key>9715D8FA-0199-450F-99B8-64796B5AC6CB</key>
+		<dict>
+			<key>xpos</key>
+			<integer>600</integer>
+			<key>ypos</key>
+			<integer>260</integer>
 		</dict>
 		<key>FC76BC27-8BCB-4BEE-AD42-EAC2D9B01F0F</key>
 		<dict>
+			<key>colorindex</key>
+			<integer>12</integer>
+			<key>note</key>
+			<string>github.com</string>
 			<key>xpos</key>
-			<integer>300</integer>
+			<integer>250</integer>
 			<key>ypos</key>
-			<real>120</real>
+			<integer>40</integer>
 		</dict>
 	</dict>
 	<key>version</key>

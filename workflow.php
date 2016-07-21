@@ -301,10 +301,6 @@ class Workflow
     {
         if (self::getConfig('version') !== self::VERSION) {
             self::setConfig('version', self::VERSION);
-            //self::deleteCache();
-            self::closeCursors();
-            self::$db->exec('DROP TABLE request_cache');
-            self::createRequestCacheTable();
         }
         if (!self::getConfig('autoupdate', 1)) {
             return false;

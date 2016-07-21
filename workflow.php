@@ -27,12 +27,16 @@ class Workflow
 
     private static $refreshUrls = array();
 
+    private static $debug = false;
+
     public static function init($enterprise = false, $query = null, $hotkey = false)
     {
         date_default_timezone_set('UTC');
+
         self::$enterprise = $enterprise;
         self::$query = ltrim($query);
         self::$hotkey = $hotkey;
+
         if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
         } else {
@@ -42,7 +46,9 @@ class Workflow
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
         }
+
         self::$filePids = $dataDir . '/pid';
+
         $fileDb = $dataDir . '/db.sqlite';
         $exists = file_exists($fileDb);
         self::$db = new PDO('sqlite:' . $fileDb, null, null);
@@ -55,18 +61,24 @@ class Workflow
             ');
             self::createRequestCacheTable();
         }
+
         if (self::$enterprise) {
             self::$baseUrl = self::getConfig('enterprise_url');
             self::$apiUrl = self::$baseUrl ? self::$baseUrl . '/api/v3' : null;
             self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
         }
+
+        self::$debug = isset($_ENV['alfred_debug']) && $_ENV['alfred_debug'] && defined('STDERR');
+
         register_shutdown_function(array(__CLASS__, 'shutdown'));
     }
 
     public static function shutdown()
     {
         if (self::$refreshUrls) {
-            exec('php action.php "> refresh-cache ' . implode(',', self::$refreshUrls) . '" > /dev/null 2>&1 &');
+            $urls = implode(',', self::$refreshUrls);
+            exec('php action.php "> refresh-cache ' . $urls . '" > /dev/null 2>&1 &');
+            self::log('refreshing cache in background for %s', $urls);
         }
     }
 
@@ -120,6 +132,8 @@ class Workflow
 
     public static function request($url, Curl $curl = null, $callback = null, $withAuthorization = true)
     {
+        self::log('loading content for %s', $url);
+
         $return = false;
         $returnValue = null;
         if (!$curl) {
@@ -174,12 +188,13 @@ class Workflow
         $shouldRefresh = $timestamp < time() - 60 * $maxAge;
         $refreshInBackground = $refreshInBackground && !is_null($content);
 
-        if ($shouldRefresh && $refreshInBackground && $refresh < time() - 60) {
+        if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
             self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
             self::$refreshUrls[] = $url;
         }
 
         if (!$shouldRefresh || $refreshInBackground) {
+            self::log('using cached content for %s', $url);
             $content = json_decode($content);
             $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
             while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
@@ -247,6 +262,7 @@ class Workflow
             }
         };
 
+        self::log('loading content for %s', $url);
         $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), function (CurlResponse $response) use (&$responses, $handleResponse, $callback, $content) {
             $handleResponse($response, $content);
         }));
@@ -344,6 +360,13 @@ class Workflow
     public static function getItemsAsXml()
     {
         return Item::toXml(self::$items, self::$enterprise, self::$hotkey, self::getBaseUrl());
+    }
+
+    public static function log($msg)
+    {
+        if (self::$debug) {
+            fputs(STDERR, "\n".call_user_func_array('sprintf', func_get_args()));
+        }
     }
 
     /**

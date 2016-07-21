@@ -14,6 +14,7 @@ if (!isset($_GET['access_token'])) {
 }
 
 Workflow::setAccessToken($_GET['access_token']);
+Workflow::cacheWarmup();
 
 ?>
 <!DOCTYPE html>

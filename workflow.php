@@ -76,7 +76,7 @@ class Workflow
     public static function shutdown()
     {
         if (self::$refreshUrls) {
-            $urls = implode(',', self::$refreshUrls);
+            $urls = implode(',', array_keys(self::$refreshUrls));
             exec('php action.php "> refresh-cache ' . $urls . '" > /dev/null 2>&1 &');
             self::log('refreshing cache in background for %s', $urls);
         }
@@ -105,9 +105,16 @@ class Workflow
         return self::$baseUrl;
     }
 
-    public static function getApiUrl()
+    public static function getApiUrl($path = null)
     {
-        return self::$apiUrl;
+        $url = self::$apiUrl;
+
+        if ($path) {
+            $paramStart = false === strpos($path, '?') ? '?' : '&';
+            $url .= $path . $paramStart . 'per_page=100';
+        }
+
+        return $url;
     }
 
     public static function getGistUrl()
@@ -190,7 +197,7 @@ class Workflow
 
         if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
             self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
-            self::$refreshUrls[] = $url;
+            self::$refreshUrls[$url] = true;
         }
 
         if (!$shouldRefresh || $refreshInBackground) {
@@ -275,8 +282,7 @@ class Workflow
 
     public static function requestApi($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
-        $paramStart = false === strpos($url, '?') ? '?' : '&';
-        $url = self::getApiUrl() . $url . $paramStart . 'per_page=100';
+        $url = self::getApiUrl($url);
         return self::requestCache($url, $curl, $callback, $maxAge);
     }
 
@@ -288,6 +294,14 @@ class Workflow
     public static function deleteCache()
     {
         self::$db->exec('DELETE FROM request_cache');
+    }
+
+    public static function cacheWarmup()
+    {
+        $paths = array('/user', '/user/orgs', '/user/starred', '/user/subscriptions', '/user/repos', '/user/following');
+        foreach ($paths as $path) {
+            self::$refreshUrls[self::getApiUrl($path)] = true;
+        }
     }
 
     public static function startServer()

@@ -85,11 +85,8 @@ switch ($parts[1]) {
             echo 'Update failed';
             exit;
         }
-        $zip = __DIR__ . '/workflow.zip';
-        file_put_contents($zip, $response);
-        exec('unzip -o workflow.zip');
-        unlink($zip);
-        Workflow::deleteCache();
-        echo 'Successfully updated the GitHub Workflow';
+        $path = $_ENV['alfred_workflow_data'].'/github.alfredworkflow';
+        file_put_contents($path, $response);
+        exec('open '.escapeshellarg($path));
         break;
 }

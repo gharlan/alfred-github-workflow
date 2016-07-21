@@ -404,6 +404,17 @@
 	<string>Changelog
 =========
 
+Version 1.4 – 2016-22-07
+------------------------
+
+* Hotkey support
+* use native update mechanism of Alfred (to keep your hotkeys)
+* new command `gh user/repo releases` (@altern8tif)
+* cache warmup after login
+* lower cpu usage in multi curl
+* fixed autocomplete values in GitHub Enterprise
+
+
 Version 1.3 – 2016-17-07
 ------------------------
 
@@ -433,7 +444,8 @@ Version 1.1 – 2015-01-10
 
 ### Bugfixes
 
-* A space after `gh` is required to avoid confusion when using commands of other workflows like `ghost`</string>
+* A space after `gh` is required to avoid confusion when using commands of other workflows like `ghost`
+</string>
 	<key>uidata</key>
 	<dict>
 		<key>14CA19E2-6328-4201-905E-A751E2BA47B5</key>
@@ -533,7 +545,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.3</string>
+	<string>1.4</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

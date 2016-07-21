@@ -1,6 +1,17 @@
 Changelog
 =========
 
+Version 1.4 – 2016-22-07
+------------------------
+
+* Hotkey support
+* use native update mechanism of Alfred (to keep your hotkeys)
+* new command `gh user/repo releases` (@altern8tif)
+* cache warmup after login
+* lower cpu usage in multi curl
+* fixed autocomplete values in GitHub Enterprise
+
+
 Version 1.3 – 2016-17-07
 ------------------------
 

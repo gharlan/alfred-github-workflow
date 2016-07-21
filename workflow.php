@@ -307,7 +307,7 @@ class Workflow
         if (!self::getConfig('autoupdate', 1)) {
             return false;
         }
-        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, 1);
+        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, 1440);
         if (!$release) {
             return false;
         }

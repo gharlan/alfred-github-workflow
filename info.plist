@@ -4,6 +4,8 @@
 <dict>
 	<key>bundleid</key>
 	<string>de.gh01.alfred.github</string>
+	<key>category</key>
+	<string>Internet</string>
 	<key>connections</key>
 	<dict>
 		<key>14CA19E2-6328-4201-905E-A751E2BA47B5</key>

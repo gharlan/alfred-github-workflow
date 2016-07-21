@@ -9,19 +9,25 @@ class Search
     private static $parts;
     private static $user;
 
-    public static function run($scope, $query)
+    public static function run($scope, $query, $hotkey)
     {
         self::$enterprise = 'enterprise' === $scope;
 
-        if (' ' !== $query[0]) {
-            return '';
+        Workflow::init(self::$enterprise, $query, $hotkey);
+
+        if (!$hotkey) {
+            if ('' === $query) {
+                self::addEmptyQueryCommand();
+                return Workflow::getItemsAsXml();
+            }
+            if (' ' !== $query[0]) {
+                return '';
+            }
         }
 
         $query = ltrim($query);
         self::$query = $query;
         self::$parts = $parts = explode(' ', $query);
-
-        Workflow::init(self::$enterprise, $query);
 
         if (Workflow::checkUpdate()) {
             self::addUpdateCommands();
@@ -94,6 +100,16 @@ class Search
         }
 
         return Workflow::getItemsAsXml();
+    }
+
+    private static function addEmptyQueryCommand()
+    {
+        Workflow::addItem(Item::create()
+            ->title(self::$enterprise ? 'ghe' : 'gh')
+            ->subtitle('Search or type a command' . (self::$enterprise ? ' (GitHub Enterprise)' : ''))
+            ->comparator('')
+            ->valid(false)
+        , false);
     }
 
     private static function addUpdateCommands()
@@ -490,4 +506,4 @@ class Search
     }
 }
 
-print Search::run($argv[1], $argv[2]);
+print Search::run($argv[1], $argv[2], isset($_ENV['hotkey']) && $_ENV['hotkey']);

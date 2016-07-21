@@ -22,15 +22,17 @@ class Workflow
     private static $gistUrl = 'https://gist.github.com';
 
     private static $query;
+    private static $hotkey;
     private static $items = array();
 
     private static $refreshUrls = array();
 
-    public static function init($enterprise = false, $query = null)
+    public static function init($enterprise = false, $query = null, $hotkey = false)
     {
         date_default_timezone_set('UTC');
         self::$enterprise = $enterprise;
-        self::$query = $query;
+        self::$query = ltrim($query);
+        self::$hotkey = $hotkey;
         if (isset($_ENV['alfred_workflow_data'])) {
             $dataDir = $_ENV['alfred_workflow_data'];
         } else {
@@ -345,7 +347,7 @@ class Workflow
 
     public static function getItemsAsXml()
     {
-        return Item::toXml(self::$items, self::$enterprise, self::getBaseUrl());
+        return Item::toXml(self::$items, self::$enterprise, self::$hotkey, self::getBaseUrl());
     }
 
     /**

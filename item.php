@@ -121,9 +121,10 @@ class Item
      * @param self[] $items
      * @return string
      */
-    public static function toXml(array $items, $enterprise, $baseUrl)
+    public static function toXml(array $items, $enterprise, $hotkey, $baseUrl)
     {
         $xml = new SimpleXMLElement('<items></items>');
+        $prefix = $hotkey ? '' : ' ';
         foreach ($items as $item) {
             $c = $xml->addChild('item');
             $title = $item->prefix . $item->title;
@@ -143,10 +144,10 @@ class Item
                 $c->addAttribute('arg', $arg);
             }
             if ($item->autocomplete) {
-                if ($item->comparator) {
-                    $c->addAttribute('autocomplete', ' ' . $item->comparator);
+                if (null !== $item->comparator) {
+                    $c->addAttribute('autocomplete', $prefix . $item->comparator);
                 } else {
-                    $c->addAttribute('autocomplete', ' ' . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                    $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
                 }
             }
             if (!$item->valid) {

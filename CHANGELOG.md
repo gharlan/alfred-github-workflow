@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Version 1.4.1 – 2016-22-07
+--------------------------
+
+* fixed reading environment variables (important for hotkey support)
+
+
 Version 1.4 – 2016-22-07
 ------------------------
 

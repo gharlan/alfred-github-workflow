@@ -5,7 +5,7 @@ require 'curl.php';
 
 class Workflow
 {
-    const VERSION = '1.4';
+    const VERSION = '1.4.1';
     const BUNDLE = 'de.gh01.alfred.github';
     const DEFAULT_CACHE_MAX_AGE = 10;
 

@@ -37,11 +37,10 @@ class Workflow
         self::$query = ltrim($query);
         self::$hotkey = $hotkey;
 
-        if (isset($_ENV['alfred_workflow_data'])) {
-            $dataDir = $_ENV['alfred_workflow_data'];
-        } else {
-            $dataDir = (isset($_ENV['HOME']) ? $_ENV['HOME'] : $_SERVER['HOME']) . '/Library/Application Support/Alfred 3/Workflow Data/' . self::BUNDLE;
-            $_ENV['alfred_workflow_data'] = $dataDir;
+        $dataDir = getenv('alfred_workflow_data');
+        if (!$dataDir) {
+            $dataDir = getenv('HOME') . '/Library/Application Support/Alfred 3/Workflow Data/' . self::BUNDLE;
+            putenv('alfred_workflow_data="'.$dataDir.'"');
         }
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
@@ -68,7 +67,7 @@ class Workflow
             self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
         }
 
-        self::$debug = isset($_ENV['alfred_debug']) && $_ENV['alfred_debug'] && defined('STDERR');
+        self::$debug = getenv('alfred_debug') && defined('STDERR');
 
         register_shutdown_function(array(__CLASS__, 'shutdown'));
     }
@@ -310,7 +309,7 @@ class Workflow
             self::stopServer();
             shell_exec(sprintf(
                 'alfred_workflow_data=%s php -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
-                escapeshellarg($_ENV['alfred_workflow_data']),
+                escapeshellarg(getenv('alfred_workflow_data')),
                 escapeshellarg(self::$filePids)
             ));
         }

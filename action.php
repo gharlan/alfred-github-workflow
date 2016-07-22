@@ -85,7 +85,7 @@ switch ($parts[1]) {
             echo 'Update failed';
             exit;
         }
-        $path = $_ENV['alfred_workflow_data'].'/github.alfredworkflow';
+        $path = getenv('alfred_workflow_data').'/github.alfredworkflow';
         file_put_contents($path, $response);
         exec('open '.escapeshellarg($path));
         break;

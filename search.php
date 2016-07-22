@@ -506,4 +506,4 @@ class Search
     }
 }
 
-print Search::run($argv[1], $argv[2], isset($_ENV['hotkey']) && $_ENV['hotkey']);
+print Search::run($argv[1], $argv[2], getenv('hotkey'));

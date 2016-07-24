@@ -465,6 +465,15 @@ class Search
             ->arg(Workflow::getGistUrl() . '/' . self::$user->login)
             ->prio(1)
         );
+
+        Workflow::addItem(Item::create()
+            ->title('my repos')
+            ->subtitle('View your repos')
+            ->icon('repo')
+            ->arg(Workflow::getBaseUrl() . '/' . self::$user->login . "?tab=repositories")
+            ->prio(1)
+        );
+
     }
 
     private static function addSystemCommands()

@@ -470,7 +470,7 @@ class Search
             ->title('my repos')
             ->subtitle('View your repos')
             ->icon('repo')
-            ->arg(Workflow::getBaseUrl() . '/' . self::$user->login . "?tab=repositories")
+            ->arg('/' . self::$user->login . "?tab=repositories")
             ->prio(1)
         );
 

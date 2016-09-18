@@ -68,6 +68,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh my pulls created`
 * `gh my pulls assigned`
 * `gh my pulls mentioned`
+* `gh my repos`
 * `gh my settings`
 * `gh my stars`
 * `gh my gists`

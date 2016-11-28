@@ -206,7 +206,11 @@ class Search
                 });
             };
             if ($isRepo) {
-                $urls = array('/users/' . $queryUser . '/repos', '/orgs/' . $queryUser . '/repos');
+                if ($queryUser != self::$user->login) {
+                    $urls = array('/users/' . $queryUser . '/repos', '/orgs/' . $queryUser . '/repos');
+                } else {
+                    $urls = array('/user/repos');
+                }
             } else {
                 Workflow::requestApi('/user/orgs', $curl, function ($orgs) use ($getRepos) {
                     foreach ($orgs as $org) {

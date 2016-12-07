@@ -200,7 +200,7 @@ class Search
             $getRepos = function ($url, $prio) use ($curl, &$repos) {
                 Workflow::requestApi($url, $curl, function ($urlRepos) use (&$repos, $prio) {
                     foreach ($urlRepos as $repo) {
-                        $repo->prio = $prio;
+                        $repo->prio = $prio + ($repo->fork ? 0 : 10);
                         $repos[$repo->id] = $repo;
                     }
                 });
@@ -245,7 +245,7 @@ class Search
                 ->subtitle($repo->description)
                 ->icon($icon)
                 ->arg('/' . $repo->full_name)
-                ->prio(30 + $repo->prio)
+                ->prio(300 + $repo->prio)
             );
         }
 
@@ -256,13 +256,13 @@ class Search
                 ->subtitle($user->type)
                 ->arg($user->html_url)
                 ->icon(lcfirst($user->type))
-                ->prio(20)
+                ->prio(200)
             );
         }
         Workflow::addItem(Item::create()
             ->title('my ')
             ->subtitle('Dashboard, settings, and more')
-            ->prio(10)
+            ->prio(100)
             ->valid(false)
         );
     }

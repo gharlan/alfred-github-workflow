@@ -52,6 +52,8 @@ class Workflow
         self::$fileDb = $dataDir . '/db.sqlite';
         $exists = file_exists(self::$fileDb);
         self::$db = new PDO('sqlite:' . self::$fileDb, null, null);
+        self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
         if (!$exists) {
             self::createTables();
         }

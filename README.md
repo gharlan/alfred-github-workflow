@@ -11,6 +11,20 @@ You have to login (`gh > login`) before you can use the workflow. The login uses
 
 ![Workflow Screenshot](screenshot.png)
 
+Setup
+-----
+
+### For github.com
+
+In Alfred type (`gh > login`) to authenticate against your account. The login uses OAuth, so you do not have to enter your credentials.
+
+### For github enterprise
+
+1. In Alfred type (`ghe > url https://github.mycompany.com`)
+2. Create a new Personal Access Token (`ghe > generate token` or `https://github.mycompany.com/settings/applications`). It only needs access to your repos. Copy this token to your clipboard.
+3. In Alfred type (`ghe > login <paste token here>`)
+4. You can now `ghe your_enterprise_repo_name`
+
 Key Combinations
 ----------------
 

@@ -11,8 +11,6 @@ $icons = array(
 
         'f018' => 'user',
         'f037' => 'organization',
-        'f06b' => 'contributions',
-        'f034' => 'activity',
         'f02a' => 'stars',
         'f00e' => 'gists',
 

@@ -395,10 +395,9 @@ class Search
     private static function addUserSubCommands($queryUser)
     {
         $subs = array(
-            'contributions' => array($queryUser, "View $queryUser's contributions"),
-            'repositories'  => array($queryUser . '?tab=repositories', "View $queryUser's repositories", 'repo'),
-            'activity'      => array($queryUser . '?tab=activity', "View $queryUser's public activity"),
-            'stars'         => array('stars/' . $queryUser, "View $queryUser's stars")
+            'overview'     => array($queryUser, "View $queryUser's overview", 'user'),
+            'repositories' => array($queryUser . '?tab=repositories', "View $queryUser's repositories", 'repo'),
+            'stars'        => array($queryUser . '?tab=stars', "View $queryUser's stars")
         );
         $prio = count($subs) + 1;
         foreach ($subs as $key => $sub) {

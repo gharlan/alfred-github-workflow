@@ -63,9 +63,8 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 ### User commands
 
 * `gh @user`
-* `gh @user contributions`
+* `gh @user overview`
 * `gh @user repositories`
-* `gh @user activity`
 * `gh @user stars`
 * `gh @user gists`
 

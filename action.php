@@ -55,6 +55,11 @@ switch ($parts[1]) {
         echo 'Successfully deleted cache';
         break;
 
+    case 'delete-database':
+        Workflow::deleteDatabase();
+        echo 'Successfully deleted database';
+        break;
+
     case 'refresh-cache':
         $curl = new Curl();
         foreach (explode(',', $parts[2]) as $url) {

@@ -11,6 +11,7 @@ class Workflow
 
     private static $filePids;
 
+    private static $fileDb;
     /** @var PDO */
     private static $db;
     /** @var PDOStatement[] */
@@ -48,17 +49,11 @@ class Workflow
 
         self::$filePids = $dataDir . '/pid';
 
-        $fileDb = $dataDir . '/db.sqlite';
-        $exists = file_exists($fileDb);
-        self::$db = new PDO('sqlite:' . $fileDb, null, null);
+        self::$fileDb = $dataDir . '/db.sqlite';
+        $exists = file_exists(self::$fileDb);
+        self::$db = new PDO('sqlite:' . self::$fileDb, null, null);
         if (!$exists) {
-            self::$db->exec('
-                CREATE TABLE config (
-                    key TEXT PRIMARY KEY,
-                    value TEXT
-                )
-            ');
-            self::createRequestCacheTable();
+            self::createTables();
         }
 
         if (self::$enterprise) {
@@ -342,18 +337,33 @@ class Workflow
         return version_compare($version, self::VERSION) > 0;
     }
 
-    private static function createRequestCacheTable()
+    private static function createTables()
     {
         self::$db->exec('
+            CREATE TABLE config (
+                key TEXT PRIMARY KEY NOT NULL,
+                value TEXT
+            ) WITHOUT ROWID
+        ');
+
+        self::$db->exec('
             CREATE TABLE request_cache (
-                url TEXT PRIMARY KEY,
-                timestamp INTEGER,
+                url TEXT PRIMARY KEY NOT NULL,
+                timestamp INTEGER NOT NULL,
                 etag TEXT,
                 content TEXT,
                 refresh INTEGER,
                 parent TEXT
-            )
+            ) WITHOUT ROWID
         ');
+        self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
+    }
+
+    public static function deleteDatabase()
+    {
+        self::closeCursors();
+        self::$db = null;
+        unlink(self::$fileDb);
     }
 
     public static function addItem(Item $item, $check = true)

@@ -485,6 +485,7 @@ class Search
         $cmds = array(
             'delete cache' => 'Delete GitHub Cache',
             'logout' => 'Log out this workflow',
+            'delete database' => 'Delete database (contains login, config and cache)',
             'update' => 'Update this Alfred workflow'
         );
         if (Workflow::getConfig('autoupdate', true)) {

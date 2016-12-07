@@ -78,6 +78,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh > login`
 * `gh > logout`
 * `gh > delete cache`
+* `gh > delete database`
 * `gh > update`
 * `gh > activate autoupdate`
 * `gh > deactivate autoupdate`

@@ -200,7 +200,7 @@
 				<key>subtext</key>
 				<string>Search or type a command</string>
 				<key>title</key>
-				<string>gh{query}</string>
+				<string>gh...</string>
 				<key>type</key>
 				<integer>0</integer>
 				<key>withspace</key>
@@ -332,7 +332,7 @@
 				<key>subtext</key>
 				<string>Search or type a command (GitHub Enterprise)</string>
 				<key>title</key>
-				<string>ghe{query}</string>
+				<string>ghe...</string>
 				<key>type</key>
 				<integer>0</integer>
 				<key>withspace</key>

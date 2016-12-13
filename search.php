@@ -31,75 +31,78 @@ class Search
 
         if (Workflow::checkUpdate()) {
             self::addUpdateCommands();
-            return Workflow::getItemsAsXml();
+            return;
         }
 
         if (self::$enterprise && !Workflow::getBaseUrl()) {
             self::addEnterpriseUrlCommand();
-            return Workflow::getItemsAsXml();
+            return;
         }
 
         if (!Workflow::getAccessToken() || !(self::$user = Workflow::requestApi('/user'))) {
             self::addLoginCommands();
-            return Workflow::getItemsAsXml();
+            return;
         }
 
         Workflow::stopServer();
 
-        $isSystem = isset($query[0]) && $query[0] == '>';
-        $isMy = 'my' == $parts[0] && isset($parts[1]);
+        if (isset($query[0]) && $query[0] == '>') {
+
+            self::addSystemCommands();
+            Workflow::sortItems();
+            return;
+
+        }
+
+        $isSearch = 's' === $parts[0] && isset($parts[1]);
         $isUser = isset($query[0]) && $query[0] == '@';
         $isRepo = false;
         $queryUser = null;
         if ($isUser) {
             $queryUser = ltrim($parts[0], '@');
-        } elseif (($pos = strpos($parts[0], '/')) !== false) {
+        } elseif (!$isSearch && false !== $pos = strpos($parts[0], '/')) {
             $queryUser = substr($parts[0], 0, $pos);
             $isRepo = true;
         }
 
-        if ($isSystem) {
-
-            self::addSystemCommands();
-            Workflow::sortItems();
-
+        if ('my' == $parts[0] && isset($parts[1])) {
+            self::addMyCommands();
+        } elseif ($isSearch && strlen($query) > 5 && '@' !== substr($parts[1], 0, 1)) {
+            self::addRepoSearchCommands();
+        } elseif ($isSearch && strlen($query) > 6 && '@' === substr($parts[1], 0, 1)) {
+            self::addUserSearchCommands();
+        } elseif ($isUser && isset($parts[1])) {
+            self::addUserSubCommands($queryUser);
+        } elseif (!$isUser && $isRepo && isset($parts[1])) {
+            self::addRepoSubCommands();
         } else {
-
-            if ($isMy) {
-                self::addMyCommands();
-            } elseif ($isUser && isset($parts[1])) {
-                self::addUserSubCommands($queryUser);
-            } elseif (!$isUser && $isRepo && isset($parts[1])) {
-                self::addRepoSubCommands();
-            } else {
-                self::addDefaultCommands($isUser, $isRepo, $queryUser);
-            }
-
-            Workflow::sortItems();
-
-            if ($query) {
-                if (!$isUser && $isRepo && isset($parts[1])) {
-                    $repoQuery = substr($query, strlen($parts[0]) + 1);
-                    Workflow::addItem(Item::create()
-                        ->title("Search '$parts[0]' for '$repoQuery'")
-                        ->icon('search')
-                        ->arg('/' . $parts[0] . '/search?q=' . urlencode($repoQuery))
-                        ->autocomplete(false)
-                    , false);
-                }
-                $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
-                $name = self::$enterprise ? 'GitHub Enterprise' : 'GitHub';
-                Workflow::addItem(Item::create()
-                    ->title("Search $name for '$query'")
-                    ->icon('search')
-                    ->arg('/' . $path)
-                    ->autocomplete(false)
-                , false);
-            }
-
+            self::addDefaultCommands($isSearch, $isUser, $isRepo, $queryUser);
         }
 
-        return Workflow::getItemsAsXml();
+        Workflow::sortItems();
+
+        if (!$query) {
+            return;
+        }
+
+        if (!$isUser && $isRepo && isset($parts[1])) {
+            $repoQuery = substr($query, strlen($parts[0]) + 1);
+            Workflow::addItem(Item::create()
+                ->title("Search '$parts[0]' for '$repoQuery'")
+                ->icon('search')
+                ->arg('/' . $parts[0] . '/search?q=' . urlencode($repoQuery))
+                ->autocomplete(false)
+            , false);
+        }
+
+        $path = $isUser ? $queryUser : 'search?q=' . urlencode($query);
+        $name = self::$enterprise ? 'GitHub Enterprise' : 'GitHub';
+        Workflow::addItem(Item::create()
+            ->title("Search $name for '$query'")
+            ->icon('search')
+            ->arg('/' . $path)
+            ->autocomplete(false)
+        , false);
     }
 
     private static function addEmptyQueryCommand()
@@ -190,17 +193,18 @@ class Search
         }
     }
 
-    private static function addDefaultCommands($isUser, $isRepo, $queryUser)
+    private static function addDefaultCommands($isSearch, $isUser, $isRepo, $queryUser)
     {
         $users = array();
         $repos = array();
 
         $curl = new Curl();
-        if (!$isUser) {
+
+        if (!$isSearch && !$isUser) {
             $getRepos = function ($url, $prio) use ($curl, &$repos) {
                 Workflow::requestApi($url, $curl, function ($urlRepos) use (&$repos, $prio) {
                     foreach ($urlRepos as $repo) {
-                        $repo->prio = $prio + ($repo->fork ? 0 : 10);
+                        $repo->score = 300 + $prio + ($repo->fork ? 0 : 10);
                         $repos[$repo->id] = $repo;
                     }
                 });
@@ -223,13 +227,61 @@ class Search
                 $getRepos($url, $prio + 1);
             }
         }
-        if (!$isRepo) {
+
+        if (!$isSearch && !$isRepo) {
             Workflow::requestApi('/user/following', $curl, function ($urlUsers) use (&$users) {
                 $users = $urlUsers;
             });
         }
+
         $curl->execute();
 
+        self::addRepos($repos);
+
+        foreach ($users as $user) {
+            Workflow::addItem(Item::create()
+                ->prefix('@', false)
+                ->title($user->login . ' ')
+                ->subtitle($user->type)
+                ->arg($user->html_url)
+                ->icon(lcfirst($user->type))
+                ->prio(200)
+            );
+        }
+
+        Workflow::addItem(Item::create()
+            ->title('s '.substr(self::$query, 2, 4))
+            ->subtitle('Search repo or @user (min 4 chars)')
+            ->prio(110)
+            ->valid(false)
+        );
+
+        Workflow::addItem(Item::create()
+            ->title('my ')
+            ->subtitle('Dashboard, settings, and more')
+            ->prio(100)
+            ->valid(false)
+        );
+    }
+
+    private static function addRepoSearchCommands()
+    {
+        $q = substr(self::$query, 2);
+        $repos = Workflow::requestApi('/search/repositories?q='.urlencode($q));
+
+        self::addRepos($repos, 's ');
+    }
+
+    private static function addUserSearchCommands()
+    {
+        $q = substr(self::$query, 3);
+        $users = Workflow::requestApi('/search/users?q='.urlencode($q));
+
+        self::addUsers($users, 's @');
+    }
+
+    private static function addRepos($repos, $comparatorPrefix = '')
+    {
         foreach ($repos as $repo) {
             $icon = 'repo';
             if ($repo->fork) {
@@ -242,29 +294,30 @@ class Search
             }
             Workflow::addItem(Item::create()
                 ->title($repo->full_name . ' ')
+                ->comparator($comparatorPrefix.$repo->full_name)
+                ->autocomplete($repo->full_name . ' ')
                 ->subtitle($repo->description)
                 ->icon($icon)
                 ->arg('/' . $repo->full_name)
-                ->prio(300 + $repo->prio)
+                ->prio($repo->score)
             );
         }
+    }
 
+    private static function addUsers($users, $comparatorPrefix = '')
+    {
         foreach ($users as $user) {
             Workflow::addItem(Item::create()
                 ->prefix('@', false)
                 ->title($user->login . ' ')
+                ->comparator($comparatorPrefix.$user->login)
+                ->autocomplete($user->login . ' ')
                 ->subtitle($user->type)
                 ->arg($user->html_url)
                 ->icon(lcfirst($user->type))
-                ->prio(200)
+                ->prio(isset($user->score) ? $user->score : 200)
             );
         }
-        Workflow::addItem(Item::create()
-            ->title('my ')
-            ->subtitle('Dashboard, settings, and more')
-            ->prio(100)
-            ->valid(false)
-        );
     }
 
     private static function addRepoSubCommands()
@@ -519,4 +572,5 @@ class Search
     }
 }
 
-print Search::run($argv[1], $argv[2], getenv('hotkey'));
+Search::run($argv[1], $argv[2], getenv('hotkey'));
+echo Workflow::getItemsAsXml();

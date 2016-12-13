@@ -222,9 +222,13 @@ class Workflow
                 } elseif (false === stripos($response->contentType, 'json')) {
                     $response->content = json_encode($response->content);
                 }
+                $response->content = json_decode($response->content);
+                if (isset($response->content->items)) {
+                    $response->content = $response->content->items;
+                }
                 $responses[] = $response->content;
                 Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
-                    ->execute(array($url, time(), $response->etag, $response->content, $parent));
+                    ->execute(array($url, time(), $response->etag, json_encode($response->content), $parent));
                 if ($checkNext || $response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
                     $stmt = Workflow::getStatement('SELECT * FROM request_cache WHERE parent = ?');
                     $stmt->execute(array($url));
@@ -256,11 +260,11 @@ class Workflow
                     return;
                 }
                 if (1 === count($responses)) {
-                    $callback(json_decode($responses[0]));
+                    $callback($responses[0]);
                     return;
                 }
                 $callback(array_reduce($responses, function ($content, $response) {
-                    return array_merge($content, json_decode($response));
+                    return array_merge($content, $response);
                 }, array()));
             }
         };

@@ -74,7 +74,7 @@ class Item
 
     public function autocomplete($autocomplete = true)
     {
-        $this->autocomplete = (bool) $autocomplete;
+        $this->autocomplete = $autocomplete;
         return $this;
     }
 
@@ -144,11 +144,14 @@ class Item
                 $c->addAttribute('arg', $arg);
             }
             if ($item->autocomplete) {
-                if (null !== $item->comparator) {
-                    $c->addAttribute('autocomplete', $prefix . $item->comparator);
+                if (is_string($item->autocomplete)) {
+                    $autocomplete = $item->autocomplete;
+                } elseif (null !== $item->comparator) {
+                    $autocomplete = $item->comparator;
                 } else {
-                    $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $item->title : $item->prefix . $item->title));
+                    $autocomplete = $item->title;
                 }
+                $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $autocomplete : $item->prefix . $autocomplete));
             }
             if (!$item->valid) {
                 $c->addAttribute('valid', 'no');

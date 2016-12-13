@@ -1,6 +1,23 @@
 Changelog
 =========
 
+Version 1.5 – 2016-12-13
+------------------------
+
+### Features
+
+* new commands for searching repos and users globally in GitHub (`gh s repo` and `gh s @user`)
+* new command `gh my repos` (@jacobkossman)
+* new command `gh > delete database`
+* source repos with higher priority than forks
+
+### Bugfixes
+
+* in some situations private repos were missing (@lxynox)
+* after saving GitHub Enterprise url the workflow didn't reopen correctly
+* updated user sub commands ("Activity" tab does not exist any more on GitHub)
+
+
 Version 1.4.1 – 2016-22-07
 --------------------------
 

@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the alfred-github-workflow package.
+ *
+ * (c) Gregor Harlan
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 require 'item.php';
 require 'curl.php';
 
@@ -40,18 +49,18 @@ class Workflow
 
         $dataDir = getenv('alfred_workflow_data');
         if (!$dataDir) {
-            $dataDir = getenv('HOME') . '/Library/Application Support/Alfred 3/Workflow Data/' . self::BUNDLE;
+            $dataDir = getenv('HOME').'/Library/Application Support/Alfred 3/Workflow Data/'.self::BUNDLE;
             putenv('alfred_workflow_data="'.$dataDir.'"');
         }
         if (!is_dir($dataDir)) {
             mkdir($dataDir);
         }
 
-        self::$filePids = $dataDir . '/pid';
+        self::$filePids = $dataDir.'/pid';
 
-        self::$fileDb = $dataDir . '/db.sqlite';
+        self::$fileDb = $dataDir.'/db.sqlite';
         $exists = file_exists(self::$fileDb);
-        self::$db = new PDO('sqlite:' . self::$fileDb, null, null);
+        self::$db = new PDO('sqlite:'.self::$fileDb, null, null);
         self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         if (!$exists) {
@@ -60,8 +69,8 @@ class Workflow
 
         if (self::$enterprise) {
             self::$baseUrl = self::getConfig('enterprise_url');
-            self::$apiUrl = self::$baseUrl ? self::$baseUrl . '/api/v3' : null;
-            self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
+            self::$apiUrl = self::$baseUrl ? self::$baseUrl.'/api/v3' : null;
+            self::$gistUrl = self::$baseUrl ? self::$baseUrl.'/gist' : null;
         }
 
         self::$debug = getenv('alfred_debug') && defined('STDERR');
@@ -73,7 +82,7 @@ class Workflow
     {
         if (self::$refreshUrls) {
             $urls = implode(',', array_keys(self::$refreshUrls));
-            exec('php action.php "> refresh-cache ' . $urls . '" > /dev/null 2>&1 &');
+            exec('php action.php "> refresh-cache '.$urls.'" > /dev/null 2>&1 &');
             self::log('refreshing cache in background for %s', $urls);
         }
     }
@@ -107,7 +116,7 @@ class Workflow
 
         if ($path) {
             $paramStart = false === strpos($path, '?') ? '?' : '&';
-            $url .= $path . $paramStart . 'per_page=100';
+            $url .= $path.$paramStart.'per_page=100';
         }
 
         return $url;
@@ -166,6 +175,7 @@ class Workflow
      * @param callable $callback
      * @param int      $maxAge
      * @param bool     $refreshInBackground
+     *
      * @return mixed
      */
     public static function requestCache($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
@@ -288,7 +298,7 @@ class Workflow
 
     public static function cleanCache()
     {
-        self::$db->exec('DELETE FROM request_cache WHERE timestamp < ' . (time() - 100 * 24 * 60 * 60));
+        self::$db->exec('DELETE FROM request_cache WHERE timestamp < '.(time() - 100 * 24 * 60 * 60));
     }
 
     public static function deleteCache()
@@ -321,7 +331,7 @@ class Workflow
         if (file_exists(self::$filePids)) {
             $pids = file(self::$filePids);
             foreach ($pids as $pid) {
-                shell_exec('kill -9 ' . $pid);
+                shell_exec('kill -9 '.$pid);
             }
             unlink(self::$filePids);
         }
@@ -394,12 +404,13 @@ class Workflow
     public static function log($msg)
     {
         if (self::$debug) {
-            fputs(STDERR, "\n".call_user_func_array('sprintf', func_get_args()));
+            fwrite(STDERR, "\n".call_user_func_array('sprintf', func_get_args()));
         }
     }
 
     /**
      * @param string $query
+     *
      * @return PDOStatement
      */
     public static function getStatement($query)

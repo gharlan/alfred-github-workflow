@@ -1,14 +1,23 @@
 <?php
 
+/*
+ * This file is part of the alfred-github-workflow package.
+ *
+ * (c) Gregor Harlan
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 require 'workflow.php';
 
 $query = trim($argv[1]);
 
 if ('>' !== $query[0] && 0 !== strpos($query, 'e >')) {
     if ('.git' == substr($query, -4)) {
-        $query = 'github-mac://openRepo/' . substr($query, 0, -4);
+        $query = 'github-mac://openRepo/'.substr($query, 0, -4);
     }
-    exec('osascript -e "open location \"' . $query . '\""');
+    exec('osascript -e "open location \"'.$query.'\""');
     return;
 }
 
@@ -39,8 +48,8 @@ switch ($parts[1]) {
         } elseif (!$enterprise) {
             Workflow::startServer();
             $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
-            $url = Workflow::getBaseUrl() . '/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state=' . $state;
-            exec('open ' . escapeshellarg($url));
+            $url = Workflow::getBaseUrl().'/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
+            exec('open '.escapeshellarg($url));
         }
         break;
 

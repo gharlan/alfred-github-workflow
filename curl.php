@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the alfred-github-workflow package.
+ *
+ * (c) Gregor Harlan
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 class Curl
 {
     /** @var CurlRequest[] */
@@ -56,7 +65,7 @@ class Curl
                     'link' => 'Link',
                 );
                 foreach ($headerNames as $key => $name) {
-                    $response->$key = Curl::getHeader($header, $name);
+                    $response->$key = self::getHeader($header, $name);
                 }
                 if (200 == $response->status) {
                     $response->content = $body;
@@ -97,12 +106,12 @@ class Curl
         $options = $defaultOptions;
         $options[CURLOPT_URL] = $request->url;
         $header = array();
-        $header[] = 'X-Url: ' . $request->url;
+        $header[] = 'X-Url: '.$request->url;
         if ($request->token) {
-            $header[] = 'Authorization: token ' . $request->token;
+            $header[] = 'Authorization: token '.$request->token;
         }
         if ($request->etag) {
-            $header[] = 'If-None-Match: ' . $request->etag;
+            $header[] = 'If-None-Match: '.$request->etag;
         }
         $options[CURLOPT_HTTPHEADER] = $header;
         curl_setopt_array($ch, $options);
@@ -111,7 +120,7 @@ class Curl
 
     public static function getHeader($header, $key)
     {
-        if (preg_match('/^' . preg_quote($key, '/') . ': (\V*)/mi', $header, $match)) {
+        if (preg_match('/^'.preg_quote($key, '/').': (\V*)/mi', $header, $match)) {
             return $match[1];
         }
         return null;

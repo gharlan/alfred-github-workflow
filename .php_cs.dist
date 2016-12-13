@@ -1,0 +1,25 @@
+<?php
+
+$header = <<<'HEADER'
+This file is part of the alfred-github-workflow package.
+
+(c) Gregor Harlan
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+HEADER;
+
+return PhpCsFixer\Config::create()
+    ->setRiskyAllowed(true)
+    ->setRules([
+        '@Symfony' => true,
+        '@Symfony:risky' => true,
+        'array_syntax' => ['syntax' => 'long'],
+        'blank_line_before_return' => false,
+        'combine_consecutive_unsets' => true,
+        'header_comment' => ['header' => $header],
+        'method_argument_space' => false,
+        'no_useless_else' => true,
+    ])
+    ->setFinder(PhpCsFixer\Finder::create()->in(__DIR__))
+;

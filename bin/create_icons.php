@@ -43,7 +43,7 @@ $icons = array(
     ),
 );
 
-$dir = __DIR__ . '/../icons/';
+$dir = __DIR__.'/../icons/';
 
 $baseImg = new Imagick();
 $baseImg->newImage(256, 256, new ImagickPixel('transparent'));
@@ -63,8 +63,8 @@ foreach ($icons as $color => $set) {
     foreach ($set as $char => $name) {
         $img = clone $baseImg;
         $img->annotateImage($draw, 0, 0, 0, json_decode('"\u'.$char.'"'));
-        $img->writeImage($dir . $name . '.png');
+        $img->writeImage($dir.$name.'.png');
     }
 }
 
-rename($dir . 'github.png', __DIR__ . '/../icon.png');
+rename($dir.'github.png', __DIR__.'/../icon.png');

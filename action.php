@@ -72,7 +72,7 @@ switch ($parts[1]) {
     case 'refresh-cache':
         $curl = new Curl();
         foreach (explode(',', $parts[2]) as $url) {
-            Workflow::requestCache($url, $curl, null, 0, false);
+            Workflow::requestCache($url, $curl, null, false, 0, false);
         }
         $curl->execute();
         Workflow::cleanCache();

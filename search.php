@@ -297,7 +297,7 @@ class Search
     private static function addRepoSearchCommands()
     {
         $q = substr(self::$query, 2);
-        $repos = Workflow::requestApi('/search/repositories?q='.urlencode($q));
+        $repos = Workflow::requestApi('/search/repositories?q='.urlencode($q), null, null, true);
 
         self::addRepos($repos, 's ');
     }
@@ -305,7 +305,7 @@ class Search
     private static function addUserSearchCommands()
     {
         $q = substr(self::$query, 3);
-        $users = Workflow::requestApi('/search/users?q='.urlencode($q));
+        $users = Workflow::requestApi('/search/users?q='.urlencode($q), null, null, true);
 
         self::addUsers($users, 's @');
     }

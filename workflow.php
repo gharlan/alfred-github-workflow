@@ -173,12 +173,13 @@ class Workflow
      * @param string   $url
      * @param Curl     $curl
      * @param callable $callback
+     * @param bool     $firstPageOnly
      * @param int      $maxAge
      * @param bool     $refreshInBackground
      *
      * @return mixed
      */
-    public static function requestCache($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
+    public static function requestCache($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
         $return = false;
         $returnValue = null;
@@ -209,20 +210,25 @@ class Workflow
         if (!$shouldRefresh || $refreshInBackground) {
             self::log('using cached content for %s', $url);
             $content = json_decode($content);
-            $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-            while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
-                $content = array_merge($content, json_decode($data->content));
-                $url = $data->url;
+
+            if (!$firstPageOnly) {
+                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
+                while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
+                    $content = array_merge($content, json_decode($data->content));
+                    $url = $data->url;
+                }
             }
+
             if (is_callable($callback)) {
                 $callback($content);
             }
+
             return $returnValue;
         }
 
         $responses = array();
 
-        $handleResponse = function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback) {
+        $handleResponse = function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
             $url = $response->request->url;
             if ($response && in_array($response->status, array(200, 304))) {
                 $checkNext = false;
@@ -239,7 +245,10 @@ class Workflow
                 $responses[] = $response->content;
                 Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
                     ->execute(array($url, time(), $response->etag, json_encode($response->content), $parent));
-                if ($checkNext || $response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
+
+                if ($firstPageOnly) {
+                    // do nothing
+                } elseif ($checkNext || $response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
                     $stmt = Workflow::getStatement('SELECT * FROM request_cache WHERE parent = ?');
                     $stmt->execute(array($url));
                     if ($checkNext) {
@@ -290,10 +299,10 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestApi($url, Curl $curl = null, $callback = null, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $url = self::getApiUrl($url);
-        return self::requestCache($url, $curl, $callback, $maxAge);
+        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge);
     }
 
     public static function cleanCache()
@@ -345,7 +354,7 @@ class Workflow
         if (!self::getConfig('autoupdate', 1)) {
             return false;
         }
-        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, 1440);
+        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, true, 1440);
         if (!$release) {
             return false;
         }

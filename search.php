@@ -85,6 +85,29 @@ class Search
             return;
         }
 
+        if (!$isSearch && !$isUser && !isset($parts[1])) {
+            Workflow::addItem(Item::create()
+                ->title('s ' . $query)
+                ->subtitle('Search repo (in alfred workflow)')
+                ->comparator($query)
+                ->autocomplete('s ' . $query)
+                ->icon('repo')
+                ->valid(false)
+            , false);
+        }
+
+        if (!$isSearch && !$isRepo && !isset($parts[1])) {
+            $title = 's @' . ltrim($query, '@');
+            Workflow::addItem(Item::create()
+                ->title($title)
+                ->subtitle('Search user (in alfred workflow)')
+                ->comparator($query)
+                ->autocomplete($title)
+                ->icon('repo')
+                ->valid(false)
+            , false);
+        }
+
         if (!$isUser && $isRepo && isset($parts[1])) {
             $repoQuery = substr($query, strlen($parts[0]) + 1);
             Workflow::addItem(Item::create()
@@ -452,11 +475,10 @@ class Search
             'repositories' => array($queryUser . '?tab=repositories', "View $queryUser's repositories", 'repo'),
             'stars'        => array($queryUser . '?tab=stars', "View $queryUser's stars")
         );
-        $prio = count($subs) + 1;
+        $prio = count($subs) + 2;
         foreach ($subs as $key => $sub) {
             Workflow::addItem(Item::create()
-                ->prefix('@', false)
-                ->title($queryUser . ' ' . $key)
+                ->title('@' . $queryUser . ' ' . $key)
                 ->subtitle($sub[1])
                 ->icon(isset($sub[2]) ? $sub[2] : $key)
                 ->arg('/' . $sub[0])
@@ -464,12 +486,21 @@ class Search
             );
         }
         Workflow::addItem(Item::create()
-            ->prefix('@', false)
-            ->title($queryUser . ' gists')
+            ->title('@' . $queryUser . ' gists')
             ->subtitle("View $queryUser's' gists")
             ->icon('gists')
             ->arg(Workflow::getGistUrl() . '/' . $queryUser)
+            ->prio(2)
+        );
+
+        Workflow::addItem(Item::create()
+            ->title($queryUser . '/')
+            ->comparator('@'.$queryUser.' ')
+            ->autocomplete($queryUser . '/')
+            ->subtitle("View $queryUser's' repositories (in alfred workflow)")
+            ->icon('repo')
             ->prio(1)
+            ->valid(false)
         );
     }
 

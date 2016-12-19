@@ -364,6 +364,7 @@ class Search
                             ->subtitle($commit->commit->author->date.'  ('.$commit->sha.')')
                             ->icon('commits')
                             ->arg('https://github.com/'.$parts[0].'/commit/'.$commit->sha)
+                            ->prio(strtotime($commit->commit->author->date))
                         );
                     }
                     break;
@@ -403,6 +404,7 @@ class Search
                             ->subtitle($issue->title)
                             ->icon($issue->pull_request ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
+                            ->prio(strtotime($issue->updated_at))
                         );
                     }
                     break;

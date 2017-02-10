@@ -445,6 +445,12 @@ class Search
                 ->icon('milestone')
                 ->arg('/'.$parts[0].'/milestones')
             );
+            Workflow::addItem(Item::create()
+                ->title($parts[0].' projects')
+                ->subtitle('View projects')
+                ->icon('projects')
+                ->arg('/'.$parts[0].'/projects')
+            );
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => array('Show a specific issue by number', 'issue'),

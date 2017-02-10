@@ -59,6 +59,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh user/repo pulse`
 * `gh user/repo releases`
 * `gh user/repo wiki`
+* `gh user/repo projects`
 
 ### User commands
 
@@ -105,3 +106,5 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `ghe > url` (GitHub Enterprise only)
 * `ghe > generate token` (GitHub Enterprise only)
 * `ghe > enterprise reset` (GitHub Enterprise only)
+
+

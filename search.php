@@ -517,6 +517,7 @@ class Search
                 'created' => array($parts[1], 'View your '.$items),
                 'assigned' => array($parts[1].'/assigned', 'View your assigned '.$items),
                 'mentioned' => array($parts[1].'/mentioned', 'View '.$items.' that mentioned you'),
+                'review requested' => array($parts[1].'/review-requested', 'View '.$items.' that require review'),
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()

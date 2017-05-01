@@ -414,7 +414,9 @@ class Search
                 'admin' => array('Manage this repo', 'settings'),
                 'graphs' => array('All the graphs'),
                 'issues ' => array('List, show and create issues', 'issue'),
+                'milestones' => array('View milestones', 'milestone'),
                 'network' => array('See the network', 'graphs'),
+                'projects' => array('View projects'),
                 'pulls' => array('Show open pull requests', 'pull-request'),
                 'pulse' => array('See recent activity'),
                 'wiki' => array('Pull up the wiki'),
@@ -440,18 +442,6 @@ class Search
                 ->subtitle('Create new pull request')
                 ->icon('pull-request')
                 ->arg('/'.$parts[0].'/pull/new?source=c')
-            );
-            Workflow::addItem(Item::create()
-                ->title($parts[0].' milestones')
-                ->subtitle('View milestones')
-                ->icon('milestone')
-                ->arg('/'.$parts[0].'/milestones')
-            );
-            Workflow::addItem(Item::create()
-                ->title($parts[0].' projects')
-                ->subtitle('View projects')
-                ->icon('projects')
-                ->arg('/'.$parts[0].'/projects')
             );
             if (empty($parts[1])) {
                 $subs = array(

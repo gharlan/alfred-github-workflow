@@ -110,7 +110,7 @@ class Search
                 ->subtitle('Search user (in alfred workflow)')
                 ->comparator($query)
                 ->autocomplete($title)
-                ->icon('repo')
+                ->icon('user')
                 ->valid(false)
             , false);
         }
@@ -411,7 +411,7 @@ class Search
             }
         } else {
             $subs = array(
-                'admin' => array('Manage this repo'),
+                'admin' => array('Manage this repo', 'settings'),
                 'graphs' => array('All the graphs'),
                 'issues ' => array('List, show and create issues', 'issue'),
                 'network' => array('See the network', 'graphs'),

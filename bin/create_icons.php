@@ -3,43 +3,42 @@
 
 $icons = array(
     '#ffffff' => array(
-        'f00a' => 'github',
+        'mark-github' => 'github',
 
-        'f001' => 'repo',
-        'f002' => 'fork',
-        'f024' => 'mirror',
+        'repo' => 'repo',
+        'repo-forked' => 'fork',
+        'mirror' => 'mirror',
 
-        'f018' => 'user',
-        'f037' => 'organization',
-        'f02a' => 'stars',
-        'f00e' => 'gists',
+        'person' => 'user',
+        'organization' => 'organization',
+        'star' => 'stars',
+        'gist' => 'gists',
 
-        'f026' => 'issue',
-        'f009' => 'pull-request',
-        'f075' => 'milestone',
-        'f011' => 'file',
-        'f031' => 'admin',
-        'f043' => 'graphs',
-        'f085' => 'pulse',
-        'f007' => 'wiki',
-        'f01f' => 'commits',
-        'f020' => 'branch',
-        'f04c' => 'clone',
-        'f015' => 'releases',
+        'issue-opened' => 'issue',
+        'git-pull-request' => 'pull-request',
+        'milestone' => 'milestone',
+        'file' => 'file',
+        'graph' => 'graphs',
+        'pulse' => 'pulse',
+        'book' => 'wiki',
+        'git-commit' => 'commits',
+        'git-branch' => 'branch',
+        'repo-clone' => 'clone',
+        'tag' => 'releases',
 
-        'f07d' => 'dashboard',
-        'f02f' => 'settings',
-        'f0cf' => 'notifications',
+        'dashboard' => 'dashboard',
+        'gear' => 'settings',
+        'bell' => 'notifications',
 
-        'f02e' => 'search',
+        'search' => 'search',
 
-        'f00b' => 'update',
-        'f032' => 'logout',
+        'cloud-download' => 'update',
+        'sign-out' => 'logout',
     ),
     '#e9dba5' => array(
-        'f06a' => 'private-repo',
-        'f002' => 'private-fork',
-        'f024' => 'private-mirror',
+        'repo' => 'private-repo',
+        'repo-forked' => 'private-fork',
+        'mirror' => 'private-mirror',
     ),
 );
 
@@ -54,15 +53,24 @@ $draw->setFillColor('#444444');
 $draw->roundRectangle(0, 0, 256, 256, 50, 50);
 $baseImg->drawImage($draw);
 
-$draw->setFont('octicons.ttf');
-$draw->setFontSize(170);
-$draw->setGravity(Imagick::GRAVITY_CENTER);
-
 foreach ($icons as $color => $set) {
-    $draw->setFillColor($color);
-    foreach ($set as $char => $name) {
+    foreach ($set as $svgName => $name) {
         $img = clone $baseImg;
-        $img->annotateImage($draw, 0, 0, 0, json_decode('"\u'.$char.'"'));
+
+        $svg = new Imagick();
+        $svg->setBackgroundColor(new ImagickPixel('transparent'));
+        $svg->setResolution(1020, 1020);
+
+        $file = file_get_contents(__DIR__.'/../node_modules/octicons/build/svg/'.$svgName.'.svg');
+        $file = str_replace('<path ', '<path fill="'.$color.'" ', $file);
+        $file = '<?xml version="1.0" encoding="UTF-8"?>'."\n".$file;
+
+        $svg->readImageBlob($file);
+
+        $x = (256 - $svg->getImageWidth()) / 2;
+        $y = (256 - $svg->getImageHeight()) / 2;
+
+        $img->compositeImage($svg, Imagick::COMPOSITE_DEFAULT, $x, $y);
         $img->writeImage($dir.$name.'.png');
     }
 }

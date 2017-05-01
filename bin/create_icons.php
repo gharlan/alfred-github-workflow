@@ -20,6 +20,7 @@ $icons = array(
         'file' => 'file',
         'graph' => 'graphs',
         'pulse' => 'pulse',
+        'project' => 'project',
         'book' => 'wiki',
         'git-commit' => 'commits',
         'git-branch' => 'branch',

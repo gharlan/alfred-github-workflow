@@ -416,7 +416,7 @@ class Search
                 'issues ' => array('List, show and create issues', 'issue'),
                 'milestones' => array('View milestones', 'milestone'),
                 'network' => array('See the network', 'graphs'),
-                'projects' => array('View projects'),
+                'projects' => array('View projects', 'project'),
                 'pulls' => array('Show open pull requests', 'pull-request'),
                 'pulse' => array('See recent activity'),
                 'wiki' => array('Pull up the wiki'),

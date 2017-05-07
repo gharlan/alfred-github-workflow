@@ -1,6 +1,20 @@
 Changelog
 =========
 
+Version 1.6 – 2017-05-07
+------------------------
+
+### Features
+
+* new command `gh user/repo projects` (@dagio)
+* new command `gh my pulls review requested` (@AeroEchelon)
+* better sorting for issues (most recently updated on top) and commits (most recent on top) (@danielma)
+
+### Bugfixes
+
+* On macOS 10.12.5 Beta URLs didn't opened in browser anymore
+
+
 Version 1.5 – 2016-12-13
 ------------------------
 

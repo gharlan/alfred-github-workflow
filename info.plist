@@ -582,7 +582,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.5</string>
+	<string>1.6</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

@@ -363,7 +363,7 @@ class Search
                             ->comparator($parts[0].' *'.$commit->sha)
                             ->subtitle($commit->commit->author->date.'  ('.$commit->sha.')')
                             ->icon('commits')
-                            ->arg('https://github.com/'.$parts[0].'/commit/'.$commit->sha)
+                            ->arg('/'.$parts[0].'/commit/'.$commit->sha)
                             ->prio(strtotime($commit->commit->author->date))
                         );
                     }

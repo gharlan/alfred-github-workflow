@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.6.1 – 2017-09-23
+--------------------------
+
+### Bugfixes
+
+* Support for macOS 10.13 High Sierra
+* Commit search results had wrong urls on GitHub Enterprise (@beparker)
+
+
 Version 1.6 – 2017-05-07
 ------------------------
 

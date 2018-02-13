@@ -248,7 +248,7 @@ class Workflow
 
                 if ($firstPageOnly) {
                     // do nothing
-                } elseif ($checkNext || $response->link && preg_match('/<(.+)>; rel="next"/U', $response->link, $match)) {
+                } elseif ($checkNext || $response->link && preg_match('/<([^<>]+)>; rel="next"/U', $response->link, $match)) {
                     $stmt = Workflow::getStatement('SELECT * FROM request_cache WHERE parent = ?');
                     $stmt->execute(array($url));
                     if ($checkNext) {

@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.6.2 – 2018-02-13
+--------------------------
+
+### Bugfixes
+
+* Api pagination didn't work correctly any more (missing results from page > 2)
+
+
 Version 1.6.1 – 2017-09-23
 --------------------------
 

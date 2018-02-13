@@ -404,6 +404,14 @@
 	<string>Changelog
 =========
 
+Version 1.6.2 – 2018-02-13
+--------------------------
+
+### Bugfixes
+
+* Api pagination didnt work correctly any more (missing results from page &gt; 2)
+
+
 Version 1.6.1 – 2017-09-23
 --------------------------
 
@@ -440,7 +448,7 @@ Version 1.5 – 2016-12-13
 ### Bugfixes
 
 * in some situations private repos were missing (@lxynox)
-* after saving GitHub Enterprise url the workflow didnt reopen correctly
+* after saving GitHub Enterprise url the workflow didn't reopen correctly
 * updated user sub commands (Activity tab does not exist any more on GitHub)
 
 
@@ -591,7 +599,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.6.1</string>
+	<string>1.6.2</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

@@ -402,7 +402,7 @@ class Search
                             ->title('#'.$issue->number)
                             ->comparator($parts[0].' #'.$issue->number)
                             ->subtitle($issue->title)
-                            ->icon($issue->pull_request ? 'pull-request' : 'issue')
+                            ->icon($issue->pull_request ? ($issue->state == 'open' ? 'pull-request' : 'pull-request-merged') : ($issue->state == 'open' ? 'issue-open' : 'issue-closed'))
                             ->arg($issue->html_url)
                             ->prio(strtotime($issue->updated_at))
                         );

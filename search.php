@@ -443,6 +443,21 @@ class Search
                 ->icon('pull-request')
                 ->arg('/'.$parts[0].'/pull/new?source=c')
             );
+            
+            Workflow::addItem(Item::create()
+                ->title($parts[0].' flow dev')
+                ->subtitle('Create new dev/staging pull request')
+                ->icon('pull-request')
+                ->arg('/'.$parts[0].'/compare/staging...dev?expand=1')
+            );
+
+            Workflow::addItem(Item::create()
+                ->title($parts[0].' flow prod')
+                ->subtitle('Create new production/master pull request')
+                ->icon('pull-request')
+                ->arg('/'.$parts[0].'/compare/master...production?expand=1')
+            );
+            
             if (empty($parts[1])) {
                 $subs = array(
                     '#' => array('Show a specific issue by number', 'issue'),

@@ -109,4 +109,8 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `ghe > generate token` (GitHub Enterprise only)
 * `ghe > enterprise reset` (GitHub Enterprise only)
 
+## FAQ
+------
 
+#### Once I've configured, is there a way to change access or add an organization?
+Yep! https://github.com/settings/connections/applications/2d4f43826cb68e11c17c

@@ -435,7 +435,7 @@ class Search
                 ->title($parts[0].' new issue')
                 ->subtitle('Create new issue')
                 ->icon('issue')
-                ->arg('/'.$parts[0].'/issues/new?source=c')
+                ->arg('/'.$parts[0].'/issues/new/choose?source=c')
             );
             Workflow::addItem(Item::create()
                 ->title($parts[0].' new pull')

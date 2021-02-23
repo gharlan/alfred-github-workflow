@@ -61,6 +61,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh user/repo releases`
 * `gh user/repo wiki`
 * `gh user/repo projects`
+* `gh user/repo actions`
 
 ### User commands
 

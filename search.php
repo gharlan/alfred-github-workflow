@@ -422,7 +422,7 @@ class Search
                 'wiki' => array('Pull up the wiki'),
                 'commits' => array('View commit history'),
                 'releases' => array('See latest releases'),
-                'actions' => array('Show Github Actions', 'actions'),
+                'actions' => array('Show Github Actions'),
             );
             foreach ($subs as $key => $sub) {
                 Workflow::addItem(Item::create()

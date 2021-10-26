@@ -49,7 +49,7 @@ class Workflow
 
         $dataDir = getenv('alfred_workflow_data');
         if (!$dataDir) {
-            $dataDir = getenv('HOME').'/Library/Application Support/Alfred 3/Workflow Data/'.self::BUNDLE;
+            $dataDir = getenv('HOME').'/Library/Application Support/Alfred/Workflow Data/'.self::BUNDLE;
             putenv('alfred_workflow_data="'.$dataDir.'"');
         }
         if (!is_dir($dataDir)) {

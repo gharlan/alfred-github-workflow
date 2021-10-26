@@ -1,4 +1,4 @@
-GitHub Workflow for [Alfred 3](http://www.alfredapp.com)
+GitHub Workflow for [Alfred 4](http://www.alfredapp.com)
 ==============================
 
 [![Gitter](https://badges.gitter.im/gharlan/alfred-github-workflow.svg)](https://gitter.im/gharlan/alfred-github-workflow?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)

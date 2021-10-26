@@ -24,6 +24,10 @@ In Alfred type (`gh > login`) to authenticate against your account. The login us
 3. In Alfred type (`ghe > login <paste token here>`)
 4. You can now `ghe your_enterprise_repo_name`
 
+### Access to private repositories in organizations
+
+Organizations must approve this app, otherwise private repositories of that organization can not be accessed. Access can be requested [here](https://github.com/settings/connections/applications/2d4f43826cb68e11c17c).
+
 Key Combinations
 ----------------
 

@@ -1,8 +1,6 @@
 GitHub Workflow for [Alfred 4](http://www.alfredapp.com)
 ==============================
 
-[![Gitter](https://badges.gitter.im/gharlan/alfred-github-workflow.svg)](https://gitter.im/gharlan/alfred-github-workflow?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
 You can search through GitHub (`gh`) and your GitHub Enterprise instance (`ghe`).
 
 **[DOWNLOAD](https://github.com/gharlan/alfred-github-workflow/releases)**

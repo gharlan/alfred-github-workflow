@@ -82,7 +82,7 @@ class Workflow
     {
         if (self::$refreshUrls) {
             $urls = implode(',', array_keys(self::$refreshUrls));
-            exec('php action.php "> refresh-cache '.$urls.'" > /dev/null 2>&1 &');
+            exec(escapeshellarg(PHP_BINARY).' action.php "> refresh-cache '.$urls.'" > /dev/null 2>&1 &');
             self::log('refreshing cache in background for %s', $urls);
         }
     }
@@ -328,8 +328,9 @@ class Workflow
         if (version_compare(PHP_VERSION, '5.4', '>=')) {
             self::stopServer();
             shell_exec(sprintf(
-                'alfred_workflow_data=%s php -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
+                'alfred_workflow_data=%s %s -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
                 escapeshellarg(getenv('alfred_workflow_data')),
+                escapeshellarg(PHP_BINARY),
                 escapeshellarg(self::$filePids)
             ));
         }

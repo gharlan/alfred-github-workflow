@@ -5,14 +5,15 @@ GitHub Workflow for [Alfred 3](http://www.alfredapp.com)
 
 You can search through GitHub (`gh`) and your GitHub Enterprise instance (`ghe`).
 
-You have to login (`gh > login`) before you can use the workflow. The login uses OAuth, so you do not have to enter your credentials.
-
 **[DOWNLOAD](https://github.com/gharlan/alfred-github-workflow/releases)**
 
 ![Workflow Screenshot](screenshot.png)
 
 Setup
 -----
+
+This workflow requires PHP, which is no longer pre-installed since macOS 12 Montery.  
+You can install it via [Homebrew](https://brew.sh) (`brew install php`).
 
 ### For github.com
 

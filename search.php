@@ -606,6 +606,3 @@ class Search
         }
     }
 }
-
-Search::run($argv[1], $argv[2], getenv('hotkey'));
-echo Workflow::getItemsAsXml();

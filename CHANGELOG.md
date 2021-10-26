@@ -1,12 +1,23 @@
 Changelog
 =========
 
+Version 1.7 – 2021-10-26
+------------------------
+
+### Features
+
+* Support for macOS 12 Montery: PHP is no longer pre-installed, you must install it by yourself via [Homebrew](https://brew.sh) (`brew install php`)
+* Better support for Alfred 4
+* new command `gh user/repo actions` (@Attsun1031)
+* command `gh user/repo new issue` lands on issue template selector page (@riastrad)
+
+
 Version 1.6.2 – 2018-02-13
 --------------------------
 
 ### Bugfixes
 
-* Api pagination didn't work correctly any more (missing results from page > 2)
+* Api pagination didn't work correctly anymore (missing results from page > 2)
 
 
 Version 1.6.1 – 2017-09-23

@@ -444,6 +444,14 @@ echo Workflow::getItemsAsXml();</string>
 	<string>Changelog
 =========
 
+Version 1.7.1 – 2022-01-01
+--------------------------
+
+### Bugfixes
+
+* Fix deprecation warning when using PHP 8.1
+
+
 Version 1.7 – 2021-10-26
 ------------------------
 
@@ -650,7 +658,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.7</string>
+	<string>1.7.1</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.7.1 – 2022-01-01
+--------------------------
+
+### Bugfixes
+
+* Fix deprecation warning when using PHP 8.1
+
+
 Version 1.7 – 2021-10-26
 ------------------------
 

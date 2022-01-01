@@ -44,7 +44,7 @@ class Workflow
         date_default_timezone_set('UTC');
 
         self::$enterprise = $enterprise;
-        self::$query = ltrim($query);
+        self::$query = ltrim($query ?? '');
         self::$hotkey = $hotkey;
 
         $dataDir = getenv('alfred_workflow_data');

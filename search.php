@@ -402,7 +402,7 @@ class Search
                             ->title('#'.$issue->number)
                             ->comparator($parts[0].' #'.$issue->number)
                             ->subtitle($issue->title)
-                            ->icon($issue->pull_request ? 'pull-request' : 'issue')
+                            ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
                             ->prio(strtotime($issue->updated_at))
                         );

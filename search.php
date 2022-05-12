@@ -403,7 +403,7 @@ class Search
                             // compare to the issue number directly, the title and the body
                             ->comparator(array($parts[0].' #'.$issue->number, $parts[0].' #'.$issue->title, $parts[0].' #'.$issue->body))
                             ->subtitle($issue->body)
-                            ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue') // $issue->pull_request ? 'pull-request' : 'issue')
+                            ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
                             ->prio(strtotime($issue->updated_at))
                         );

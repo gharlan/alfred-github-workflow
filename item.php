@@ -17,7 +17,6 @@ class Item
     private $title;
     private $comparator;
     private $subtitle;
-    private $shouldMatchWithSubtitle = false;
     private $icon;
     private $arg;
     private $valid = true;
@@ -66,12 +65,6 @@ class Item
     public function subtitle($subtitle)
     {
         $this->subtitle = $subtitle;
-        return $this;
-    }
-
-    public function shouldMatchWithSubtitle($shouldMatchWithSubtitle = true)
-    {
-        $this->shouldMatchWithSubtitle = $shouldMatchWithSubtitle;
         return $this;
     }
 

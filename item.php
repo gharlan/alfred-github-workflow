@@ -17,6 +17,7 @@ class Item
     private $title;
     private $comparator;
     private $subtitle;
+    private $shouldMatchWithSubtitle = false;
     private $icon;
     private $arg;
     private $valid = true;
@@ -52,13 +53,25 @@ class Item
 
     public function comparator($comparator)
     {
-        $this->comparator = $comparator;
+        if (null == $comparator) {
+            $this->comparator = $comparator;
+        } else if (is_array($comparator)) {
+            $this->comparator = $comparator;
+        } else {
+            $this->comparator = array($comparator);
+        }
         return $this;
     }
 
     public function subtitle($subtitle)
     {
         $this->subtitle = $subtitle;
+        return $this;
+    }
+
+    public function shouldMatchWithSubtitle($shouldMatchWithSubtitle = true)
+    {
+        $this->shouldMatchWithSubtitle = $shouldMatchWithSubtitle;
         return $this;
     }
 
@@ -93,9 +106,23 @@ class Item
         return $this;
     }
 
-    public function match($query)
+    public function match($query) 
     {
-        $comparator = strtolower($this->comparator ?: $this->title);
+        $compareArr = $this->comparator;
+        if (null === $this->comparator) {
+            $compareArr = array($this->title);
+        }
+
+        foreach ($compareArr as $strToCompare){
+            if ($this->matchString($query, strtolower($strToCompare))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function matchString($query, $strToCompare)
+    {
         $query = strtolower($query);
         if (!$this->prefixOnlyTitle && stripos($query, $this->prefix) === 0) {
             $query = substr($query, strlen($this->prefix));
@@ -103,15 +130,15 @@ class Item
         $this->sameChars = 0;
         $queryLength = strlen($query);
         for ($i = 0, $k = 0; $i < $queryLength; ++$i, $k++) {
-            for (; isset($comparator[$k]) && $comparator[$k] !== $query[$i]; ++$k);
-            if (!isset($comparator[$k])) {
+            for (; isset($strToCompare[$k]) && $strToCompare[$k] !== $query[$i]; ++$k);
+            if (!isset($strToCompare[$k])) {
                 return false;
             }
             if ($i === $k) {
                 ++$this->sameChars;
             }
         }
-        $this->missingChars = strlen($comparator) - $queryLength;
+        $this->missingChars = strlen($strToCompare) - $queryLength;
         return true;
     }
 
@@ -157,7 +184,7 @@ class Item
                 if (is_string($item->autocomplete)) {
                     $autocomplete = $item->autocomplete;
                 } elseif (null !== $item->comparator) {
-                    $autocomplete = $item->comparator;
+                    $autocomplete = $item->comparator[0];
                 } else {
                     $autocomplete = $item->title;
                 }

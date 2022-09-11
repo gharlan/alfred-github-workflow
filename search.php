@@ -407,6 +407,7 @@ class Search
             }
         } else {
             $subs = [
+                'actions' => ['Show Github Actions'],
                 'admin' => ['Manage this repo', 'settings'],
                 'graphs' => ['All the graphs'],
                 'issues ' => ['List, show and create issues', 'issue'],
@@ -418,7 +419,6 @@ class Search
                 'wiki' => ['Pull up the wiki'],
                 'commits' => ['View commit history'],
                 'releases' => ['See latest releases'],
-                'actions' => ['Show Github Actions'],
             ];
             foreach ($subs as $key => $sub) {
                 Workflow::addItemIfMatches(Item::create()
@@ -457,6 +457,12 @@ class Search
                     );
                 }
             }
+            Workflow::addItemIfMatches(Item::create()
+                ->title($parts[0].' dev')
+                ->subtitle('Open repo with Visual Studio Code in browser')
+                ->icon('codespaces')
+                ->arg('https://github.dev/'.$parts[0])
+            );
             Workflow::addItemIfMatches(Item::create()
                 ->title($parts[0].' clone')
                 ->subtitle('Clone this repo')

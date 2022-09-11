@@ -51,6 +51,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh user/repo *commit`
 * `gh user/repo /path/to/file`
 * `gh user/repo admin`
+* `gh user/repo dev`
 * `gh user/repo clone`
 * `gh user/repo graphs`
 * `gh user/repo issues`

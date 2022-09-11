@@ -19,6 +19,7 @@ $icons = [
         'git-pull-request-24' => 'pull-request',
         'milestone-24' => 'milestone',
         'play-24' => 'actions',
+        'codespaces-24' => 'codespaces',
         'file-24' => 'file',
         'graph-24' => 'graphs',
         'pulse-24' => 'pulse',

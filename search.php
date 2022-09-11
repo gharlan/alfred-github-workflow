@@ -534,6 +534,23 @@ class Search
             }
 
             return;
+        } elseif (isset($parts[2]) && 'repos' === $parts[1]) {
+            Workflow::addItemIfMatches(Item::create()
+                ->title('my '.$parts[1].' ')
+                ->subtitle('View your repos')
+                ->icon('repo')
+                ->arg('/'.self::$user->login.'?tab=repositories')
+                ->prio(1)
+            );
+            Workflow::addItemIfMatches(Item::create()
+                ->title('my '.$parts[1].' new')
+                ->subtitle('Create new repo')
+                ->icon('repo')
+                ->arg('/new')
+                ->prio(1)
+            );
+
+            return;
         }
 
         $myPages = [
@@ -563,7 +580,7 @@ class Search
         );
 
         Workflow::addItemIfMatches(Item::create()
-            ->title('my repos')
+            ->title('my repos ')
             ->subtitle('View your repos')
             ->icon('repo')
             ->arg('/'.self::$user->login.'?tab=repositories')

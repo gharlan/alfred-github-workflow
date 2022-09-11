@@ -96,6 +96,7 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `gh my pulls mentioned`
 * `gh my pulls review requested`
 * `gh my repos`
+* `gh my repos new`
 * `gh my settings`
 * `gh my stars`
 * `gh my gists`

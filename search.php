@@ -399,9 +399,9 @@ class Search
                     $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all');
                     foreach ($issues as $issue) {
                         Workflow::addItem(Item::create()
-                            ->title('#'.$issue->number)
-                            ->comparator($parts[0].' #'.$issue->number)
-                            ->subtitle($issue->title)
+                            ->title($issue->title)
+                            ->comparator($parts[0].' #'.$issue->number.' '.$issue->title)
+                            ->subtitle('#'.$issue->number)
                             ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
                             ->prio(strtotime($issue->updated_at))

@@ -15,7 +15,7 @@ $query = trim($argv[1]);
 
 if ('>' !== $query[0] && 0 !== strpos($query, 'e >')) {
     if ('.git' == substr($query, -4)) {
-        $query = 'github-mac://openRepo/'.substr($query, 0, -4);
+        $query = 'x-github-client://openRepo/'.substr($query, 0, -4);
     }
     exec('open '.$query);
     return;

@@ -322,7 +322,7 @@ class Search
                 ->title($repo->full_name.' ')
                 ->comparator($comparatorPrefix.$repo->full_name)
                 ->autocomplete($repo->full_name.' ')
-                ->subtitle($repo->description)
+                ->subtitle(($repo->archived ? '[Archived] ' : '').$repo->description)
                 ->icon($icon)
                 ->arg('/'.$repo->full_name)
                 ->prio($repo->score)

@@ -1,45 +1,47 @@
 #!/usr/bin/env php
 <?php
 
+// https://primer.style/octicons/
 $icons = [
     '#ffffff' => [
-        'mark-github' => 'github',
+        'mark-github-16' => 'github',
 
-        'repo' => 'repo',
-        'repo-forked' => 'fork',
-        'mirror' => 'mirror',
+        'repo-24' => 'repo',
+        'repo-forked-24' => 'fork',
+        'mirror-24' => 'mirror',
 
-        'person' => 'user',
-        'organization' => 'organization',
-        'star' => 'stars',
-        'gist' => 'gists',
+        'person-24' => 'user',
+        'organization-24' => 'organization',
+        'star-24' => 'stars',
+        'logo-gist-16' => 'gists',
 
-        'issue-opened' => 'issue',
-        'git-pull-request' => 'pull-request',
-        'milestone' => 'milestone',
-        'file' => 'file',
-        'graph' => 'graphs',
-        'pulse' => 'pulse',
-        'project' => 'project',
-        'book' => 'wiki',
-        'git-commit' => 'commits',
-        'git-branch' => 'branch',
-        'repo-clone' => 'clone',
-        'tag' => 'releases',
+        'issue-opened-24' => 'issue',
+        'git-pull-request-24' => 'pull-request',
+        'milestone-24' => 'milestone',
+        'play-24' => 'actions',
+        'file-24' => 'file',
+        'graph-24' => 'graphs',
+        'pulse-24' => 'pulse',
+        'project-24' => 'project',
+        'book-24' => 'wiki',
+        'git-commit-24' => 'commits',
+        'git-branch-24' => 'branch',
+        'repo-clone-16' => 'clone',
+        'tag-24' => 'releases',
 
-        'dashboard' => 'dashboard',
-        'gear' => 'settings',
-        'bell' => 'notifications',
+        'megaphone-24' => 'dashboard',
+        'gear-24' => 'settings',
+        'bell-24' => 'notifications',
 
-        'search' => 'search',
+        'search-24' => 'search',
 
-        'cloud-download' => 'update',
-        'sign-out' => 'logout',
+        'download-24' => 'update',
+        'sign-out-24' => 'logout',
     ],
     '#e9dba5' => [
-        'repo' => 'private-repo',
-        'repo-forked' => 'private-fork',
-        'mirror' => 'private-mirror',
+        'repo-24' => 'private-repo',
+        'repo-forked-24' => 'private-fork',
+        'mirror-24' => 'private-mirror',
     ],
 ];
 
@@ -58,18 +60,17 @@ foreach ($icons as $color => $set) {
     foreach ($set as $svgName => $name) {
         $img = clone $baseImg;
 
+        $file = file_get_contents(__DIR__.'/../node_modules/@primer/octicons/build/svg/'.$svgName.'.svg');
+        $file = str_replace('<path ', '<path fill="'.$color.'" ', $file);
+
+        $png = shell_exec('echo '.escapeshellarg($file).' | rsvg-convert -w 170');
+
         $svg = new Imagick();
         $svg->setBackgroundColor(new ImagickPixel('transparent'));
-        $svg->setResolution(1020, 1020);
+        $svg->readImageBlob($png);
 
-        $file = file_get_contents(__DIR__.'/../node_modules/octicons/build/svg/'.$svgName.'.svg');
-        $file = str_replace('<path ', '<path fill="'.$color.'" ', $file);
-        $file = '<?xml version="1.0" encoding="UTF-8"?>'."\n".$file;
-
-        $svg->readImageBlob($file);
-
-        $x = (256 - $svg->getImageWidth()) / 2;
-        $y = (256 - $svg->getImageHeight()) / 2;
+        $x = (int) ((256 - $svg->getImageWidth()) / 2);
+        $y = (int) ((256 - $svg->getImageHeight()) / 2);
 
         $img->compositeImage($svg, Imagick::COMPOSITE_DEFAULT, $x, $y);
         $img->writeImage($dir.$name.'.png');

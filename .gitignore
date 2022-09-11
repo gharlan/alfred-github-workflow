@@ -1,3 +1,7 @@
 /.php-cs-fixer.cache
+
 /composer.lock
 /vendor/
+
+/yarn.lock
+/node_modules/

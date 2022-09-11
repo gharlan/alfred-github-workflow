@@ -1,18 +1,9 @@
 <?php
 
-/*
- * This file is part of the alfred-github-workflow package.
- *
- * (c) Gregor Harlan
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 class Curl
 {
     /** @var CurlRequest[] */
-    private $requests = array();
+    private $requests = [];
     private $running = false;
     private $debug = false;
 
@@ -42,7 +33,8 @@ class Curl
         do {
             $finish = !$running;
             while (CURLM_CALL_MULTI_PERFORM == $execrun = curl_multi_exec(self::$multiHandle, $running));
-            if ($execrun != CURLM_OK) {
+
+            if (CURLM_OK != $execrun) {
                 break;
             }
             while ($done = curl_multi_info_read(self::$multiHandle)) {
@@ -59,11 +51,11 @@ class Curl
                 $response = new CurlResponse();
                 $response->request = $request;
                 $response->status = $info['http_code'];
-                $headerNames = array(
+                $headerNames = [
                     'etag' => 'ETag',
                     'contentType' => 'Content-Type',
                     'link' => 'Link',
-                );
+                ];
                 foreach ($headerNames as $key => $name) {
                     $response->$key = self::getHeader($header, $name);
                 }
@@ -76,26 +68,27 @@ class Curl
                 curl_close($ch);
             }
             if ($running || !$finish) {
-                if (curl_multi_select(self::$multiHandle, 1) === -1) {
+                if (-1 === curl_multi_select(self::$multiHandle, 1)) {
                     usleep(250);
                 }
             }
         } while ($running || !$finish);
 
         $this->running = false;
+
         return true;
     }
 
     private function addHandle(CurlRequest $request)
     {
-        $defaultOptions = array(
+        $defaultOptions = [
             CURLOPT_HEADER => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_USERAGENT => 'alfred-github-workflow',
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 5,
             CURLINFO_HEADER_OUT => true,
-        );
+        ];
         if ($this->debug) {
             $defaultOptions[CURLOPT_PROXY] = 'localhost';
             $defaultOptions[CURLOPT_PROXYPORT] = 8888;
@@ -105,7 +98,7 @@ class Curl
         $ch = curl_init();
         $options = $defaultOptions;
         $options[CURLOPT_URL] = $request->url;
-        $header = array();
+        $header = [];
         $header[] = 'X-Url: '.$request->url;
         if ($request->token) {
             $header[] = 'Authorization: token '.$request->token;
@@ -123,6 +116,7 @@ class Curl
         if (preg_match('/^'.preg_quote($key, '/').': (\V*)/mi', $header, $match)) {
             return $match[1];
         }
+
         return null;
     }
 }

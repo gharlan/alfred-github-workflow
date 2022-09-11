@@ -20,7 +20,7 @@ if (file_exists($zipFile)) {
 
 $zip = new PharData($zipFile);
 
-$files = array(
+$files = [
     'action.php',
     'CHANGELOG.md',
     'curl.php',
@@ -32,7 +32,7 @@ $files = array(
     'search.php',
     'server.php',
     'workflow.php',
-);
+];
 
 foreach ($files as $file) {
     $zip->addFile($dir.'/'.$file, $file);

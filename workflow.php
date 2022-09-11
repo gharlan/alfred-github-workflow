@@ -1,22 +1,13 @@
 <?php
 
-/*
- * This file is part of the alfred-github-workflow package.
- *
- * (c) Gregor Harlan
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 require 'item.php';
 require 'curl.php';
 
 class Workflow
 {
-    const VERSION = '1.7.1';
-    const BUNDLE = 'de.gh01.alfred.github';
-    const DEFAULT_CACHE_MAX_AGE = 10;
+    public const VERSION = '1.7.1';
+    public const BUNDLE = 'de.gh01.alfred.github';
+    public const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;
 
@@ -24,7 +15,7 @@ class Workflow
     /** @var PDO */
     private static $db;
     /** @var PDOStatement[] */
-    private static $statements = array();
+    private static $statements = [];
 
     private static $enterprise;
     private static $baseUrl = 'https://github.com';
@@ -33,9 +24,9 @@ class Workflow
 
     private static $query;
     private static $hotkey;
-    private static $items = array();
+    private static $items = [];
 
-    private static $refreshUrls = array();
+    private static $refreshUrls = [];
 
     private static $debug = false;
 
@@ -75,7 +66,7 @@ class Workflow
 
         self::$debug = getenv('alfred_debug') && defined('STDERR');
 
-        register_shutdown_function(array(__CLASS__, 'shutdown'));
+        register_shutdown_function([__CLASS__, 'shutdown']);
     }
 
     public static function shutdown()
@@ -89,20 +80,21 @@ class Workflow
 
     public static function setConfig($key, $value)
     {
-        self::getStatement('REPLACE INTO config VALUES(?, ?)')->execute(array($key, $value));
+        self::getStatement('REPLACE INTO config VALUES(?, ?)')->execute([$key, $value]);
     }
 
     public static function getConfig($key, $default = null)
     {
         $stmt = self::getStatement('SELECT value FROM config WHERE key = ?');
-        $stmt->execute(array($key));
+        $stmt->execute([$key]);
         $value = $stmt->fetchColumn();
+
         return false !== $value ? $value : $default;
     }
 
     public static function removeConfig($key)
     {
-        self::getStatement('DELETE FROM config WHERE key = ?')->execute(array($key));
+        self::getStatement('DELETE FROM config WHERE key = ?')->execute([$key]);
     }
 
     public static function getBaseUrl()
@@ -166,6 +158,7 @@ class Workflow
         if ($return) {
             $curl->execute();
         }
+
         return $returnValue;
     }
 
@@ -192,7 +185,7 @@ class Workflow
         }
 
         $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
-        $stmt->execute(array($url));
+        $stmt->execute([$url]);
         $stmt->bindColumn('timestamp', $timestamp);
         $stmt->bindColumn('etag', $etag);
         $stmt->bindColumn('content', $content);
@@ -200,10 +193,10 @@ class Workflow
         $stmt->fetch(PDO::FETCH_BOUND);
 
         $shouldRefresh = $timestamp < time() - 60 * $maxAge;
-        $refreshInBackground = $refreshInBackground && !is_null($content);
+        $refreshInBackground = $refreshInBackground && null !== $content;
 
         if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
-            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute(array(time(), $url));
+            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute([time(), $url]);
             self::$refreshUrls[$url] = true;
         }
 
@@ -213,7 +206,7 @@ class Workflow
 
             if (!$firstPageOnly) {
                 $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-                while ($stmt->execute(array($url)) && $data = $stmt->fetchObject()) {
+                while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
                     $content = array_merge($content, json_decode($data->content));
                     $url = $data->url;
                 }
@@ -226,11 +219,11 @@ class Workflow
             return $returnValue;
         }
 
-        $responses = array();
+        $responses = [];
 
         $handleResponse = function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
             $url = $response->request->url;
-            if ($response && in_array($response->status, array(200, 304))) {
+            if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
                 if (304 == $response->status) {
                     $response->content = $content;
@@ -243,14 +236,14 @@ class Workflow
                     $response->content = $response->content->items;
                 }
                 $responses[] = $response->content;
-                Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
-                    ->execute(array($url, time(), $response->etag, json_encode($response->content), $parent));
+                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
+                    ->execute([$url, time(), $response->etag, json_encode($response->content), $parent]);
 
                 if ($firstPageOnly) {
                     // do nothing
                 } elseif ($checkNext || $response->link && preg_match('/<([^<>]+)>; rel="next"/U', $response->link, $match)) {
-                    $stmt = Workflow::getStatement('SELECT * FROM request_cache WHERE parent = ?');
-                    $stmt->execute(array($url));
+                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE parent = ?');
+                    $stmt->execute([$url]);
                     if ($checkNext) {
                         $stmt->bindColumn('url', $nextUrl);
                     } else {
@@ -260,48 +253,53 @@ class Workflow
                     $stmt->bindColumn('content', $content);
                     $stmt->fetch(PDO::FETCH_BOUND);
                     if ($nextUrl) {
-                        $curl->add(new CurlRequest($nextUrl, $etag, Workflow::getAccessToken(), function (CurlResponse $response) use ($handleResponse, $url, $content) {
+                        $curl->add(new CurlRequest($nextUrl, $etag, self::getAccessToken(), function (CurlResponse $response) use ($handleResponse, $url, $content) {
                             $handleResponse($response, $content, $url);
                         }));
+
                         return;
                     }
                 } else {
-                    Workflow::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute(array($url));
+                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute([$url]);
                 }
             } else {
-                Workflow::getStatement('DELETE FROM request_cache WHERE url = ?')->execute(array($url));
+                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute([$url]);
                 $url = null;
             }
 
             if (is_callable($callback)) {
                 if (empty($responses)) {
-                    $callback(array());
+                    $callback([]);
+
                     return;
                 }
                 if (1 === count($responses)) {
                     $callback($responses[0]);
+
                     return;
                 }
                 $callback(array_reduce($responses, function ($content, $response) {
                     return array_merge($content, $response);
-                }, array()));
+                }, []));
             }
         };
 
         self::log('loading content for %s', $url);
-        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), function (CurlResponse $response) use (&$responses, $handleResponse, $callback, $content) {
+        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), function (CurlResponse $response) use (&$responses, $handleResponse , $content) {
             $handleResponse($response, $content);
         }));
 
         if ($return) {
             $curl->execute();
         }
+
         return $returnValue;
     }
 
     public static function requestApi($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $url = self::getApiUrl($url);
+
         return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge);
     }
 
@@ -317,7 +315,7 @@ class Workflow
 
     public static function cacheWarmup()
     {
-        $paths = array('/user', '/user/orgs', '/user/starred', '/user/subscriptions', '/user/repos', '/user/following');
+        $paths = ['/user', '/user/orgs', '/user/starred', '/user/subscriptions', '/user/repos', '/user/following'];
         foreach ($paths as $path) {
             self::$refreshUrls[self::getApiUrl($path)] = true;
         }
@@ -349,7 +347,7 @@ class Workflow
 
     public static function checkUpdate()
     {
-        if (self::getConfig('version') !== self::VERSION) {
+        if (self::VERSION !== self::getConfig('version')) {
             self::setConfig('version', self::VERSION);
         }
         if (!self::getConfig('autoupdate', 1)) {
@@ -360,6 +358,7 @@ class Workflow
             return false;
         }
         $version = ltrim($release->tag_name, 'v');
+
         return version_compare($version, self::VERSION) > 0;
     }
 
@@ -392,11 +391,16 @@ class Workflow
         unlink(self::$fileDb);
     }
 
-    public static function addItem(Item $item, $check = true)
+    public static function addItemIfMatches(Item $item)
     {
-        if (!$check || $item->match(self::$query)) {
+        if ($item->match(self::$query)) {
             self::$items[] = $item;
         }
+    }
+
+    public static function addItem(Item $item)
+    {
+        self::$items[] = $item;
     }
 
     public static function sortItems()
@@ -428,6 +432,7 @@ class Workflow
         if (!isset(self::$statements[$query])) {
             self::$statements[$query] = self::$db->prepare($query);
         }
+
         return self::$statements[$query];
     }
 
@@ -436,6 +441,6 @@ class Workflow
         foreach (self::$statements as $statement) {
             $statement->closeCursor();
         }
-        self::$statements = array();
+        self::$statements = [];
     }
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-$icons = array(
-    '#ffffff' => array(
+$icons = [
+    '#ffffff' => [
         'mark-github' => 'github',
 
         'repo' => 'repo',
@@ -35,13 +35,13 @@ $icons = array(
 
         'cloud-download' => 'update',
         'sign-out' => 'logout',
-    ),
-    '#e9dba5' => array(
+    ],
+    '#e9dba5' => [
         'repo' => 'private-repo',
         'repo-forked' => 'private-fork',
         'mirror' => 'private-mirror',
-    ),
-);
+    ],
+];
 
 $dir = __DIR__.'/../icons/';
 

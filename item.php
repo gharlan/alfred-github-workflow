@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the alfred-github-workflow package.
- *
- * (c) Gregor Harlan
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 class Item
 {
     private $randomUid = false;
@@ -34,6 +25,7 @@ class Item
     public function randomUid()
     {
         $this->randomUid = true;
+
         return $this;
     }
 
@@ -41,36 +33,42 @@ class Item
     {
         $this->prefix = $prefix;
         $this->prefixOnlyTitle = $onlyTitle;
+
         return $this;
     }
 
     public function title($title)
     {
         $this->title = $title;
+
         return $this;
     }
 
     public function comparator($comparator)
     {
         $this->comparator = $comparator;
+
         return $this;
     }
 
     public function subtitle($subtitle)
     {
         $this->subtitle = $subtitle;
+
         return $this;
     }
 
     public function icon($icon)
     {
         $this->icon = $icon;
+
         return $this;
     }
 
     public function arg($arg)
     {
         $this->arg = $arg;
+
         return $this;
     }
 
@@ -78,18 +76,21 @@ class Item
     {
         $this->valid = (bool) $valid;
         $this->add = $add;
+
         return $this;
     }
 
     public function autocomplete($autocomplete = true)
     {
         $this->autocomplete = $autocomplete;
+
         return $this;
     }
 
     public function prio($prio)
     {
         $this->prio = $prio;
+
         return $this;
     }
 
@@ -97,13 +98,14 @@ class Item
     {
         $comparator = strtolower($this->comparator ?: $this->title);
         $query = strtolower($query);
-        if (!$this->prefixOnlyTitle && stripos($query, $this->prefix) === 0) {
+        if (!$this->prefixOnlyTitle && 0 === stripos($query, $this->prefix)) {
             $query = substr($query, strlen($this->prefix));
         }
         $this->sameChars = 0;
         $queryLength = strlen($query);
         for ($i = 0, $k = 0; $i < $queryLength; ++$i, $k++) {
             for (; isset($comparator[$k]) && $comparator[$k] !== $query[$i]; ++$k);
+
             if (!isset($comparator[$k])) {
                 return false;
             }
@@ -112,6 +114,7 @@ class Item
             }
         }
         $this->missingChars = strlen($comparator) - $queryLength;
+
         return true;
     }
 
@@ -123,6 +126,7 @@ class Item
         if ($this->prio != $another->prio) {
             return $this->prio < $another->prio ? 1 : -1;
         }
+
         return $this->missingChars > $another->missingChars ? 1 : -1;
     }
 
@@ -172,6 +176,7 @@ class Item
                 $c->addChild('subtitle', htmlspecialchars($item->subtitle));
             }
         }
+
         return $xml->asXML();
     }
 }

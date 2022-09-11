@@ -442,7 +442,7 @@ class Search
             );
             if (empty($parts[1])) {
                 $subs = [
-                    '#' => ['Show a specific issue by number', 'issue'],
+                    '#' => ['Show a specific issue / pull request', 'issue'],
                     '@' => ['Show a specific branch', 'branch'],
                     '*' => ['Show a specific commit', 'commits'],
                     '/' => ['Show a blob', 'file'],

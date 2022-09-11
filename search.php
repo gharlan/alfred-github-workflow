@@ -409,6 +409,7 @@ class Search
             $subs = [
                 'actions' => ['Show Github Actions'],
                 'admin' => ['Manage this repo', 'settings'],
+                'discussions' => ['Show discussions'],
                 'graphs' => ['All the graphs'],
                 'issues ' => ['List, show and create issues', 'issue'],
                 'milestones' => ['View milestones', 'milestone'],

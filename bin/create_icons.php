@@ -17,6 +17,7 @@ $icons = [
 
         'issue-opened-24' => 'issue',
         'git-pull-request-24' => 'pull-request',
+        'comment-discussion-24' => 'discussions',
         'milestone-24' => 'milestone',
         'play-24' => 'actions',
         'codespaces-24' => 'codespaces',

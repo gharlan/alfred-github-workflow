@@ -87,6 +87,7 @@ class Curl
             CURLOPT_USERAGENT => 'alfred-github-workflow',
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS => 5,
+            CURLOPT_ENCODING => '',
             CURLINFO_HEADER_OUT => true,
         ];
         if ($this->debug) {

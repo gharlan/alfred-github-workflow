@@ -1,6 +1,24 @@
 Changelog
 =========
 
+Version 1.8 – 2022-10-15
+------------------------
+
+### Features
+
+* New command `gh user/repo dev` opening repo in Visual Studio Code (Codespaces)
+* New command `gh user/repo discussions`
+* New command `gh my repos new`
+* Search issues by title (`gh user/repo #search`)
+* Archived repos with prefix `[Archived]` in subtitle
+* Performance improvement
+
+### Bugfixes
+
+* Fix result display for non-PR issue IDs (@tobias-grasse)
+* Fix git clone url, use new `x-github-client://` scheme
+
+
 Version 1.7.1 – 2022-01-01
 --------------------------
 

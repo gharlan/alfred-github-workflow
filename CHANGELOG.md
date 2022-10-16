@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.8.1 – 2022-10-16
+--------------------------
+
+### Bugfix
+
+* Fixed version number in workflow
+
+
 Version 1.8 – 2022-10-15
 ------------------------
 

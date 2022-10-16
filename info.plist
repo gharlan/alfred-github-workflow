@@ -444,6 +444,14 @@ echo Workflow::getItemsAsXml();</string>
 	<string>Changelog
 =========
 
+Version 1.8.1 – 2022-10-16
+--------------------------
+
+### Bugfix
+
+* Fixed version number in workflow
+
+
 Version 1.8 – 2022-10-15
 ------------------------
 
@@ -676,7 +684,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.7.1</string>
+	<string>1.8.1</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

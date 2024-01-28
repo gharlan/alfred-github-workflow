@@ -24,7 +24,7 @@ Workflow::init($enterprise);
 switch ($parts[1]) {
     case 'enterprise-url':
         Workflow::setConfig('enterprise_url', rtrim($parts[2], '/'));
-        exec('osascript -e "tell application \"Alfred 4\" to search \"ghe \""');
+        exec('osascript -e "tell application \"Alfred\" to search \"ghe \""');
         break;
 
     case 'enterprise-reset':

@@ -1,5 +1,5 @@
-GitHub Workflow for [Alfred 4](http://www.alfredapp.com)
-==============================
+GitHub Workflow for [Alfred](http://www.alfredapp.com)
+============================
 
 You can search through GitHub (`gh`) and your GitHub Enterprise instance (`ghe`).
 
@@ -115,5 +115,3 @@ To search through your GitHub Enterprise instance replace `gh` by `ghe`.
 * `ghe > url` (GitHub Enterprise only)
 * `ghe > generate token` (GitHub Enterprise only)
 * `ghe > enterprise reset` (GitHub Enterprise only)
-
-

@@ -557,7 +557,7 @@ class Search
             'dashboard' => ['', 'View your dashboard'],
             'pulls ' => ['pulls', 'View your pull requests', 'pull-request'],
             'issues ' => ['issues', 'View your issues', 'issue'],
-            'stars' => ['stars', 'View your starred repositories'],
+            'stars' => [self::$user->login.'?tab=stars', 'View your starred repositories'],
             'profile' => [self::$user->login, 'View your public user profile', 'user'],
             'settings' => ['settings', 'View or edit your account settings'],
             'notifications' => ['notifications', 'View all your notifications'],

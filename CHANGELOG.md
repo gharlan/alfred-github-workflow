@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.9 – 2024-02-04
+------------------------
+
+### Features
+
+* Better support for Alfred 5
+* `gh my stars` opens `/<username>?tab=stars` instead of `/stars`
+
+
 Version 1.8.1 – 2022-10-16
 --------------------------
 

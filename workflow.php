@@ -83,7 +83,7 @@ class Workflow
         self::getStatement('REPLACE INTO config VALUES(?, ?)')->execute([$key, $value]);
     }
 
-    public static function getConfig($key, $default = null)
+    public static function getConfig($key, ?string $default = null)
     {
         $stmt = self::getStatement('SELECT value FROM config WHERE key = ?');
         $stmt->execute([$key]);
@@ -134,7 +134,7 @@ class Workflow
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
-    public static function request($url, Curl $curl = null, $callback = null, $withAuthorization = true)
+    public static function request($url, ?Curl $curl = null, $callback = null, $withAuthorization = true)
     {
         self::log('loading content for %s', $url);
 

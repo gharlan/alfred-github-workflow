@@ -29,7 +29,7 @@ class Item
         return $this;
     }
 
-    public function prefix($prefix, $onlyTitle = true)
+    public function prefix($prefix, ?bool $onlyTitle = true)
     {
         $this->prefix = $prefix;
         $this->prefixOnlyTitle = $onlyTitle;
@@ -72,7 +72,7 @@ class Item
         return $this;
     }
 
-    public function valid($valid, $add = '…')
+    public function valid($valid, ?string $add = '…')
     {
         $this->valid = (bool) $valid;
         $this->add = $add;
@@ -80,7 +80,7 @@ class Item
         return $this;
     }
 
-    public function autocomplete($autocomplete = true)
+    public function autocomplete(?bool $autocomplete = true)
     {
         $this->autocomplete = $autocomplete;
 

@@ -172,7 +172,7 @@ class Workflow
      *
      * @return mixed
      */
-    public static function requestCache($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
+    public static function requestCache($url, ?Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
     {
         $return = false;
         $returnValue = null;
@@ -296,7 +296,7 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestApi($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi($url, ?Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $url = self::getApiUrl($url);
 

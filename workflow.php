@@ -134,7 +134,7 @@ class Workflow
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
-    public static function request($url, Curl $curl = null, $callback = null, $withAuthorization = true)
+    public static function request(string $url, ?Curl $curl = null, $callback = null, bool $withAuthorization = true)
     {
         self::log('loading content for %s', $url);
 
@@ -172,7 +172,7 @@ class Workflow
      *
      * @return mixed
      */
-    public static function requestCache($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE, $refreshInBackground = true)
+    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true)
     {
         $return = false;
         $returnValue = null;
@@ -296,7 +296,7 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestApi($url, Curl $curl = null, $callback = null, $firstPageOnly = false, $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE)
     {
         $url = self::getApiUrl($url);
 

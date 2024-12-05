@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Version 1.9.1 – 2024-12-05
+--------------------------
+
+### Bugfix
+
+* Fix for PHP 8.4 (@romantech)
+* Fix for branch names containing special chars like `#`
+
+
 Version 1.9 – 2024-02-04
 ------------------------
 

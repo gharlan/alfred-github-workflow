@@ -372,7 +372,7 @@ class Search
                             ->comparator($parts[0].' @'.$branch->name)
                             ->subtitle($branch->commit->sha)
                             ->icon('branch')
-                            ->arg('/'.$parts[0].'/tree/'.$branch->name)
+                            ->arg('/'.$parts[0].'/tree/'.str_replace('%2F', '/', urlencode($branch->name)))
                         );
                     }
                     break;

@@ -143,13 +143,13 @@ class Workflow
         if (!$curl) {
             $curl = new Curl();
             $return = true;
-            $callback = function ($content) use (&$returnValue) {
+            $callback = static function ($content) use (&$returnValue) {
                 $returnValue = $content;
             };
         }
 
         $token = $withAuthorization ? self::getAccessToken() : null;
-        $curl->add(new CurlRequest($url, null, $token, function (CurlResponse $response) use ($callback) {
+        $curl->add(new CurlRequest($url, null, $token, static function (CurlResponse $response) use ($callback) {
             if (is_callable($callback) && isset($response->content)) {
                 $callback($response->content);
             }
@@ -179,7 +179,7 @@ class Workflow
         if (!$curl) {
             $curl = new Curl();
             $return = true;
-            $callback = function ($content) use (&$returnValue) {
+            $callback = static function ($content) use (&$returnValue) {
                 $returnValue = $content;
             };
         }
@@ -221,7 +221,7 @@ class Workflow
 
         $responses = [];
 
-        $handleResponse = function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
+        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
             $url = $response->request->url;
             if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
@@ -253,7 +253,7 @@ class Workflow
                     $stmt->bindColumn('content', $content);
                     $stmt->fetch(PDO::FETCH_BOUND);
                     if ($nextUrl) {
-                        $curl->add(new CurlRequest($nextUrl, $etag, self::getAccessToken(), function (CurlResponse $response) use ($handleResponse, $url, $content) {
+                        $curl->add(new CurlRequest($nextUrl, $etag, self::getAccessToken(), static function (CurlResponse $response) use ($handleResponse, $url, $content) {
                             $handleResponse($response, $content, $url);
                         }));
 
@@ -278,14 +278,14 @@ class Workflow
 
                     return;
                 }
-                $callback(array_reduce($responses, function ($content, $response) {
+                $callback(array_reduce($responses, static function ($content, $response) {
                     return array_merge($content, $response);
                 }, []));
             }
         };
 
         self::log('loading content for %s', $url);
-        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), function (CurlResponse $response) use (&$responses, $handleResponse , $content) {
+        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), static function (CurlResponse $response) use (&$responses, $handleResponse , $content) {
             $handleResponse($response, $content);
         }));
 
@@ -405,7 +405,7 @@ class Workflow
 
     public static function sortItems()
     {
-        usort(self::$items, function (Item $a, Item $b) {
+        usort(self::$items, static function (Item $a, Item $b) {
             return $a->compare($b);
         });
     }

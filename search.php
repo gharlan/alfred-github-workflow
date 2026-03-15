@@ -227,8 +227,8 @@ class Search
         $curl = new Curl();
 
         if (!$isSearch && !$isUser) {
-            $getRepos = function ($url, $prio) use ($curl, &$repos) {
-                Workflow::requestApi($url, $curl, function ($urlRepos) use (&$repos, $prio) {
+            $getRepos = static function ($url, $prio) use ($curl, &$repos) {
+                Workflow::requestApi($url, $curl, static function ($urlRepos) use (&$repos, $prio) {
                     foreach ($urlRepos as $repo) {
                         $repo->score = 300 + $prio + ($repo->fork ? 0 : 10);
                         $repos[$repo->id] = $repo;
@@ -242,7 +242,7 @@ class Search
                     $urls = ['/user/repos'];
                 }
             } else {
-                Workflow::requestApi('/user/orgs', $curl, function ($orgs) use ($getRepos) {
+                Workflow::requestApi('/user/orgs', $curl, static function ($orgs) use ($getRepos) {
                     foreach ($orgs as $org) {
                         $getRepos('/orgs/'.$org->login.'/repos', 0);
                     }
@@ -255,7 +255,7 @@ class Search
         }
 
         if (!$isSearch && !$isRepo) {
-            Workflow::requestApi('/user/following', $curl, function ($urlUsers) use (&$users) {
+            Workflow::requestApi('/user/following', $curl, static function ($urlUsers) use (&$users) {
                 $users = $urlUsers;
             });
         }

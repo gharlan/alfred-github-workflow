@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Version 1.9.2 – 2026-03-15
+--------------------------
+
+### Bugfix
+
+* Fix for PHP 8.5 (deprecated `curl_close`)
+
+
 Version 1.9.1 – 2024-12-05
 --------------------------
 

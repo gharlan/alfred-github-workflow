@@ -444,6 +444,14 @@ echo Workflow::getItemsAsXml();</string>
 	<string>Changelog
 =========
 
+Version 1.9.2 – 2026-03-15
+--------------------------
+
+### Bugfix
+
+* Fix for PHP 8.5 (deprecated `curl_close`)
+
+
 Version 1.9.1 – 2024-12-05
 --------------------------
 
@@ -702,7 +710,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.9.1</string>
+	<string>1.9.2</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

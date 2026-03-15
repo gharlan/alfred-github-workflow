@@ -65,7 +65,6 @@ class Curl
                 $callback = $request->callback;
                 $callback($response);
                 curl_multi_remove_handle(self::$multiHandle, $ch);
-                curl_close($ch);
             }
             if ($running || !$finish) {
                 if (-1 === curl_multi_select(self::$multiHandle, 1)) {

@@ -110,4 +110,46 @@ final class WorkflowTokenTest extends WorkflowTestCase
 
         $this->assertNull(Workflow::getAccessToken());
     }
+
+    public function testGithubRemoveAccessTokenIsNoOpWhenNoActiveAccount(): void
+    {
+        Workflow::init();
+        Workflow::removeAccessToken(); // must not throw
+        $this->assertNull(Workflow::getAccessToken());
+    }
+
+    public function testGithubSetAccessTokenRecoversExistingInactiveDefaultAccount(): void
+    {
+        Workflow::init();
+        // Seed a 'default' account but leave it INACTIVE
+        $id = Workflow::addAccount('default', 'old-token');
+        // Verify there is no active account
+        $this->assertNull(Workflow::getActiveAccount());
+
+        // setAccessToken must find the existing 'default' row and reuse it
+        Workflow::setAccessToken('new-token');
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('default', $accounts[0]['label']);
+        $this->assertSame('new-token', $accounts[0]['token']);
+        $this->assertSame(1, (int) $accounts[0]['is_active']);
+    }
+
+    public function testGithubSetAccessTokenRecoversPostLogoutDefaultAccount(): void
+    {
+        Workflow::init();
+        // Log in, then log out (clears token to '' but keeps row active)
+        Workflow::setAccessToken('original');
+        Workflow::removeAccessToken();
+
+        // Log in again — should reuse the same row
+        Workflow::setAccessToken('fresh-login');
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('default', $accounts[0]['label']);
+        $this->assertSame('fresh-login', $accounts[0]['token']);
+        $this->assertSame(1, (int) $accounts[0]['is_active']);
+    }
 }

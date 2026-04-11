@@ -139,6 +139,15 @@ class Workflow
 
             return;
         }
+        $stmt = self::$db->prepare('SELECT id FROM accounts WHERE label = ?');
+        $stmt->execute(['default']);
+        $existingId = $stmt->fetchColumn();
+        if (false !== $existingId) {
+            self::updateAccountToken((int) $existingId, $token);
+            self::setActiveAccount((int) $existingId);
+
+            return;
+        }
         $id = self::addAccount('default', $token);
         self::setActiveAccount($id);
     }
@@ -217,8 +226,15 @@ class Workflow
         if ($active && (int) $active['id'] === $id) {
             throw new RuntimeException('Cannot remove active account — switch first');
         }
-        self::$db->prepare('DELETE FROM request_cache WHERE account_id = ?')->execute([$id]);
-        self::$db->prepare('DELETE FROM accounts WHERE id = ?')->execute([$id]);
+        self::$db->beginTransaction();
+        try {
+            self::$db->prepare('DELETE FROM request_cache WHERE account_id = ?')->execute([$id]);
+            self::$db->prepare('DELETE FROM accounts WHERE id = ?')->execute([$id]);
+            self::$db->commit();
+        } catch (Throwable $e) {
+            self::$db->rollBack();
+            throw $e;
+        }
     }
 
     public static function updateAccountToken(int $id, string $token): void

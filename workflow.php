@@ -426,6 +426,7 @@ class Workflow
 
         self::$db->exec('BEGIN TRANSACTION');
         try {
+            self::$db->exec('DROP TABLE IF EXISTS request_cache_new');
             self::$db->exec('
                 CREATE TABLE request_cache_new (
                     account_id INTEGER NOT NULL DEFAULT 0,
@@ -455,6 +456,9 @@ class Workflow
 
     private static function resolveAccountIdForCache()
     {
+        if (self::$enterprise) {
+            return 0;
+        }
         try {
             $stmt = self::$db->query('SELECT id FROM accounts WHERE is_active = 1 LIMIT 1');
             if ($stmt) {
@@ -463,7 +467,7 @@ class Workflow
                     return (int) $id;
                 }
             }
-        } catch (\Throwable $e) {
+        } catch (\PDOException $e) {
             // accounts table missing or unreadable — fall through to legacy bucket
         }
 

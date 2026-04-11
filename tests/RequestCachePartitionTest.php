@@ -111,6 +111,38 @@ final class RequestCachePartitionTest extends WorkflowTestCase
         $row = $pdo->query("SELECT account_id, content FROM request_cache WHERE url = 'https://example.com'")->fetch(PDO::FETCH_ASSOC);
         $this->assertSame(42, (int) $row['account_id']);
         $this->assertSame('data', $row['content']);
+
+        // Affirmative check: if migration ran again, request_cache_new would transiently exist
+        // during the transaction. Since we use BEGIN/COMMIT, post-commit it won't be present
+        // either way — but an orphan left behind by a crashed rename would stick around.
+        $orphan = $pdo->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'request_cache_new'")->fetchColumn();
+        $this->assertFalse($orphan, 'request_cache_new must not exist after an idempotent second init');
+    }
+
+    public function testResolveAccountIdForCacheReturnsZeroInEnterpriseMode(): void
+    {
+        // Even with an active github account, an enterprise init() must produce
+        // account_id=0 for request_cache entries, per spec.
+        Workflow::init();
+        $pdo = new PDO('sqlite:'.$this->dataDir.'/db.sqlite');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->exec("INSERT INTO accounts (label, token, is_active, created_at) VALUES ('gh', 'tok', 1, 1)");
+        Workflow::setConfig('enterprise_url', 'https://ghe.example.com');
+
+        agw_test_reset_workflow();
+        Workflow::init(true);
+
+        // We cannot call the private resolveAccountIdForCache directly. Instead,
+        // insert a row through the lower-level REPLACE and verify by reading it back.
+        // Since requestCache() is network-bound, we can only exercise resolveAccountIdForCache
+        // indirectly by confirming that any existing cache behavior in enterprise mode
+        // uses account_id=0. A simple way: manually INSERT through the code path is not
+        // possible without a network call; instead, use reflection to invoke the private
+        // method directly.
+        $reflection = new ReflectionMethod(Workflow::class, 'resolveAccountIdForCache');
+        $accountId = $reflection->invoke(null);
+
+        $this->assertSame(0, $accountId, 'Enterprise mode must map to sentinel account_id=0');
     }
 
     public function testParentUrlIndexSurvivesMigration(): void

@@ -10,14 +10,17 @@ require_once __DIR__.'/WorkflowTestCase.php';
  */
 final class WorkflowTokenTest extends WorkflowTestCase
 {
-    public function testGithubTokenStoredUnderAccessTokenKey(): void
+    public function testGithubTokenStoredInActiveAccount(): void
     {
         Workflow::init();
 
         Workflow::setAccessToken('gh-token');
 
         $this->assertSame('gh-token', Workflow::getAccessToken());
-        $this->assertSame('gh-token', Workflow::getConfig('access_token'));
+        $active = Workflow::getActiveAccount();
+        $this->assertNotNull($active);
+        $this->assertSame('default', $active['label']);
+        $this->assertSame('gh-token', $active['token']);
         $this->assertNull(Workflow::getConfig('enterprise_access_token'));
     }
 
@@ -63,5 +66,48 @@ final class WorkflowTokenTest extends WorkflowTestCase
         agw_test_reset_workflow();
         Workflow::init();
         $this->assertSame('gh-token', Workflow::getAccessToken());
+    }
+
+    public function testGithubSetAccessTokenCreatesDefaultAccountWhenNoneActive(): void
+    {
+        Workflow::init();
+        Workflow::setAccessToken('fresh-token');
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('default', $accounts[0]['label']);
+        $this->assertSame('fresh-token', $accounts[0]['token']);
+        $this->assertSame(1, (int) $accounts[0]['is_active']);
+    }
+
+    public function testGithubSetAccessTokenUpdatesActiveAccountWhenOneExists(): void
+    {
+        Workflow::init();
+        Workflow::setAccessToken('first-token');
+        Workflow::setAccessToken('second-token');
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('second-token', $accounts[0]['token']);
+    }
+
+    public function testGithubRemoveAccessTokenClearsTokenButKeepsRow(): void
+    {
+        Workflow::init();
+        Workflow::setAccessToken('to-be-removed');
+        Workflow::removeAccessToken();
+
+        $this->assertNull(Workflow::getAccessToken());
+        // Row is preserved so the label survives re-login
+        $this->assertCount(1, Workflow::listAccounts());
+    }
+
+    public function testGetAccessTokenReturnsNullForEmptyStringToken(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', '');
+        Workflow::setActiveAccount($id);
+
+        $this->assertNull(Workflow::getAccessToken());
     }
 }

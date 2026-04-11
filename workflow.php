@@ -128,17 +128,45 @@ class Workflow
 
     public static function setAccessToken($token)
     {
-        self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);
+        if (self::$enterprise) {
+            self::setConfig('enterprise_access_token', $token);
+
+            return;
+        }
+        $active = self::getActiveAccount();
+        if ($active) {
+            self::updateAccountToken((int) $active['id'], $token);
+
+            return;
+        }
+        $id = self::addAccount('default', $token);
+        self::setActiveAccount($id);
     }
 
     public static function getAccessToken()
     {
-        return self::getConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+        if (self::$enterprise) {
+            return self::getConfig('enterprise_access_token');
+        }
+        $account = self::getActiveAccount();
+        if (!$account) {
+            return null;
+        }
+
+        return '' !== $account['token'] ? $account['token'] : null;
     }
 
     public static function removeAccessToken()
     {
-        self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+        if (self::$enterprise) {
+            self::removeConfig('enterprise_access_token');
+
+            return;
+        }
+        $active = self::getActiveAccount();
+        if ($active) {
+            self::updateAccountToken((int) $active['id'], '');
+        }
     }
 
     public static function addAccount(string $label, string $token): int
@@ -180,6 +208,25 @@ class Workflow
         } catch (Throwable $e) {
             self::$db->rollBack();
             throw $e;
+        }
+    }
+
+    public static function removeAccount(int $id): void
+    {
+        $active = self::getActiveAccount();
+        if ($active && (int) $active['id'] === $id) {
+            throw new RuntimeException('Cannot remove active account — switch first');
+        }
+        self::$db->prepare('DELETE FROM request_cache WHERE account_id = ?')->execute([$id]);
+        self::$db->prepare('DELETE FROM accounts WHERE id = ?')->execute([$id]);
+    }
+
+    public static function updateAccountToken(int $id, string $token): void
+    {
+        $stmt = self::$db->prepare('UPDATE accounts SET token = ? WHERE id = ?');
+        $stmt->execute([$token, $id]);
+        if (0 === $stmt->rowCount()) {
+            throw new RuntimeException('Account not found: '.$id);
         }
     }
 

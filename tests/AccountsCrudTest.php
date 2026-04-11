@@ -111,4 +111,59 @@ final class AccountsCrudTest extends WorkflowTestCase
         $this->assertNotNull($active);
         $this->assertSame('alice', $active['label']);
     }
+
+    public function testRemoveAccountDeletesRow(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'token-a');
+        Workflow::removeAccount($id);
+
+        $this->assertCount(0, Workflow::listAccounts());
+    }
+
+    public function testRemoveAccountRefusesActiveAccount(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'token-a');
+        Workflow::setActiveAccount($id);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches('/active/i');
+        Workflow::removeAccount($id);
+    }
+
+    public function testRemoveAccountDropsCacheRows(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'token-a');
+        $pdo = new PDO('sqlite:'.$this->dataDir.'/db.sqlite');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->prepare(
+            'REPLACE INTO request_cache (account_id, url, timestamp, etag, content, refresh, parent) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$id, 'https://api.github.com/user', time(), null, '{}', 0, null]);
+
+        Workflow::removeAccount($id);
+
+        $count = (int) $pdo->query("SELECT COUNT(*) FROM request_cache WHERE account_id = $id")->fetchColumn();
+        $this->assertSame(0, $count);
+    }
+
+    public function testUpdateAccountTokenReplacesToken(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'old-token');
+        Workflow::updateAccountToken($id, 'new-token');
+
+        $accounts = Workflow::listAccounts();
+        $this->assertSame('new-token', $accounts[0]['token']);
+    }
+
+    public function testUpdateAccountTokenThrowsOnUnknownId(): void
+    {
+        Workflow::init();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageMatches('/not found/i');
+        Workflow::updateAccountToken(999, 'irrelevant');
+    }
 }

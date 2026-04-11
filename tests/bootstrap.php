@@ -4,6 +4,7 @@
 // include path must point at the repo root when it is loaded.
 chdir(__DIR__.'/..');
 require __DIR__.'/../workflow.php';
+require __DIR__.'/../action.php';
 
 /**
  * Create a fresh temp directory that will be used as alfred_workflow_data.

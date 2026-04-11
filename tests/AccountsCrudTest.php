@@ -166,4 +166,81 @@ final class AccountsCrudTest extends WorkflowTestCase
         $this->expectExceptionMessageMatches('/not found/i');
         Workflow::updateAccountToken(999, 'irrelevant');
     }
+
+    public function testDeleteDatabasePreservesAccounts(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'tok-a');
+        Workflow::setActiveAccount($id);
+
+        Workflow::deleteDatabase();
+
+        agw_test_reset_workflow();
+        Workflow::init();
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('alice', $accounts[0]['label']);
+        $this->assertSame('tok-a', $accounts[0]['token']);
+        $this->assertSame(1, (int) $accounts[0]['is_active']);
+    }
+
+    public function testDeleteDatabaseClearsRequestCache(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'tok-a');
+        Workflow::setActiveAccount($id);
+
+        $pdo = new PDO('sqlite:'.$this->dataDir.'/db.sqlite');
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->prepare(
+            'REPLACE INTO request_cache (account_id, url, timestamp, etag, content, refresh, parent) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$id, 'https://api.github.com/user', time(), null, '{}', 0, null]);
+
+        Workflow::deleteDatabase();
+
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM request_cache')->fetchColumn();
+        $this->assertSame(0, $count);
+    }
+
+    public function testDeleteDatabaseClearsConfig(): void
+    {
+        Workflow::init();
+        Workflow::setConfig('autoupdate', '0');
+        Workflow::setConfig('version', 'test-version');
+
+        Workflow::deleteDatabase();
+
+        agw_test_reset_workflow();
+        Workflow::init();
+        $this->assertNull(Workflow::getConfig('autoupdate'));
+        $this->assertNull(Workflow::getConfig('version'));
+    }
+
+    public function testDeleteDatabaseDoesNotUnlinkFile(): void
+    {
+        Workflow::init();
+        $dbFile = $this->dataDir.'/db.sqlite';
+        $this->assertFileExists($dbFile);
+
+        Workflow::deleteDatabase();
+
+        $this->assertFileExists($dbFile);
+    }
+
+    public function testDeleteDatabaseFollowedByAddAccountWorks(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('pre', 'tok-pre');
+        Workflow::setActiveAccount($id);
+
+        Workflow::deleteDatabase();
+
+        // No re-init — the PDO handle should still be live and accounts CRUD should still work.
+        $newId = Workflow::addAccount('post', 'tok-post');
+        $this->assertGreaterThan(0, $newId);
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(2, $accounts);
+    }
 }

@@ -600,8 +600,8 @@ class Workflow
     public static function deleteDatabase()
     {
         self::closeCursors();
-        self::$db = null;
-        unlink(self::$fileDb);
+        self::$db->exec('DELETE FROM request_cache');
+        self::$db->exec('DELETE FROM config');
     }
 
     public static function addItemIfMatches(Item $item)

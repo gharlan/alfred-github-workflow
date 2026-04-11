@@ -58,6 +58,10 @@ class Workflow
             self::createTables();
         }
 
+        if (!self::$enterprise) {
+            self::migrateLegacyAccessToken();
+        }
+
         if (self::$enterprise) {
             self::$baseUrl = self::getConfig('enterprise_url');
             self::$apiUrl = self::$baseUrl ? self::$baseUrl.'/api/v3' : null;
@@ -396,6 +400,24 @@ class Workflow
             CREATE UNIQUE INDEX accounts_one_active
                 ON accounts(is_active) WHERE is_active = 1
         ');
+    }
+
+    private static function migrateLegacyAccessToken()
+    {
+        $count = (int) self::$db->query('SELECT COUNT(*) FROM accounts')->fetchColumn();
+        if ($count > 0) {
+            return;
+        }
+
+        $legacyToken = self::getConfig('access_token');
+        if (!$legacyToken) {
+            return;
+        }
+
+        $stmt = self::$db->prepare(
+            'INSERT INTO accounts (label, token, is_active, created_at) VALUES (?, ?, 1, ?)'
+        );
+        $stmt->execute(['default', $legacyToken, time()]);
     }
 
     public static function deleteDatabase()

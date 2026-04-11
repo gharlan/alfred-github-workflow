@@ -58,6 +58,8 @@ class Workflow
             self::createTables();
         }
 
+        self::ensureAccountsTable();
+
         if (!self::$enterprise) {
             self::migrateLegacyAccessToken();
         }
@@ -386,9 +388,12 @@ class Workflow
             ) WITHOUT ROWID
         ');
         self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
+    }
 
+    private static function ensureAccountsTable()
+    {
         self::$db->exec('
-            CREATE TABLE accounts (
+            CREATE TABLE IF NOT EXISTS accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 label TEXT NOT NULL UNIQUE,
                 token TEXT NOT NULL,
@@ -397,7 +402,7 @@ class Workflow
             )
         ');
         self::$db->exec('
-            CREATE UNIQUE INDEX accounts_one_active
+            CREATE UNIQUE INDEX IF NOT EXISTS accounts_one_active
                 ON accounts(is_active) WHERE is_active = 1
         ');
     }

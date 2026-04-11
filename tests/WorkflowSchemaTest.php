@@ -28,10 +28,12 @@ final class WorkflowSchemaTest extends WorkflowTestCase
         $columns = $this->tableColumns('request_cache');
 
         $this->assertSame(
-            ['url', 'timestamp', 'etag', 'content', 'refresh', 'parent'],
+            ['account_id', 'url', 'timestamp', 'etag', 'content', 'refresh', 'parent'],
             array_column($columns, 'name')
         );
-        $this->assertSame(1, $this->columnByName($columns, 'url')['pk']);
+        // Composite primary key (account_id, url) — account_id is pk=1, url is pk=2.
+        $this->assertSame(1, $this->columnByName($columns, 'account_id')['pk']);
+        $this->assertSame(2, $this->columnByName($columns, 'url')['pk']);
     }
 
     public function testInitCreatesParentUrlIndex(): void

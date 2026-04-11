@@ -59,6 +59,7 @@ class Workflow
         }
 
         self::ensureAccountsTable();
+        self::migrateRequestCacheSchema();
 
         if (!self::$enterprise) {
             self::migrateLegacyAccessToken();
@@ -190,8 +191,10 @@ class Workflow
             };
         }
 
-        $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
-        $stmt->execute([$url]);
+        $accountId = self::resolveAccountIdForCache();
+
+        $stmt = self::getStatement('SELECT * FROM request_cache WHERE account_id = ? AND url = ?');
+        $stmt->execute([$accountId, $url]);
         $stmt->bindColumn('timestamp', $timestamp);
         $stmt->bindColumn('etag', $etag);
         $stmt->bindColumn('content', $content);
@@ -202,7 +205,7 @@ class Workflow
         $refreshInBackground = $refreshInBackground && null !== $content;
 
         if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
-            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute([time(), $url]);
+            self::getStatement('UPDATE request_cache SET refresh = ? WHERE account_id = ? AND url = ?')->execute([time(), $accountId, $url]);
             self::$refreshUrls[$url] = true;
         }
 
@@ -211,8 +214,8 @@ class Workflow
             $content = json_decode($content);
 
             if (!$firstPageOnly) {
-                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-                while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
+                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE account_id = ? AND parent = ? ORDER BY `timestamp` DESC');
+                while ($stmt->execute([$accountId, $url]) && $data = $stmt->fetchObject()) {
                     $content = array_merge($content, json_decode($data->content));
                     $url = $data->url;
                 }
@@ -227,7 +230,7 @@ class Workflow
 
         $responses = [];
 
-        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
+        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly, $accountId) {
             $url = $response->request->url;
             if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
@@ -242,14 +245,14 @@ class Workflow
                     $response->content = $response->content->items;
                 }
                 $responses[] = $response->content;
-                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
-                    ->execute([$url, time(), $response->etag, json_encode($response->content), $parent]);
+                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, ?, 0, ?)')
+                    ->execute([$accountId, $url, time(), $response->etag, json_encode($response->content), $parent]);
 
                 if ($firstPageOnly) {
                     // do nothing
                 } elseif ($checkNext || $response->link && preg_match('/<([^<>]+)>; rel="next"/U', $response->link, $match)) {
-                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE parent = ?');
-                    $stmt->execute([$url]);
+                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE account_id = ? AND parent = ?');
+                    $stmt->execute([$accountId, $url]);
                     if ($checkNext) {
                         $stmt->bindColumn('url', $nextUrl);
                     } else {
@@ -266,10 +269,10 @@ class Workflow
                         return;
                     }
                 } else {
-                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute([$url]);
+                    self::getStatement('DELETE FROM request_cache WHERE account_id = ? AND parent = ?')->execute([$accountId, $url]);
                 }
             } else {
-                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute([$url]);
+                self::getStatement('DELETE FROM request_cache WHERE account_id = ? AND url = ?')->execute([$accountId, $url]);
                 $url = null;
             }
 
@@ -379,12 +382,14 @@ class Workflow
 
         self::$db->exec('
             CREATE TABLE request_cache (
-                url TEXT PRIMARY KEY NOT NULL,
+                account_id INTEGER NOT NULL DEFAULT 0,
+                url TEXT NOT NULL,
                 timestamp INTEGER NOT NULL,
                 etag TEXT,
                 content TEXT,
                 refresh INTEGER,
-                parent TEXT
+                parent TEXT,
+                PRIMARY KEY (account_id, url)
             ) WITHOUT ROWID
         ');
         self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
@@ -405,6 +410,64 @@ class Workflow
             CREATE UNIQUE INDEX IF NOT EXISTS accounts_one_active
                 ON accounts(is_active) WHERE is_active = 1
         ');
+    }
+
+    private static function migrateRequestCacheSchema()
+    {
+        $columns = self::$db->query('PRAGMA table_info(request_cache)')->fetchAll(PDO::FETCH_ASSOC);
+        if (!$columns) {
+            return;
+        }
+        foreach ($columns as $column) {
+            if ('account_id' === $column['name']) {
+                return;
+            }
+        }
+
+        self::$db->exec('BEGIN TRANSACTION');
+        try {
+            self::$db->exec('
+                CREATE TABLE request_cache_new (
+                    account_id INTEGER NOT NULL DEFAULT 0,
+                    url TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    etag TEXT,
+                    content TEXT,
+                    refresh INTEGER,
+                    parent TEXT,
+                    PRIMARY KEY (account_id, url)
+                ) WITHOUT ROWID
+            ');
+            self::$db->exec('
+                INSERT INTO request_cache_new (account_id, url, timestamp, etag, content, refresh, parent)
+                SELECT 0, url, timestamp, etag, content, refresh, parent FROM request_cache
+            ');
+            self::$db->exec('DROP INDEX IF EXISTS parent_url');
+            self::$db->exec('DROP TABLE request_cache');
+            self::$db->exec('ALTER TABLE request_cache_new RENAME TO request_cache');
+            self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
+            self::$db->exec('COMMIT');
+        } catch (\Throwable $e) {
+            self::$db->exec('ROLLBACK');
+            throw $e;
+        }
+    }
+
+    private static function resolveAccountIdForCache()
+    {
+        try {
+            $stmt = self::$db->query('SELECT id FROM accounts WHERE is_active = 1 LIMIT 1');
+            if ($stmt) {
+                $id = $stmt->fetchColumn();
+                if (false !== $id && null !== $id) {
+                    return (int) $id;
+                }
+            }
+        } catch (\Throwable $e) {
+            // accounts table missing or unreadable — fall through to legacy bucket
+        }
+
+        return 0;
     }
 
     private static function migrateLegacyAccessToken()

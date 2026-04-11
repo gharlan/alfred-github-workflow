@@ -1,7 +1,11 @@
 /.php-cs-fixer.cache
 
 /composer.lock
+/composer.phar
 /vendor/
+
+/.phpunit.cache/
+/tests/tmp/
 
 /yarn.lock
 /node_modules/

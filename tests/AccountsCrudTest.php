@@ -234,7 +234,15 @@ final class AccountsCrudTest extends WorkflowTestCase
         $id = Workflow::addAccount('pre', 'tok-pre');
         Workflow::setActiveAccount($id);
 
+        // Exercise the cached statement path (setConfig/getConfig use getStatement)
+        Workflow::setConfig('alpha', '1');
+        $this->assertSame('1', Workflow::getConfig('alpha'));
+
         Workflow::deleteDatabase();
+
+        // After deleteDatabase, cached statements should be rebuilt cleanly
+        Workflow::setConfig('alpha', '2');
+        $this->assertSame('2', Workflow::getConfig('alpha'));
 
         // No re-init — the PDO handle should still be live and accounts CRUD should still work.
         $newId = Workflow::addAccount('post', 'tok-post');

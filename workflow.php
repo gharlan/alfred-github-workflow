@@ -599,6 +599,8 @@ class Workflow
 
     public static function deleteDatabase()
     {
+        // Release half-consumed cursors so the DELETEs below cannot hit a
+        // "database locked" error from an in-flight SELECT on request_cache.
         self::closeCursors();
         self::$db->exec('DELETE FROM request_cache');
         self::$db->exec('DELETE FROM config');

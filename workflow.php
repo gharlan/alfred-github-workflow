@@ -141,6 +141,48 @@ class Workflow
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
+    public static function addAccount(string $label, string $token): int
+    {
+        $stmt = self::$db->prepare(
+            'INSERT INTO accounts (label, token, is_active, created_at) VALUES (?, ?, 0, ?)'
+        );
+        $stmt->execute([$label, $token, time()]);
+        return (int) self::$db->lastInsertId();
+    }
+
+    public static function listAccounts(): array
+    {
+        $rows = self::$db->query(
+            'SELECT id, label, token, is_active, created_at FROM accounts ORDER BY label'
+        )->fetchAll(PDO::FETCH_ASSOC);
+        return $rows ?: [];
+    }
+
+    public static function getActiveAccount(): ?array
+    {
+        $row = self::$db->query(
+            'SELECT id, label, token, is_active, created_at FROM accounts WHERE is_active = 1 LIMIT 1'
+        )->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public static function setActiveAccount(int $id): void
+    {
+        self::$db->beginTransaction();
+        try {
+            self::$db->exec('UPDATE accounts SET is_active = 0 WHERE is_active = 1');
+            $stmt = self::$db->prepare('UPDATE accounts SET is_active = 1 WHERE id = ?');
+            $stmt->execute([$id]);
+            if (0 === $stmt->rowCount()) {
+                throw new RuntimeException('Account not found: '.$id);
+            }
+            self::$db->commit();
+        } catch (Throwable $e) {
+            self::$db->rollBack();
+            throw $e;
+        }
+    }
+
     public static function request(string $url, ?Curl $curl = null, $callback = null, bool $withAuthorization = true)
     {
         self::log('loading content for %s', $url);

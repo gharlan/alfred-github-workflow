@@ -85,9 +85,97 @@ class Action
                 exec('open '.escapeshellarg($path));
 
                 return '';
+
+            case 'user':
+                return self::dispatchUser($parts, $enterprise);
         }
 
         return '';
+    }
+
+    private static function dispatchUser(array $parts, bool $enterprise): string
+    {
+        $action = $parts[2] ?? '';
+        $label = $parts[3] ?? '';
+
+        switch ($action) {
+            case 'add':
+                if ($enterprise) {
+                    return 'Multi-account is only supported for github.com.';
+                }
+                if ('' === $label) {
+                    return 'Usage: gh user add <label>';
+                }
+                foreach (Workflow::listAccounts() as $account) {
+                    if ($account['label'] === $label) {
+                        return 'Account "'.$label.'" already exists. Use "gh user update '.$label.'" to refresh the token.';
+                    }
+                }
+                Workflow::startServer();
+                $state = base64_encode(json_encode(['label' => $label, 'v' => 1]));
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                exec('open '.escapeshellarg($url));
+
+                return 'Opening browser to authorize "'.$label.'". Run "gh user switch" when complete.';
+
+            case 'switch':
+                if ('' === $label) {
+                    return 'Usage: gh user switch <label>';
+                }
+                foreach (Workflow::listAccounts() as $account) {
+                    if ($account['label'] === $label) {
+                        Workflow::setActiveAccount((int) $account['id']);
+
+                        return 'Switched to '.$label;
+                    }
+                }
+
+                return 'Account "'.$label.'" not found';
+
+            case 'update':
+                if ($enterprise) {
+                    return 'Multi-account is only supported for github.com.';
+                }
+                if ('' === $label) {
+                    return 'Usage: gh user update <label>';
+                }
+                $found = false;
+                foreach (Workflow::listAccounts() as $account) {
+                    if ($account['label'] === $label) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    return 'Account "'.$label.'" not found';
+                }
+                Workflow::startServer();
+                $state = base64_encode(json_encode(['label' => $label, 'v' => 1]));
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                exec('open '.escapeshellarg($url));
+
+                return 'Opening browser to refresh token for "'.$label.'".';
+
+            case 'delete':
+                if ('' === $label) {
+                    return 'Usage: gh user delete <label>';
+                }
+                foreach (Workflow::listAccounts() as $account) {
+                    if ($account['label'] === $label) {
+                        try {
+                            Workflow::removeAccount((int) $account['id']);
+
+                            return 'Deleted account "'.$label.'"';
+                        } catch (\RuntimeException $e) {
+                            return 'Cannot delete active account "'.$label.'" — switch first';
+                        }
+                    }
+                }
+
+                return 'Account "'.$label.'" not found';
+        }
+
+        return 'Unknown user command: '.$action;
     }
 }
 

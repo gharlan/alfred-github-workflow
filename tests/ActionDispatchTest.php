@@ -80,4 +80,117 @@ final class ActionDispatchTest extends WorkflowTestCase
         $output = Action::dispatch(['>', 'never-heard-of-this'], false);
         $this->assertSame('', $output);
     }
+
+    // --- Phase D: gh user subcommands ---
+
+    public function testUserAddRejectsDuplicateLabel(): void
+    {
+        Workflow::init();
+        Workflow::addAccount('work', 'existing');
+
+        $output = Action::dispatch(['>', 'user', 'add', 'work'], false);
+        $this->assertStringContainsString('already exists', $output);
+    }
+
+    public function testUserAddRejectsEmptyLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'add'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserAddRejectsEnterprise(): void
+    {
+        Workflow::init(true);
+        $output = Action::dispatch(['>', 'user', 'add', 'test'], true);
+        $this->assertStringContainsString('only supported for github.com', $output);
+    }
+
+    public function testUserSwitchActivatesAccount(): void
+    {
+        Workflow::init();
+        Workflow::addAccount('alice', 'tok-a');
+        Workflow::addAccount('bob', 'tok-b');
+
+        $output = Action::dispatch(['>', 'user', 'switch', 'bob'], false);
+        $this->assertStringContainsString('Switched to bob', $output);
+        $this->assertSame('bob', Workflow::getActiveAccount()['label']);
+    }
+
+    public function testUserSwitchRejectsUnknownLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'switch', 'nobody'], false);
+        $this->assertStringContainsString('not found', $output);
+    }
+
+    public function testUserSwitchRejectsEmptyLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'switch'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserDeleteRemovesInactiveAccount(): void
+    {
+        Workflow::init();
+        Workflow::addAccount('work', 'tok');
+
+        $output = Action::dispatch(['>', 'user', 'delete', 'work'], false);
+        $this->assertStringContainsString('Deleted', $output);
+        $this->assertCount(0, Workflow::listAccounts());
+    }
+
+    public function testUserDeleteRefusesActiveAccount(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('work', 'tok');
+        Workflow::setActiveAccount($id);
+
+        $output = Action::dispatch(['>', 'user', 'delete', 'work'], false);
+        $this->assertStringContainsString('active', $output);
+        $this->assertCount(1, Workflow::listAccounts());
+    }
+
+    public function testUserDeleteRejectsUnknownLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'delete', 'ghost'], false);
+        $this->assertStringContainsString('not found', $output);
+    }
+
+    public function testUserDeleteRejectsEmptyLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'delete'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserUpdateRejectsUnknownLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'update', 'ghost'], false);
+        $this->assertStringContainsString('not found', $output);
+    }
+
+    public function testUserUpdateRejectsEmptyLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'update'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserUpdateRejectsEnterprise(): void
+    {
+        Workflow::init(true);
+        $output = Action::dispatch(['>', 'user', 'update', 'work'], true);
+        $this->assertStringContainsString('only supported for github.com', $output);
+    }
+
+    public function testUnknownUserSubcommandReturnsError(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'nonsense'], false);
+        $this->assertStringContainsString('Unknown user command', $output);
+    }
 }

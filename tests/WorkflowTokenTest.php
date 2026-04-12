@@ -152,4 +152,27 @@ final class WorkflowTokenTest extends WorkflowTestCase
         $this->assertSame('fresh-login', $accounts[0]['token']);
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
+
+    public function testLegacyLoginCommandCreatesDefaultAccount(): void
+    {
+        Workflow::init();
+        Action::dispatch(['>', 'login', 'brand-new-token'], false);
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('default', $accounts[0]['label']);
+        $this->assertSame('brand-new-token', $accounts[0]['token']);
+        $this->assertSame(1, (int) $accounts[0]['is_active']);
+    }
+
+    public function testLegacyLogoutClearsTokenButKeepsAccount(): void
+    {
+        Workflow::init();
+        Action::dispatch(['>', 'login', 'tok'], false);
+        Action::dispatch(['>', 'logout'], false);
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts); // account row preserved
+        $this->assertNull(Workflow::getAccessToken()); // but no usable token
+    }
 }

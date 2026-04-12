@@ -5,15 +5,43 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER['REQUEST_URI'])) {
 }
 
 require 'workflow.php';
+require 'OAuthState.php';
 
 Workflow::init();
 
-if (!isset($_GET['access_token'])) {
+$token = $_GET['access_token'] ?? null;
+if (!$token) {
     echo 'FAILURE (missing access_token parameter)!';
     exit;
 }
 
-Workflow::setAccessToken($_GET['access_token']);
+$state = OAuthState::decode($_GET['state'] ?? '');
+$label = $state['label'] ?? 'default';
+
+$existing = null;
+foreach (Workflow::listAccounts() as $account) {
+    if ($account['label'] === $label) {
+        $existing = $account;
+        break;
+    }
+}
+
+if ($existing) {
+    Workflow::updateAccountToken((int) $existing['id'], $token);
+} else {
+    Workflow::addAccount($label, $token);
+}
+
+if (!Workflow::getActiveAccount()) {
+    $accounts = Workflow::listAccounts();
+    foreach ($accounts as $account) {
+        if ($account['label'] === $label) {
+            Workflow::setActiveAccount((int) $account['id']);
+            break;
+        }
+    }
+}
+
 Workflow::cacheWarmup();
 
 ?>

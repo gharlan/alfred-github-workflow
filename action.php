@@ -112,7 +112,7 @@ class Action
                     }
                 }
                 Workflow::startServer();
-                $state = base64_encode(json_encode(['label' => $label, 'v' => 1]));
+                $state = OAuthState::encode($label);
                 $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
                 exec('open '.escapeshellarg($url));
 
@@ -150,7 +150,7 @@ class Action
                     return 'Account "'.$label.'" not found';
                 }
                 Workflow::startServer();
-                $state = base64_encode(json_encode(['label' => $label, 'v' => 1]));
+                $state = OAuthState::encode($label);
                 $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
                 exec('open '.escapeshellarg($url));
 

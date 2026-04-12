@@ -1,6 +1,6 @@
 <?php
 
-require 'workflow.php';
+require_once 'workflow.php';
 
 class Search
 {

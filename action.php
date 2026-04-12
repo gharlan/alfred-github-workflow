@@ -158,17 +158,12 @@ class Action
                 }
                 if ($existing) {
                     Workflow::updateAccountToken((int) $existing['id'], $token);
+                    $accountId = (int) $existing['id'];
                 } else {
-                    $existingId = Workflow::addAccount($label, $token);
+                    $accountId = Workflow::addAccount($label, $token);
                 }
                 if (!Workflow::getActiveAccount()) {
-                    $accounts = Workflow::listAccounts();
-                    foreach ($accounts as $account) {
-                        if ($account['label'] === $label) {
-                            Workflow::setActiveAccount((int) $account['id']);
-                            break;
-                        }
-                    }
+                    Workflow::setActiveAccount($accountId);
                 }
 
                 return 'Saved token for "'.$label.'". Run "gh > user switch '.$label.'" to activate.';
@@ -247,7 +242,7 @@ if (isset($argv[1])) {
         if ('.git' == substr($query, -4)) {
             $query = 'x-github-client://openRepo/'.substr($query, 0, -4);
         }
-        exec('open '.$query);
+        exec('open '.escapeshellarg($query));
 
         return;
     }

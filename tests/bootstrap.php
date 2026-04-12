@@ -3,9 +3,9 @@
 // workflow.php uses relative requires for item.php and curl.php, so the
 // include path must point at the repo root when it is loaded.
 chdir(__DIR__.'/..');
-require_once __DIR__.'/../OAuthState.php';
 require __DIR__.'/../workflow.php';
 require __DIR__.'/../action.php';
+require __DIR__.'/../search.php';
 
 /**
  * Create a fresh temp directory that will be used as alfred_workflow_data.

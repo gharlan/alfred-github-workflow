@@ -5,7 +5,6 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER['REQUEST_URI'])) {
 }
 
 require 'workflow.php';
-require_once 'OAuthState.php';
 
 Workflow::init();
 

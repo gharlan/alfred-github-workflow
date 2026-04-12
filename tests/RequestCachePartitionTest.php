@@ -145,6 +145,28 @@ final class RequestCachePartitionTest extends WorkflowTestCase
         $this->assertSame(0, $accountId, 'Enterprise mode must map to sentinel account_id=0');
     }
 
+    public function testResolveAccountIdForCacheReturnsActiveAccountIdInGithubMode(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('alice', 'tok-a');
+        Workflow::setActiveAccount($id);
+
+        $reflection = new ReflectionMethod(Workflow::class, 'resolveAccountIdForCache');
+        $accountId = $reflection->invoke(null);
+
+        $this->assertSame($id, $accountId, 'Github mode must return the active account id');
+    }
+
+    public function testResolveAccountIdForCacheReturnsZeroWhenNoActiveAccount(): void
+    {
+        Workflow::init();
+
+        $reflection = new ReflectionMethod(Workflow::class, 'resolveAccountIdForCache');
+        $accountId = $reflection->invoke(null);
+
+        $this->assertSame(0, $accountId, 'No active account must fall back to sentinel 0');
+    }
+
     public function testParentUrlIndexSurvivesMigration(): void
     {
         // Seed a legacy DB, run migration, confirm parent_url index is still there.

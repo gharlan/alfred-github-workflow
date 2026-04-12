@@ -95,14 +95,12 @@ class Action
 
     private static function showAlert(string $title, string $message): void
     {
-        $script = sprintf(
-            'set r to display dialog %s buttons {"OK", "Open GitHub"} default button "OK" with title %s'."\n".
+        $safeTitle = str_replace('"', '\\"', $title);
+        $safeMessage = str_replace('"', '\\"', $message);
+        $script = 'set r to display dialog "'.$safeMessage.'" buttons {"OK", "Open GitHub"} default button "OK" with title "'.$safeTitle.'"'."\n".
             'if button returned of r is "Open GitHub" then'."\n".
             '    open location "https://github.com"'."\n".
-            'end if',
-            escapeshellarg($message),
-            escapeshellarg($title)
-        );
+            'end if';
         exec('osascript -e '.escapeshellarg($script).' > /dev/null 2>&1 &');
     }
 

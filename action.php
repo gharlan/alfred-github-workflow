@@ -4,6 +4,8 @@ require_once 'workflow.php';
 
 class Action
 {
+    public static $skipDialogs = false;
+
     public static function dispatch(array $parts, bool $enterprise): string
     {
         switch ($parts[1]) {
@@ -91,6 +93,19 @@ class Action
         }
 
         return '';
+    }
+
+    private static function confirmDialog(string $title, string $message): bool
+    {
+        if (self::$skipDialogs) {
+            return true;
+        }
+        $safeTitle = str_replace('"', '\\"', $title);
+        $safeMessage = str_replace('"', '\\"', $message);
+        $script = 'display dialog "'.$safeMessage.'" buttons {"Cancel", "Delete"} default button "Cancel" cancel button "Cancel" with title "'.$safeTitle.'"';
+        exec('osascript -e '.escapeshellarg($script).' 2>&1', $output, $exitCode);
+
+        return 0 === $exitCode;
     }
 
     private static function showSimpleAlert(string $title, string $message): void
@@ -218,8 +233,11 @@ class Action
                 foreach (Workflow::listAccounts() as $account) {
                     if ($account['label'] === $label) {
                         try {
+                            if (!self::confirmDialog('Delete "'.$label.'"?', 'This will remove the account and its cached data.')) {
+                                return '';
+                            }
                             Workflow::removeAccount((int) $account['id']);
-                            self::showSimpleAlert('Account Deleted', 'Removed "'.$label.'" and its cached data.');
+                            self::showSimpleAlert('Account Deleted', 'Removed "'.$label.'".');
 
                             return '';
                         } catch (\RuntimeException $e) {

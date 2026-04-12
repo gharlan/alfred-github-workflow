@@ -190,7 +190,7 @@ class Workflow
     public static function listAccounts(): array
     {
         $rows = self::$db->query(
-            'SELECT id, label, token, is_active, created_at FROM accounts ORDER BY label'
+            'SELECT id, label, is_active, created_at FROM accounts ORDER BY label'
         )->fetchAll(PDO::FETCH_ASSOC);
         return $rows ?: [];
     }

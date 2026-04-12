@@ -196,7 +196,7 @@ final class ActionDispatchTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('mnmal', $accounts[0]['label']);
-        $this->assertSame('ghp_testtoken123', $accounts[0]['token']);
+        $this->assertSame('ghp_testtoken123', $this->getAccountToken('mnmal'));
     }
 
     public function testUserLoginUpdatesExistingAccount(): void
@@ -209,7 +209,7 @@ final class ActionDispatchTest extends WorkflowTestCase
 
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
-        $this->assertSame('ghp_newtoken456', $accounts[0]['token']);
+        $this->assertSame('ghp_newtoken456', $this->getAccountToken('mnmal'));
     }
 
     public function testUserLoginAutoActivatesWhenNoActiveAccount(): void

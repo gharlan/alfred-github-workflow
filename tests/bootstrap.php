@@ -6,6 +6,7 @@ chdir(__DIR__.'/..');
 require __DIR__.'/../workflow.php';
 require __DIR__.'/../action.php';
 require __DIR__.'/../search.php';
+Action::$skipDialogs = true;
 
 /**
  * Create a fresh temp directory that will be used as alfred_workflow_data.

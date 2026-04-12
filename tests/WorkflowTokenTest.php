@@ -76,7 +76,7 @@ final class WorkflowTokenTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('default', $accounts[0]['label']);
-        $this->assertSame('fresh-token', $accounts[0]['token']);
+        $this->assertSame('fresh-token', $this->getAccountToken('default'));
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
 
@@ -88,7 +88,7 @@ final class WorkflowTokenTest extends WorkflowTestCase
 
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
-        $this->assertSame('second-token', $accounts[0]['token']);
+        $this->assertSame('second-token', $this->getAccountToken('default'));
     }
 
     public function testGithubRemoveAccessTokenClearsTokenButKeepsRow(): void
@@ -132,7 +132,7 @@ final class WorkflowTokenTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('default', $accounts[0]['label']);
-        $this->assertSame('new-token', $accounts[0]['token']);
+        $this->assertSame('new-token', $this->getAccountToken('default'));
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
 
@@ -149,7 +149,7 @@ final class WorkflowTokenTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('default', $accounts[0]['label']);
-        $this->assertSame('fresh-login', $accounts[0]['token']);
+        $this->assertSame('fresh-login', $this->getAccountToken('default'));
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
 
@@ -161,7 +161,7 @@ final class WorkflowTokenTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('default', $accounts[0]['label']);
-        $this->assertSame('brand-new-token', $accounts[0]['token']);
+        $this->assertSame('brand-new-token', $this->getAccountToken('default'));
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
 

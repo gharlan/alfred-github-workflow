@@ -20,6 +20,16 @@ abstract class WorkflowTestCase extends TestCase
         agw_test_reset_workflow();
     }
 
+    protected function getAccountToken(string $label): ?string
+    {
+        $pdo = new PDO('sqlite:'.$this->dataDir.'/db.sqlite');
+        $stmt = $pdo->prepare('SELECT token FROM accounts WHERE label = ?');
+        $stmt->execute([$label]);
+        $token = $stmt->fetchColumn();
+
+        return false !== $token ? $token : null;
+    }
+
     protected function tearDown(): void
     {
         agw_test_reset_workflow();

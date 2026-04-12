@@ -13,7 +13,7 @@ final class AccountsCrudTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('alice', $accounts[0]['label']);
-        $this->assertSame('token-a', $accounts[0]['token']);
+        $this->assertSame('token-a', $this->getAccountToken('alice'));
         $this->assertSame(0, (int) $accounts[0]['is_active']);
     }
 
@@ -155,7 +155,7 @@ final class AccountsCrudTest extends WorkflowTestCase
         Workflow::updateAccountToken($id, 'new-token');
 
         $accounts = Workflow::listAccounts();
-        $this->assertSame('new-token', $accounts[0]['token']);
+        $this->assertSame('new-token', $this->getAccountToken('alice'));
     }
 
     public function testUpdateAccountTokenThrowsOnUnknownId(): void
@@ -181,7 +181,7 @@ final class AccountsCrudTest extends WorkflowTestCase
         $accounts = Workflow::listAccounts();
         $this->assertCount(1, $accounts);
         $this->assertSame('alice', $accounts[0]['label']);
-        $this->assertSame('tok-a', $accounts[0]['token']);
+        $this->assertSame('tok-a', $this->getAccountToken('alice'));
         $this->assertSame(1, (int) $accounts[0]['is_active']);
     }
 

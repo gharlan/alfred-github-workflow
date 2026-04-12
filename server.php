@@ -15,8 +15,8 @@ if (!$token) {
     exit;
 }
 
-$state = OAuthState::decode($_GET['state'] ?? '');
-$label = $state['label'] ?? 'default';
+$label = Workflow::getConfig('pending_account_label') ?? 'default';
+Workflow::removeConfig('pending_account_label');
 
 $existing = null;
 foreach (Workflow::listAccounts() as $account) {

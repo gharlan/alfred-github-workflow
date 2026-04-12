@@ -111,9 +111,10 @@ class Action
                         return 'Account "'.$label.'" already exists. Use "gh user update '.$label.'" to refresh the token.';
                     }
                 }
+                Workflow::setConfig('pending_account_label', $label);
                 Workflow::startServer();
-                $state = OAuthState::encode($label);
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
                 exec('open '.escapeshellarg($url));
 
                 return 'Authorize in browser. Token will be saved as "'.$label.'". Then run "gh > user switch '.$label.'".';
@@ -184,9 +185,10 @@ class Action
                 if (!$found) {
                     return 'Account "'.$label.'" not found';
                 }
+                Workflow::setConfig('pending_account_label', $label);
                 Workflow::startServer();
-                $state = OAuthState::encode($label);
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
                 exec('open '.escapeshellarg($url));
 
                 return 'Authorize in browser to refresh token for "'.$label.'".';

@@ -93,6 +93,19 @@ class Action
         return '';
     }
 
+    private static function showAlert(string $title, string $message): void
+    {
+        $script = sprintf(
+            'set r to display dialog %s buttons {"OK", "Open GitHub"} default button "OK" with title %s'."\n".
+            'if button returned of r is "Open GitHub" then'."\n".
+            '    open location "https://github.com"'."\n".
+            'end if',
+            escapeshellarg($message),
+            escapeshellarg($title)
+        );
+        exec('osascript -e '.escapeshellarg($script).' > /dev/null 2>&1 &');
+    }
+
     private static function dispatchUser(array $parts, bool $enterprise): string
     {
         $action = $parts[2] ?? '';
@@ -161,8 +174,12 @@ class Action
                 foreach (Workflow::listAccounts() as $account) {
                     if ($account['label'] === $label) {
                         Workflow::setActiveAccount((int) $account['id']);
+                        self::showAlert(
+                            'Switched to '.$label,
+                            'Alfred is now using the "'.$label.'" GitHub account. Switch your browser session to match if needed.'
+                        );
 
-                        return 'Switched to '.$label;
+                        return '';
                     }
                 }
 

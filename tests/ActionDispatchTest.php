@@ -112,8 +112,7 @@ final class ActionDispatchTest extends WorkflowTestCase
         Workflow::addAccount('alice', 'tok-a');
         Workflow::addAccount('bob', 'tok-b');
 
-        $output = Action::dispatch(['>', 'user', 'switch', 'bob'], false);
-        $this->assertStringContainsString('Switched to bob', $output);
+        Action::dispatch(['>', 'user', 'switch', 'bob'], false);
         $this->assertSame('bob', Workflow::getActiveAccount()['label']);
     }
 

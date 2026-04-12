@@ -1,6 +1,6 @@
 <?php
 
-require 'workflow.php';
+require_once 'workflow.php';
 
 class Search
 {
@@ -40,6 +40,12 @@ class Search
             self::addEnterpriseUrlCommand();
 
             return;
+        }
+
+        if (!$hotkey && isset($parts[0]) && '>' === $parts[0] && isset($parts[1]) && 'user' === $parts[1]) {
+            self::addUserCommands();
+
+            return Workflow::getItemsAsXml();
         }
 
         if (!Workflow::getAccessToken() || !(self::$user = Workflow::requestApi('/user'))) {
@@ -134,7 +140,7 @@ class Search
     private static function addEmptyQueryCommand()
     {
         Workflow::addItem(Item::create()
-            ->title(self::$enterprise ? 'ghe' : 'gh')
+            ->title(self::$enterprise ? 'ghe' : self::renderGhHeader())
             ->subtitle('Search or type a command'.(self::$enterprise ? ' (GitHub Enterprise)' : ''))
             ->comparator('')
             ->valid(false)
@@ -623,6 +629,160 @@ class Search
                 ->subtitle('View the '.$file)
                 ->icon('file')
                 ->arg('https://github.com/gharlan/alfred-github-workflow/blob/main/'.strtoupper($file).'.md')
+            );
+        }
+    }
+
+    private static function renderGhHeader(): string
+    {
+        $active = Workflow::getActiveAccount();
+        if (!$active) {
+            return 'gh';
+        }
+
+        return 'gh ('.$active['label'].')';
+    }
+
+    private static function addUserCommands(): void
+    {
+        $sub = self::$parts[2] ?? '';
+        $label = self::$parts[3] ?? '';
+        $accounts = Workflow::listAccounts();
+
+        if ('switch' === $sub) {
+            if ('' !== $label) {
+                Workflow::addItem(Item::create()
+                    ->title('> user switch '.$label)
+                    ->subtitle('Switch to '.$label)
+                    ->icon('user')
+                    ->arg('> user switch '.$label)
+                );
+
+                return;
+            }
+            foreach ($accounts as $account) {
+                $acctLabel = $account['label'];
+                $isActive = 1 === (int) $account['is_active'];
+                Workflow::addItem(Item::create()
+                    ->title($acctLabel.($isActive ? ' (active)' : ''))
+                    ->subtitle('Switch to '.$acctLabel)
+                    ->icon($isActive ? 'stars' : 'user')
+                    ->arg('> user switch '.$acctLabel)
+                    ->autocomplete(false)
+                );
+            }
+
+            return;
+        }
+
+        if ('delete' === $sub) {
+            if ('' !== $label) {
+                Workflow::addItem(Item::create()
+                    ->title('> user delete '.$label)
+                    ->subtitle('Remove "'.$label.'"')
+                    ->icon('user')
+                    ->arg('> user delete '.$label)
+                );
+
+                return;
+            }
+            foreach ($accounts as $account) {
+                $acctLabel = $account['label'];
+                $isActive = 1 === (int) $account['is_active'];
+                Workflow::addItem(Item::create()
+                    ->title($acctLabel.($isActive ? ' (active — switch first)' : ''))
+                    ->subtitle('Delete '.$acctLabel)
+                    ->icon('user')
+                    ->arg('> user delete '.$acctLabel)
+                    ->valid(!$isActive)
+                );
+            }
+
+            return;
+        }
+
+        if ('update' === $sub) {
+            if ('' !== $label) {
+                Workflow::addItem(Item::create()
+                    ->title('> user update '.$label)
+                    ->subtitle('Open github.com to generate a new token for "'.$label.'"')
+                    ->icon('user')
+                    ->arg('> user update '.$label)
+                );
+
+                return;
+            }
+            foreach ($accounts as $account) {
+                Workflow::addItem(Item::create()
+                    ->title($account['label'])
+                    ->subtitle('Refresh token for '.$account['label'])
+                    ->icon('user')
+                    ->arg('> user update '.$account['label'])
+                );
+            }
+
+            return;
+        }
+
+        if ('add' === $sub) {
+            if ('' !== $label) {
+                Workflow::addItem(Item::create()
+                    ->title('> user add '.$label)
+                    ->subtitle('Sign in as "'.$label.'" in your browser first, then authorize')
+                    ->icon('user')
+                    ->arg('> user add '.$label)
+                );
+
+                return;
+            }
+
+            Workflow::addItem(Item::create()
+                ->title('> user add')
+                ->subtitle('Add a new github account')
+                ->icon('user')
+                ->valid(false, ' ')
+            );
+
+            return;
+        }
+
+        if ('login' === $sub) {
+            if ('' !== $label) {
+                $token = self::$parts[4] ?? '';
+                Workflow::addItem(Item::create()
+                    ->title('> user login '.$label.' '.($token ?: '<token>'))
+                    ->subtitle('' !== $token ? 'Save token for "'.$label.'"' : 'Paste your token after the label')
+                    ->icon('user')
+                    ->arg('> user login '.$label.' '.$token)
+                    ->valid('' !== $token)
+                );
+
+                return;
+            }
+
+            Workflow::addItem(Item::create()
+                ->title('> user login')
+                ->subtitle('Save a token: > user login <label> <token>')
+                ->icon('user')
+                ->valid(false, ' ')
+            );
+
+            return;
+        }
+
+        $cmds = [
+            'add' => 'Add a new github account',
+            'login' => 'Save a token for an account',
+            'switch' => 'Switch active github account',
+            'update' => 'Refresh the token for an existing account',
+            'delete' => 'Remove a github account',
+        ];
+        foreach ($cmds as $cmd => $desc) {
+            Workflow::addItem(Item::create()
+                ->title('> user '.$cmd)
+                ->subtitle($desc)
+                ->icon('user')
+                ->valid(false, ' ')
             );
         }
     }

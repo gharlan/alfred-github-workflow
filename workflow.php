@@ -58,6 +58,13 @@ class Workflow
             self::createTables();
         }
 
+        self::ensureAccountsTable();
+        self::migrateRequestCacheSchema();
+
+        if (!self::$enterprise) {
+            self::migrateLegacyAccessToken();
+        }
+
         if (self::$enterprise) {
             self::$baseUrl = self::getConfig('enterprise_url');
             self::$apiUrl = self::$baseUrl ? self::$baseUrl.'/api/v3' : null;
@@ -121,17 +128,122 @@ class Workflow
 
     public static function setAccessToken($token)
     {
-        self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);
+        if (self::$enterprise) {
+            self::setConfig('enterprise_access_token', $token);
+
+            return;
+        }
+        $active = self::getActiveAccount();
+        if ($active) {
+            self::updateAccountToken((int) $active['id'], $token);
+
+            return;
+        }
+        $stmt = self::$db->prepare('SELECT id FROM accounts WHERE label = ?');
+        $stmt->execute(['default']);
+        $existingId = $stmt->fetchColumn();
+        if (false !== $existingId) {
+            self::updateAccountToken((int) $existingId, $token);
+            self::setActiveAccount((int) $existingId);
+
+            return;
+        }
+        $id = self::addAccount('default', $token);
+        self::setActiveAccount($id);
     }
 
     public static function getAccessToken()
     {
-        return self::getConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+        if (self::$enterprise) {
+            return self::getConfig('enterprise_access_token');
+        }
+        $account = self::getActiveAccount();
+        if (!$account) {
+            return null;
+        }
+
+        return '' !== $account['token'] ? $account['token'] : null;
     }
 
     public static function removeAccessToken()
     {
-        self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
+        if (self::$enterprise) {
+            self::removeConfig('enterprise_access_token');
+
+            return;
+        }
+        $active = self::getActiveAccount();
+        if ($active) {
+            self::updateAccountToken((int) $active['id'], '');
+        }
+    }
+
+    public static function addAccount(string $label, string $token): int
+    {
+        $stmt = self::$db->prepare(
+            'INSERT INTO accounts (label, token, is_active, created_at) VALUES (?, ?, 0, ?)'
+        );
+        $stmt->execute([$label, $token, time()]);
+        return (int) self::$db->lastInsertId();
+    }
+
+    public static function listAccounts(): array
+    {
+        $rows = self::$db->query(
+            'SELECT id, label, is_active, created_at FROM accounts ORDER BY label'
+        )->fetchAll(PDO::FETCH_ASSOC);
+        return $rows ?: [];
+    }
+
+    public static function getActiveAccount(): ?array
+    {
+        $row = self::$db->query(
+            'SELECT id, label, token, is_active, created_at FROM accounts WHERE is_active = 1 LIMIT 1'
+        )->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public static function setActiveAccount(int $id): void
+    {
+        self::$db->beginTransaction();
+        try {
+            self::$db->exec('UPDATE accounts SET is_active = 0 WHERE is_active = 1');
+            $stmt = self::$db->prepare('UPDATE accounts SET is_active = 1 WHERE id = ?');
+            $stmt->execute([$id]);
+            if (0 === $stmt->rowCount()) {
+                throw new RuntimeException('Account not found: '.$id);
+            }
+            self::$db->commit();
+        } catch (Throwable $e) {
+            self::$db->rollBack();
+            throw $e;
+        }
+    }
+
+    public static function removeAccount(int $id): void
+    {
+        $active = self::getActiveAccount();
+        if ($active && (int) $active['id'] === $id) {
+            throw new RuntimeException('Cannot remove active account — switch first');
+        }
+        self::$db->beginTransaction();
+        try {
+            self::$db->prepare('DELETE FROM request_cache WHERE account_id = ?')->execute([$id]);
+            self::$db->prepare('DELETE FROM accounts WHERE id = ?')->execute([$id]);
+            self::$db->commit();
+        } catch (Throwable $e) {
+            self::$db->rollBack();
+            throw $e;
+        }
+    }
+
+    public static function updateAccountToken(int $id, string $token): void
+    {
+        $stmt = self::$db->prepare('UPDATE accounts SET token = ? WHERE id = ?');
+        $stmt->execute([$token, $id]);
+        if (0 === $stmt->rowCount()) {
+            throw new RuntimeException('Account not found: '.$id);
+        }
     }
 
     public static function request(string $url, ?Curl $curl = null, $callback = null, bool $withAuthorization = true)
@@ -184,8 +296,10 @@ class Workflow
             };
         }
 
-        $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
-        $stmt->execute([$url]);
+        $accountId = self::resolveAccountIdForCache();
+
+        $stmt = self::getStatement('SELECT * FROM request_cache WHERE account_id = ? AND url = ?');
+        $stmt->execute([$accountId, $url]);
         $stmt->bindColumn('timestamp', $timestamp);
         $stmt->bindColumn('etag', $etag);
         $stmt->bindColumn('content', $content);
@@ -196,7 +310,7 @@ class Workflow
         $refreshInBackground = $refreshInBackground && null !== $content;
 
         if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
-            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute([time(), $url]);
+            self::getStatement('UPDATE request_cache SET refresh = ? WHERE account_id = ? AND url = ?')->execute([time(), $accountId, $url]);
             self::$refreshUrls[$url] = true;
         }
 
@@ -205,8 +319,8 @@ class Workflow
             $content = json_decode($content);
 
             if (!$firstPageOnly) {
-                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-                while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
+                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE account_id = ? AND parent = ? ORDER BY `timestamp` DESC');
+                while ($stmt->execute([$accountId, $url]) && $data = $stmt->fetchObject()) {
                     $content = array_merge($content, json_decode($data->content));
                     $url = $data->url;
                 }
@@ -221,7 +335,7 @@ class Workflow
 
         $responses = [];
 
-        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
+        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly, $accountId) {
             $url = $response->request->url;
             if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
@@ -236,14 +350,14 @@ class Workflow
                     $response->content = $response->content->items;
                 }
                 $responses[] = $response->content;
-                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
-                    ->execute([$url, time(), $response->etag, json_encode($response->content), $parent]);
+                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, ?, 0, ?)')
+                    ->execute([$accountId, $url, time(), $response->etag, json_encode($response->content), $parent]);
 
                 if ($firstPageOnly) {
                     // do nothing
                 } elseif ($checkNext || $response->link && preg_match('/<([^<>]+)>; rel="next"/U', $response->link, $match)) {
-                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE parent = ?');
-                    $stmt->execute([$url]);
+                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE account_id = ? AND parent = ?');
+                    $stmt->execute([$accountId, $url]);
                     if ($checkNext) {
                         $stmt->bindColumn('url', $nextUrl);
                     } else {
@@ -260,10 +374,10 @@ class Workflow
                         return;
                     }
                 } else {
-                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute([$url]);
+                    self::getStatement('DELETE FROM request_cache WHERE account_id = ? AND parent = ?')->execute([$accountId, $url]);
                 }
             } else {
-                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute([$url]);
+                self::getStatement('DELETE FROM request_cache WHERE account_id = ? AND url = ?')->execute([$accountId, $url]);
                 $url = null;
             }
 
@@ -373,22 +487,123 @@ class Workflow
 
         self::$db->exec('
             CREATE TABLE request_cache (
-                url TEXT PRIMARY KEY NOT NULL,
+                account_id INTEGER NOT NULL DEFAULT 0,
+                url TEXT NOT NULL,
                 timestamp INTEGER NOT NULL,
                 etag TEXT,
                 content TEXT,
                 refresh INTEGER,
-                parent TEXT
+                parent TEXT,
+                PRIMARY KEY (account_id, url)
             ) WITHOUT ROWID
         ');
         self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
     }
 
+    private static function ensureAccountsTable()
+    {
+        self::$db->exec('
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                label TEXT NOT NULL UNIQUE,
+                token TEXT NOT NULL,
+                is_active INTEGER NOT NULL DEFAULT 0,
+                created_at INTEGER NOT NULL
+            )
+        ');
+        self::$db->exec('
+            CREATE UNIQUE INDEX IF NOT EXISTS accounts_one_active
+                ON accounts(is_active) WHERE is_active = 1
+        ');
+    }
+
+    private static function migrateRequestCacheSchema()
+    {
+        $columns = self::$db->query('PRAGMA table_info(request_cache)')->fetchAll(PDO::FETCH_ASSOC);
+        if (!$columns) {
+            return;
+        }
+        foreach ($columns as $column) {
+            if ('account_id' === $column['name']) {
+                return;
+            }
+        }
+
+        self::$db->exec('BEGIN TRANSACTION');
+        try {
+            self::$db->exec('DROP TABLE IF EXISTS request_cache_new');
+            self::$db->exec('
+                CREATE TABLE request_cache_new (
+                    account_id INTEGER NOT NULL DEFAULT 0,
+                    url TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    etag TEXT,
+                    content TEXT,
+                    refresh INTEGER,
+                    parent TEXT,
+                    PRIMARY KEY (account_id, url)
+                ) WITHOUT ROWID
+            ');
+            self::$db->exec('
+                INSERT INTO request_cache_new (account_id, url, timestamp, etag, content, refresh, parent)
+                SELECT 0, url, timestamp, etag, content, refresh, parent FROM request_cache
+            ');
+            self::$db->exec('DROP INDEX IF EXISTS parent_url');
+            self::$db->exec('DROP TABLE request_cache');
+            self::$db->exec('ALTER TABLE request_cache_new RENAME TO request_cache');
+            self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
+            self::$db->exec('COMMIT');
+        } catch (\Throwable $e) {
+            self::$db->exec('ROLLBACK');
+            throw $e;
+        }
+    }
+
+    private static function resolveAccountIdForCache()
+    {
+        if (self::$enterprise) {
+            return 0;
+        }
+        try {
+            $stmt = self::$db->query('SELECT id FROM accounts WHERE is_active = 1 LIMIT 1');
+            if ($stmt) {
+                $id = $stmt->fetchColumn();
+                if (false !== $id && null !== $id) {
+                    return (int) $id;
+                }
+            }
+        } catch (\PDOException $e) {
+            // accounts table missing or unreadable — fall through to legacy bucket
+        }
+
+        return 0;
+    }
+
+    private static function migrateLegacyAccessToken()
+    {
+        $count = (int) self::$db->query('SELECT COUNT(*) FROM accounts')->fetchColumn();
+        if ($count > 0) {
+            return;
+        }
+
+        $legacyToken = self::getConfig('access_token');
+        if (!$legacyToken) {
+            return;
+        }
+
+        $stmt = self::$db->prepare(
+            'INSERT INTO accounts (label, token, is_active, created_at) VALUES (?, ?, 1, ?)'
+        );
+        $stmt->execute(['default', $legacyToken, time()]);
+    }
+
     public static function deleteDatabase()
     {
+        // Release half-consumed cursors so the DELETEs below cannot hit a
+        // "database locked" error from an in-flight SELECT on request_cache.
         self::closeCursors();
-        self::$db = null;
-        unlink(self::$fileDb);
+        self::$db->exec('DELETE FROM request_cache');
+        self::$db->exec('DELETE FROM config');
     }
 
     public static function addItemIfMatches(Item $item)

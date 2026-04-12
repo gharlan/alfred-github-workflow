@@ -179,7 +179,7 @@ class Action
     }
 }
 
-if (isset($argv[0]) && realpath($argv[0]) === __FILE__ && isset($argv[1])) {
+if (isset($argv[1])) {
     $query = trim($argv[1]);
 
     if ('>' !== $query[0] && 0 !== strpos($query, 'e >')) {

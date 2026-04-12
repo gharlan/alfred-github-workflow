@@ -187,6 +187,76 @@ final class ActionDispatchTest extends WorkflowTestCase
         $this->assertStringContainsString('only supported for github.com', $output);
     }
 
+    // --- Phase D (revised): gh user login subcommand ---
+
+    public function testUserLoginCreatesNewAccount(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'login', 'mnmal', 'ghp_testtoken123'], false);
+
+        $this->assertStringContainsString('Saved token', $output);
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('mnmal', $accounts[0]['label']);
+        $this->assertSame('ghp_testtoken123', $accounts[0]['token']);
+    }
+
+    public function testUserLoginUpdatesExistingAccount(): void
+    {
+        Workflow::init();
+        Workflow::addAccount('mnmal', 'old-token');
+
+        $output = Action::dispatch(['>', 'user', 'login', 'mnmal', 'ghp_newtoken456'], false);
+        $this->assertStringContainsString('Saved token', $output);
+
+        $accounts = Workflow::listAccounts();
+        $this->assertCount(1, $accounts);
+        $this->assertSame('ghp_newtoken456', $accounts[0]['token']);
+    }
+
+    public function testUserLoginAutoActivatesWhenNoActiveAccount(): void
+    {
+        Workflow::init();
+        Action::dispatch(['>', 'user', 'login', 'mnmal', 'ghp_tok'], false);
+
+        $active = Workflow::getActiveAccount();
+        $this->assertNotNull($active);
+        $this->assertSame('mnmal', $active['label']);
+    }
+
+    public function testUserLoginDoesNotAutoActivateWhenAnotherAccountIsActive(): void
+    {
+        Workflow::init();
+        $id = Workflow::addAccount('existing', 'tok-existing');
+        Workflow::setActiveAccount($id);
+
+        Action::dispatch(['>', 'user', 'login', 'second', 'ghp_tok2'], false);
+
+        $active = Workflow::getActiveAccount();
+        $this->assertSame('existing', $active['label']);
+    }
+
+    public function testUserLoginRejectsEmptyLabel(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'login'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserLoginRejectsMissingToken(): void
+    {
+        Workflow::init();
+        $output = Action::dispatch(['>', 'user', 'login', 'mnmal'], false);
+        $this->assertStringContainsString('Usage', $output);
+    }
+
+    public function testUserLoginRejectsEnterprise(): void
+    {
+        Workflow::init(true);
+        $output = Action::dispatch(['>', 'user', 'login', 'test', 'tok'], true);
+        $this->assertStringContainsString('only supported for github.com', $output);
+    }
+
     public function testUnknownUserSubcommandReturnsError(): void
     {
         Workflow::init();

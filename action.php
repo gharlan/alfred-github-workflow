@@ -111,12 +111,44 @@ class Action
                         return 'Account "'.$label.'" already exists. Use "gh user update '.$label.'" to refresh the token.';
                     }
                 }
-                Workflow::startServer();
-                $state = OAuthState::encode($label);
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
-                exec('open '.escapeshellarg($url));
+                exec('open '.escapeshellarg('https://github.com/settings/tokens/new?scopes=repo&description=alfred-github-workflow'));
 
-                return 'Opening browser to authorize "'.$label.'". Run "gh user switch" when complete.';
+                return 'Opening github.com token page. Run: gh > user login '.$label.' <token>';
+
+            case 'login':
+                if ($enterprise) {
+                    return 'Multi-account is only supported for github.com.';
+                }
+                if ('' === $label) {
+                    return 'Usage: gh user login <label> <token>';
+                }
+                $token = $parts[4] ?? '';
+                if ('' === $token) {
+                    return 'Usage: gh user login <label> <token>';
+                }
+                $existing = null;
+                foreach (Workflow::listAccounts() as $account) {
+                    if ($account['label'] === $label) {
+                        $existing = $account;
+                        break;
+                    }
+                }
+                if ($existing) {
+                    Workflow::updateAccountToken((int) $existing['id'], $token);
+                } else {
+                    $existingId = Workflow::addAccount($label, $token);
+                }
+                if (!Workflow::getActiveAccount()) {
+                    $accounts = Workflow::listAccounts();
+                    foreach ($accounts as $account) {
+                        if ($account['label'] === $label) {
+                            Workflow::setActiveAccount((int) $account['id']);
+                            break;
+                        }
+                    }
+                }
+
+                return 'Saved token for "'.$label.'". Run "gh > user switch '.$label.'" to activate.';
 
             case 'switch':
                 if ('' === $label) {
@@ -149,12 +181,9 @@ class Action
                 if (!$found) {
                     return 'Account "'.$label.'" not found';
                 }
-                Workflow::startServer();
-                $state = OAuthState::encode($label);
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
-                exec('open '.escapeshellarg($url));
+                exec('open '.escapeshellarg('https://github.com/settings/tokens/new?scopes=repo&description=alfred-github-workflow'));
 
-                return 'Opening browser to refresh token for "'.$label.'".';
+                return 'Opening github.com token page. Run: gh > user login '.$label.' <new-token>';
 
             case 'delete':
                 if ('' === $label) {

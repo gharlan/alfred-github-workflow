@@ -664,9 +664,23 @@ class Search
             return;
         }
 
+        if ('login' === $sub && '' !== $label) {
+            $token = self::$parts[4] ?? '';
+            $fullArg = '> user login '.$label.' '.$token;
+            Workflow::addItem(Item::create()
+                ->title('> user login '.$label.' '.($token ?: '<token>'))
+                ->subtitle('' !== $token ? 'Save token for "'.$label.'"' : 'Paste your token after the label')
+                ->icon('user')
+                ->arg($fullArg)
+                ->valid('' !== $token, '' === $token ? ' ' : null)
+            );
+
+            return;
+        }
+
         if ('' !== $sub && '' !== $label && in_array($sub, ['add', 'switch', 'update', 'delete'], true)) {
             $descriptions = [
-                'add' => 'Add "'.$label.'" as a new github account',
+                'add' => 'Sign in as "'.$label.'" on github.com, then generate a token',
                 'switch' => 'Switch to '.$label,
                 'update' => 'Refresh the token for "'.$label.'"',
                 'delete' => 'Remove "'.$label.'"',
@@ -683,6 +697,7 @@ class Search
 
         $cmds = [
             'add' => 'Add a new github account',
+            'login' => 'Save a token for an account',
             'switch' => 'Switch active github account',
             'update' => 'Refresh the token for an existing account',
             'delete' => 'Remove a github account',

@@ -161,7 +161,7 @@ class Action
                 foreach (Workflow::listAccounts() as $account) {
                     if ($account['label'] === $label) {
                         Workflow::setActiveAccount((int) $account['id']);
-                        exec('open '.escapeshellarg('https://github.com/login/account'));
+                        exec('open '.escapeshellarg('https://github.com'));
 
                         return 'Switched to '.$label.' — pick the matching account in your browser';
                     }

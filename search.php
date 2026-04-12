@@ -728,16 +728,9 @@ class Search
             if ('' !== $label) {
                 Workflow::addItem(Item::create()
                     ->title('> user add '.$label)
-                    ->subtitle('Sign in as "'.$label.'" on github.com, then generate a token')
+                    ->subtitle('Sign in as "'.$label.'" in your browser first, then authorize')
                     ->icon('user')
                     ->arg('> user add '.$label)
-                );
-                Workflow::addItem(Item::create()
-                    ->title('Then run: > user login '.$label.' <token>')
-                    ->subtitle('Paste the generated token to complete setup')
-                    ->icon('user')
-                    ->valid(false)
-                    ->autocomplete(' > user login '.$label.' ')
                 );
 
                 return;

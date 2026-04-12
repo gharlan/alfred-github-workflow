@@ -111,9 +111,12 @@ class Action
                         return 'Account "'.$label.'" already exists. Use "gh user update '.$label.'" to refresh the token.';
                     }
                 }
-                exec('open '.escapeshellarg('https://github.com/settings/tokens/new?scopes=repo&description=alfred-github-workflow'));
+                Workflow::startServer();
+                $state = OAuthState::encode($label);
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                exec('open '.escapeshellarg($url));
 
-                return 'Opening github.com token page. Run: gh > user login '.$label.' <token>';
+                return 'Authorize in browser. Token will be saved as "'.$label.'". Then run "gh > user switch '.$label.'".';
 
             case 'login':
                 if ($enterprise) {
@@ -181,9 +184,12 @@ class Action
                 if (!$found) {
                     return 'Account "'.$label.'" not found';
                 }
-                exec('open '.escapeshellarg('https://github.com/settings/tokens/new?scopes=repo&description=alfred-github-workflow'));
+                Workflow::startServer();
+                $state = OAuthState::encode($label);
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.urlencode($state);
+                exec('open '.escapeshellarg($url));
 
-                return 'Opening github.com token page. Run: gh > user login '.$label.' <new-token>';
+                return 'Authorize in browser to refresh token for "'.$label.'".';
 
             case 'delete':
                 if ('' === $label) {

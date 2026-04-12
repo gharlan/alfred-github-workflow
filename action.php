@@ -114,7 +114,7 @@ class Action
                 Workflow::setConfig('pending_account_label', $label);
                 Workflow::startServer();
                 $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state.'&login='.urlencode($label).'&prompt=select_account';
                 exec('open '.escapeshellarg($url));
 
                 return 'Authorize in browser. Token will be saved as "'.$label.'". Then run "gh > user switch '.$label.'".';
@@ -161,9 +161,8 @@ class Action
                 foreach (Workflow::listAccounts() as $account) {
                     if ($account['label'] === $label) {
                         Workflow::setActiveAccount((int) $account['id']);
-                        exec('open '.escapeshellarg('https://github.com'));
 
-                        return 'Switched to '.$label.' — pick the matching account in your browser';
+                        return 'Switched to '.$label;
                     }
                 }
 
@@ -189,7 +188,7 @@ class Action
                 Workflow::setConfig('pending_account_label', $label);
                 Workflow::startServer();
                 $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
-                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
+                $url = 'https://github.com/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state.'&login='.urlencode($label).'&prompt=select_account';
                 exec('open '.escapeshellarg($url));
 
                 return 'Authorize in browser to refresh token for "'.$label.'".';

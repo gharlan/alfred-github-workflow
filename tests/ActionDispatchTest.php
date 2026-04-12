@@ -135,8 +135,7 @@ final class ActionDispatchTest extends WorkflowTestCase
         Workflow::init();
         Workflow::addAccount('work', 'tok');
 
-        $output = Action::dispatch(['>', 'user', 'delete', 'work'], false);
-        $this->assertStringContainsString('Deleted', $output);
+        Action::dispatch(['>', 'user', 'delete', 'work'], false);
         $this->assertCount(0, Workflow::listAccounts());
     }
 

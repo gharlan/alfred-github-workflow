@@ -93,11 +93,19 @@ class Action
         return '';
     }
 
+    private static function showSimpleAlert(string $title, string $message): void
+    {
+        $safeTitle = str_replace('"', '\\"', $title);
+        $safeMessage = str_replace('"', '\\"', $message);
+        $script = 'display dialog "'.$safeMessage.'" buttons {"OK"} default button "OK" with title "'.$safeTitle.'"';
+        exec('osascript -e '.escapeshellarg($script).' > /dev/null 2>&1 &');
+    }
+
     private static function showAlert(string $title, string $message): void
     {
         $safeTitle = str_replace('"', '\\"', $title);
         $safeMessage = str_replace('"', '\\"', $message);
-        $script = 'set r to display dialog "'.$safeMessage.'" buttons {"OK", "Open GitHub"} default button "OK" with title "'.$safeTitle.'"'."\n".
+        $script = 'set r to display dialog "'.$safeMessage.'" buttons {"OK", "Open GitHub"} default button "Open GitHub" with title "'.$safeTitle.'"'."\n".
             'if button returned of r is "Open GitHub" then'."\n".
             '    open location "https://github.com"'."\n".
             'end if';
@@ -216,8 +224,9 @@ class Action
                     if ($account['label'] === $label) {
                         try {
                             Workflow::removeAccount((int) $account['id']);
+                            self::showSimpleAlert('Account Deleted', 'Removed "'.$label.'" and its cached data.');
 
-                            return 'Deleted account "'.$label.'"';
+                            return '';
                         } catch (\RuntimeException $e) {
                             return 'Cannot delete active account "'.$label.'" — switch first';
                         }

@@ -28,7 +28,7 @@ if ('default' === $label) {
     ]);
     $body = curl_exec($ch);
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+    unset($ch);
     if (200 === $status) {
         $user = json_decode($body);
         if (isset($user->login) && '' !== $user->login) {

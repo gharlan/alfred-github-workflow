@@ -646,16 +646,17 @@ class Search
     private static function addUserCommands(): void
     {
         $sub = self::$parts[2] ?? '';
+        $label = self::$parts[3] ?? '';
 
-        if ('switch' === $sub && !isset(self::$parts[3])) {
+        if ('switch' === $sub && '' === $label) {
             foreach (Workflow::listAccounts() as $account) {
-                $label = $account['label'];
+                $acctLabel = $account['label'];
                 $isActive = 1 === (int) $account['is_active'];
                 Workflow::addItemIfMatches(Item::create()
-                    ->title($label.($isActive ? ' (active)' : ''))
-                    ->subtitle('Switch to '.$label)
+                    ->title($acctLabel.($isActive ? ' (active)' : ''))
+                    ->subtitle('Switch to '.$acctLabel)
                     ->icon($isActive ? 'stars' : 'user')
-                    ->arg('> user switch '.$label)
+                    ->arg('> user switch '.$acctLabel)
                     ->autocomplete(false)
                 );
             }
@@ -663,11 +664,28 @@ class Search
             return;
         }
 
+        if ('' !== $sub && '' !== $label && in_array($sub, ['add', 'switch', 'update', 'delete'], true)) {
+            $descriptions = [
+                'add' => 'Add "'.$label.'" as a new github account',
+                'switch' => 'Switch to '.$label,
+                'update' => 'Refresh the token for "'.$label.'"',
+                'delete' => 'Remove "'.$label.'"',
+            ];
+            Workflow::addItem(Item::create()
+                ->title('> user '.$sub.' '.$label)
+                ->subtitle($descriptions[$sub])
+                ->icon('user')
+                ->arg('> user '.$sub.' '.$label)
+            );
+
+            return;
+        }
+
         $cmds = [
-            'add <label>' => 'Add a new github account',
+            'add' => 'Add a new github account',
             'switch' => 'Switch active github account',
-            'update <label>' => 'Refresh the token for an existing account',
-            'delete <label>' => 'Remove a github account',
+            'update' => 'Refresh the token for an existing account',
+            'delete' => 'Remove a github account',
         ];
         foreach ($cmds as $cmd => $desc) {
             Workflow::addItem(Item::create()

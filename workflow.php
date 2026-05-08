@@ -169,10 +169,11 @@ class Workflow
      * @param bool     $firstPageOnly
      * @param int      $maxAge
      * @param bool     $refreshInBackground
+     * @param callable $transformItem
      *
      * @return mixed
      */
-    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true)
+    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true, ?callable $transformItem = null)
     {
         $return = false;
         $returnValue = null;
@@ -183,6 +184,13 @@ class Workflow
                 $returnValue = $content;
             };
         }
+        $transformContent = static function (mixed $content) use ($transformItem) {
+            if (!$transformItem) {
+                return $content;
+            }
+
+            return array_is_list($content) ? array_map($transformItem, $content) : $transformItem($content);
+        };
 
         $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
         $stmt->execute([$url]);
@@ -203,11 +211,14 @@ class Workflow
         if (!$shouldRefresh || $refreshInBackground) {
             self::log('using cached content for %s', $url);
             $content = json_decode($content);
+            $content = $transformContent($content);
 
             if (!$firstPageOnly) {
                 $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
                 while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
-                    $content = array_merge($content, json_decode($data->content));
+                    $cachedContent = json_decode($data->content);
+                    $cachedContent = $transformContent($cachedContent);
+                    $content = array_merge($content, $cachedContent);
                     $url = $data->url;
                 }
             }
@@ -221,7 +232,7 @@ class Workflow
 
         $responses = [];
 
-        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
+        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly, $transformContent) {
             $url = $response->request->url;
             if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
@@ -235,7 +246,7 @@ class Workflow
                 if (isset($response->content->items)) {
                     $response->content = $response->content->items;
                 }
-                $responses[] = $response->content;
+                $responses[] = $transformContent($response->content);
                 self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
                     ->execute([$url, time(), $response->etag, json_encode($response->content), $parent]);
 
@@ -296,11 +307,11 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, ?callable $transformItem = null)
     {
         $url = self::getApiUrl($url);
 
-        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge);
+        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge, transformItem: $transformItem);
     }
 
     public static function cleanCache()

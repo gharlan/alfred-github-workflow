@@ -352,16 +352,17 @@ class Search
         if (isset($parts[1][0]) && in_array($parts[1][0], ['#', '@', '*', '/'])) {
             switch ($parts[1][0]) {
                 case '*':
-                    $commits = Workflow::requestApi('/repos/'.$parts[0].'/commits');
-                    foreach ($commits as $commit) {
-                        Workflow::addItemIfMatches(Item::create()
+                    $commits = Workflow::requestApi('/repos/'.$parts[0].'/commits', transformItem: static function (stdClass $commit) use ($parts) {
+                        return Item::create()
                             ->title($commit->commit->message)
                             ->comparator($parts[0].' *'.$commit->sha)
                             ->subtitle($commit->commit->author->date.'  ('.$commit->sha.')')
                             ->icon('commits')
                             ->arg('/'.$parts[0].'/commit/'.$commit->sha)
-                            ->prio(strtotime($commit->commit->author->date))
-                        );
+                            ->prio(strtotime($commit->commit->author->date));
+                    });
+                    foreach ($commits as $commit) {
+                        Workflow::addItemIfMatches($commit);
                     }
                     break;
                 case '@':
@@ -392,16 +393,17 @@ class Search
                     }
                     break;
                 case '#':
-                    $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all');
-                    foreach ($issues as $issue) {
-                        Workflow::addItemIfMatches(Item::create()
+                    $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all', transformItem: static function (stdClass $issue) use ($parts) {
+                        return Item::create()
                             ->title($issue->title)
                             ->comparator($parts[0].' #'.$issue->number.' '.$issue->title)
                             ->subtitle('#'.$issue->number)
                             ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
-                            ->prio(strtotime($issue->updated_at))
-                        );
+                            ->prio(strtotime($issue->updated_at));
+                    });
+                    foreach ($issues as $issue) {
+                        Workflow::addItemIfMatches($issue);
                     }
                     break;
             }

@@ -171,9 +171,10 @@ class Item
                 $c->addAttribute('valid', 'no');
                 $title .= $item->add;
             }
-            $c->addChild('title', htmlspecialchars($title));
+            $flags = ENT_QUOTES | ENT_SUBSTITUTE | ENT_DISALLOWED | ENT_XML1;
+            $c->addChild('title', htmlspecialchars($title, $flags));
             if ($item->subtitle) {
-                $c->addChild('subtitle', htmlspecialchars($item->subtitle));
+                $c->addChild('subtitle', htmlspecialchars($item->subtitle, $flags));
             }
         }
 

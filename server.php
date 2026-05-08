@@ -8,12 +8,58 @@ require 'workflow.php';
 
 Workflow::init();
 
-if (!isset($_GET['access_token'])) {
+$token = $_GET['access_token'] ?? null;
+if (!$token) {
     echo 'FAILURE (missing access_token parameter)!';
     exit;
 }
 
-Workflow::setAccessToken($_GET['access_token']);
+$label = Workflow::getConfig('pending_account_label') ?? 'default';
+Workflow::removeConfig('pending_account_label');
+
+// Resolve the actual GitHub username from the token so the account
+// label is meaningful (instead of "default" for legacy gh > login).
+if ('default' === $label) {
+    $ch = curl_init('https://api.github.com/user');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => ['Authorization: token '.$token, 'User-Agent: alfred-github-workflow'],
+    ]);
+    $body = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    unset($ch);
+    if (200 === $status) {
+        $user = json_decode($body);
+        if (isset($user->login) && '' !== $user->login) {
+            $label = $user->login;
+        }
+    }
+}
+
+$existing = null;
+foreach (Workflow::listAccounts() as $account) {
+    if ($account['label'] === $label) {
+        $existing = $account;
+        break;
+    }
+}
+
+if ($existing) {
+    Workflow::updateAccountToken((int) $existing['id'], $token);
+} else {
+    Workflow::addAccount($label, $token);
+}
+
+if (!Workflow::getActiveAccount()) {
+    $accounts = Workflow::listAccounts();
+    foreach ($accounts as $account) {
+        if ($account['label'] === $label) {
+            Workflow::setActiveAccount((int) $account['id']);
+            break;
+        }
+    }
+}
+
 Workflow::cacheWarmup();
 
 ?>

@@ -1,5 +1,9 @@
 {
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.48"
+        "friendsofphp/php-cs-fixer": "^3.48",
+        "phpunit/phpunit": "^11.0"
+    },
+    "scripts": {
+        "test": "phpunit"
     }
 }

@@ -352,15 +352,13 @@ class Workflow
 
     public static function startServer(): void
     {
-        if (version_compare(PHP_VERSION, '5.4', '>=')) {
-            self::stopServer();
-            shell_exec(sprintf(
-                'alfred_workflow_data=%s %s -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
-                escapeshellarg(getenv('alfred_workflow_data')),
-                escapeshellarg(PHP_BINARY),
-                escapeshellarg(self::$filePids)
-            ));
-        }
+        self::stopServer();
+        shell_exec(sprintf(
+            'alfred_workflow_data=%s %s -d variables_order=EGPCS -S localhost:2233 server.php > /dev/null 2>&1 & echo $! >> %s',
+            escapeshellarg(getenv('alfred_workflow_data')),
+            escapeshellarg(PHP_BINARY),
+            escapeshellarg(self::$filePids)
+        ));
     }
 
     public static function stopServer(): void
@@ -442,10 +440,10 @@ class Workflow
         return Item::toXml(self::$items, self::$enterprise, self::$hotkey, self::getBaseUrl());
     }
 
-    public static function log($msg): void
+    public static function log($msg, ...$args): void
     {
         if (self::$debug) {
-            fwrite(STDERR, "\n".call_user_func_array('sprintf', func_get_args()));
+            fwrite(STDERR, "\n".sprintf($msg, ...$args));
         }
     }
 

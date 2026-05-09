@@ -39,8 +39,7 @@ switch ($parts[1]) {
             echo 'Successfully logged in';
         } elseif (!$enterprise) {
             Workflow::startServer();
-            $state = version_compare(PHP_VERSION, '5.4', '<') ? 'm' : '';
-            $url = Workflow::getBaseUrl().'/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo&state='.$state;
+            $url = Workflow::getBaseUrl().'/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo';
             exec('open '.escapeshellarg($url));
         }
         break;

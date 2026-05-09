@@ -416,6 +416,7 @@ final class Search
                         'number', 'title', 'html_url', 'updated_at',
                         'pull_request' => [],
                     ]));
+                    $numberQuery = filter_var(substr($parts[1], 1), FILTER_VALIDATE_INT);
                     foreach ($issues as $issue) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title($issue->title)
@@ -423,7 +424,7 @@ final class Search
                             ->subtitle('#' . $issue->number)
                             ->icon(isset($issue->pull_request) ? 'pull-request' : 'issue')
                             ->arg($issue->html_url)
-                            ->prio(strtotime($issue->updated_at))
+                            ->prio($numberQuery && $issue->number === $numberQuery ? PHP_INT_MAX : strtotime($issue->updated_at))
                         );
                     }
                     break;

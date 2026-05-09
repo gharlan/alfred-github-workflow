@@ -352,7 +352,10 @@ class Search
         if (isset($parts[1][0]) && in_array($parts[1][0], ['#', '@', '*', '/'])) {
             switch ($parts[1][0]) {
                 case '*':
-                    $commits = Workflow::requestApi('/repos/'.$parts[0].'/commits');
+                    $commits = Workflow::requestApi('/repos/'.$parts[0].'/commits', fields: [
+                        'sha',
+                        'commit' => ['message', 'author' => ['date']],
+                    ]);
                     foreach ($commits as $commit) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title($commit->commit->message)
@@ -392,7 +395,10 @@ class Search
                     }
                     break;
                 case '#':
-                    $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all');
+                    $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all', fields: [
+                        'number', 'title', 'html_url', 'updated_at',
+                        'pull_request' => [],
+                    ]);
                     foreach ($issues as $issue) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title($issue->title)

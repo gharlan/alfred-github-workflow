@@ -162,8 +162,13 @@ class Workflow
         return $returnValue;
     }
 
-    /** @param callable $callback */
-    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true)
+    /**
+     * @param callable|null $callback
+     * @param array|null $fields declarative field whitelist applied before storing in the cache, so large list endpoints (commits, issues)
+     *                           only persist what the consumer actually reads. Mix flat names and nested specs:
+     *                           `['sha', 'commit' => ['message', 'author' => ['date']]]`
+     */
+    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true, ?array $fields = null)
     {
         $return = false;
         $returnValue = null;
@@ -212,7 +217,7 @@ class Workflow
 
         $responses = [];
 
-        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly) {
+        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly, $fields) {
             $url = $response->request->url;
             if ($response && in_array($response->status, [200, 304])) {
                 $checkNext = false;
@@ -225,6 +230,9 @@ class Workflow
                 $response->content = json_decode($response->content);
                 if (isset($response->content->items)) {
                     $response->content = $response->content->items;
+                }
+                if ($fields && 200 == $response->status) {
+                    $response->content = self::pickFields($fields, $response->content);
                 }
                 $responses[] = $response->content;
                 self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
@@ -285,11 +293,43 @@ class Workflow
         return $returnValue;
     }
 
-    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE)
+    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, ?array $fields = null)
     {
         $url = self::getApiUrl($url);
 
-        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge);
+        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge, fields: $fields);
+    }
+
+    /**
+     * Apply a declarative pick-fields whitelist to an API response, preserving the original nested structure.
+     *
+     * Spec format: a list of property names, optionally `name => subSpec` for nested objects.
+     * An empty subSpec keeps the property as an empty stdClass (useful for `isset` markers).
+     *
+     * @param mixed $value stdClass, array of stdClass, or scalar — arrays are mapped element-wise
+     */
+    private static function pickFields(array $spec, mixed $value): mixed
+    {
+        if (is_array($value)) {
+            return array_map(static fn ($item) => self::pickFields($spec, $item), $value);
+        }
+
+        if (!$value instanceof stdClass) {
+            return $value;
+        }
+
+        $picked = new stdClass();
+        foreach ($spec as $key => $sub) {
+            if (is_int($key)) {
+                if (property_exists($value, $sub)) {
+                    $picked->$sub = $value->$sub;
+                }
+            } elseif (property_exists($value, $key)) {
+                $picked->$key = self::pickFields($sub, $value->$key);
+            }
+        }
+
+        return $picked;
     }
 
     public static function cleanCache(): void

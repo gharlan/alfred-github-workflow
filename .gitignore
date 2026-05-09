@@ -5,3 +5,6 @@
 
 /package-lock.json
 /node_modules/
+
+/.claude/*
+!/.claude/CLAUDE.md

@@ -9,7 +9,7 @@ class Curl
 
     private static $multiHandle;
 
-    public function add(CurlRequest $request)
+    public function add(CurlRequest $request): void
     {
         $this->requests[$request->url] = $request;
         if ($this->running) {
@@ -44,9 +44,9 @@ class Curl
                 $request = $this->requests[$url];
                 $rawResponse = curl_multi_getcontent($ch);
                 if (preg_match("@^HTTP/\\d\\.\\d 200 Connection established\r\n\r\n@i", $rawResponse)) {
-                    list(, $header, $body) = explode("\r\n\r\n", $rawResponse, 3);
+                    [, $header, $body] = explode("\r\n\r\n", $rawResponse, 3);
                 } else {
-                    list($header, $body) = explode("\r\n\r\n", $rawResponse, 2);
+                    [$header, $body] = explode("\r\n\r\n", $rawResponse, 2);
                 }
                 $response = new CurlResponse();
                 $response->request = $request;
@@ -78,7 +78,7 @@ class Curl
         return true;
     }
 
-    private function addHandle(CurlRequest $request)
+    private function addHandle(CurlRequest $request): void
     {
         $defaultOptions = [
             CURLOPT_HEADER => true,

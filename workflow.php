@@ -30,7 +30,7 @@ class Workflow
 
     private static $debug = false;
 
-    public static function init($enterprise = false, $query = null, $hotkey = false)
+    public static function init($enterprise = false, $query = null, $hotkey = false): void
     {
         date_default_timezone_set('UTC');
 
@@ -69,7 +69,7 @@ class Workflow
         register_shutdown_function([__CLASS__, 'shutdown']);
     }
 
-    public static function shutdown()
+    public static function shutdown(): void
     {
         if (self::$refreshUrls) {
             $urls = implode(',', array_keys(self::$refreshUrls));
@@ -78,7 +78,7 @@ class Workflow
         }
     }
 
-    public static function setConfig($key, $value)
+    public static function setConfig($key, $value): void
     {
         self::getStatement('REPLACE INTO config VALUES(?, ?)')->execute([$key, $value]);
     }
@@ -92,7 +92,7 @@ class Workflow
         return false !== $value ? $value : $default;
     }
 
-    public static function removeConfig($key)
+    public static function removeConfig($key): void
     {
         self::getStatement('DELETE FROM config WHERE key = ?')->execute([$key]);
     }
@@ -107,7 +107,7 @@ class Workflow
         $url = self::$apiUrl;
 
         if ($path) {
-            $paramStart = false === strpos($path, '?') ? '?' : '&';
+            $paramStart = !str_contains($path, '?') ? '?' : '&';
             $url .= $path.$paramStart.'per_page=100';
         }
 
@@ -119,7 +119,7 @@ class Workflow
         return self::$gistUrl;
     }
 
-    public static function setAccessToken($token)
+    public static function setAccessToken($token): void
     {
         self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);
     }
@@ -129,7 +129,7 @@ class Workflow
         return self::getConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
-    public static function removeAccessToken()
+    public static function removeAccessToken(): void
     {
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
@@ -162,16 +162,7 @@ class Workflow
         return $returnValue;
     }
 
-    /**
-     * @param string   $url
-     * @param Curl     $curl
-     * @param callable $callback
-     * @param bool     $firstPageOnly
-     * @param int      $maxAge
-     * @param bool     $refreshInBackground
-     *
-     * @return mixed
-     */
+    /** @param callable $callback */
     public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true)
     {
         $return = false;
@@ -278,14 +269,12 @@ class Workflow
 
                     return;
                 }
-                $callback(array_reduce($responses, static function ($content, $response) {
-                    return array_merge($content, $response);
-                }, []));
+                $callback(array_reduce($responses, static fn ($content, $response) => array_merge($content, $response), []));
             }
         };
 
         self::log('loading content for %s', $url);
-        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), static function (CurlResponse $response) use (&$responses, $handleResponse , $content) {
+        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), static function (CurlResponse $response) use (&$responses, $handleResponse, $content) {
             $handleResponse($response, $content);
         }));
 
@@ -303,17 +292,17 @@ class Workflow
         return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge);
     }
 
-    public static function cleanCache()
+    public static function cleanCache(): void
     {
         self::$db->exec('DELETE FROM request_cache WHERE timestamp < '.(time() - 100 * 24 * 60 * 60));
     }
 
-    public static function deleteCache()
+    public static function deleteCache(): void
     {
         self::$db->exec('DELETE FROM request_cache');
     }
 
-    public static function cacheWarmup()
+    public static function cacheWarmup(): void
     {
         $paths = ['/user', '/user/orgs', '/user/starred', '/user/subscriptions', '/user/repos', '/user/following'];
         foreach ($paths as $path) {
@@ -321,7 +310,7 @@ class Workflow
         }
     }
 
-    public static function startServer()
+    public static function startServer(): void
     {
         if (version_compare(PHP_VERSION, '5.4', '>=')) {
             self::stopServer();
@@ -334,7 +323,7 @@ class Workflow
         }
     }
 
-    public static function stopServer()
+    public static function stopServer(): void
     {
         if (file_exists(self::$filePids)) {
             $pids = file(self::$filePids);
@@ -362,7 +351,7 @@ class Workflow
         return version_compare($version, self::VERSION) > 0;
     }
 
-    private static function createTables()
+    private static function createTables(): void
     {
         self::$db->exec('
             CREATE TABLE config (
@@ -384,30 +373,28 @@ class Workflow
         self::$db->exec('CREATE INDEX parent_url ON request_cache(parent) WHERE parent IS NOT NULL');
     }
 
-    public static function deleteDatabase()
+    public static function deleteDatabase(): void
     {
         self::closeCursors();
         self::$db = null;
         unlink(self::$fileDb);
     }
 
-    public static function addItemIfMatches(Item $item)
+    public static function addItemIfMatches(Item $item): void
     {
         if ($item->match(self::$query)) {
             self::$items[] = $item;
         }
     }
 
-    public static function addItem(Item $item)
+    public static function addItem(Item $item): void
     {
         self::$items[] = $item;
     }
 
-    public static function sortItems()
+    public static function sortItems(): void
     {
-        usort(self::$items, static function (Item $a, Item $b) {
-            return $a->compare($b);
-        });
+        usort(self::$items, static fn (Item $a, Item $b) => $a->compare($b));
     }
 
     public static function getItemsAsXml()
@@ -415,7 +402,7 @@ class Workflow
         return Item::toXml(self::$items, self::$enterprise, self::$hotkey, self::getBaseUrl());
     }
 
-    public static function log($msg)
+    public static function log($msg): void
     {
         if (self::$debug) {
             fwrite(STDERR, "\n".call_user_func_array('sprintf', func_get_args()));
@@ -436,7 +423,7 @@ class Workflow
         return self::$statements[$query];
     }
 
-    protected static function closeCursors()
+    protected static function closeCursors(): void
     {
         foreach (self::$statements as $statement) {
             $statement->closeCursor();

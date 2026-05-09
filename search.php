@@ -131,7 +131,7 @@ class Search
         );
     }
 
-    private static function addEmptyQueryCommand()
+    private static function addEmptyQueryCommand(): void
     {
         Workflow::addItem(Item::create()
             ->title(self::$enterprise ? 'ghe' : 'gh')
@@ -141,7 +141,7 @@ class Search
         );
     }
 
-    private static function addUpdateCommands()
+    private static function addUpdateCommands(): void
     {
         $cmds = [
             'update' => 'There is an update for this Alfred workflow',
@@ -166,7 +166,7 @@ class Search
         );
     }
 
-    private static function addEnterpriseUrlCommand()
+    private static function addEnterpriseUrlCommand(): void
     {
         $url = null;
         if (count(self::$parts) > 1 && '>' == self::$parts[0] && 'url' == self::$parts[1] && isset(self::$parts[2])) {
@@ -181,7 +181,7 @@ class Search
         );
     }
 
-    private static function addLoginCommands()
+    private static function addLoginCommands(): void
     {
         Workflow::removeAccessToken();
         $token = null;
@@ -219,7 +219,7 @@ class Search
         }
     }
 
-    private static function addDefaultCommands($isSearch, $isUser, $isRepo, $queryUser)
+    private static function addDefaultCommands($isSearch, $isUser, $isRepo, $queryUser): void
     {
         $users = [];
         $repos = [];
@@ -290,7 +290,7 @@ class Search
         );
     }
 
-    private static function addRepoSearchCommands()
+    private static function addRepoSearchCommands(): void
     {
         $q = substr(self::$query, 2);
         $repos = Workflow::requestApi('/search/repositories?q='.urlencode($q), null, null, true);
@@ -298,7 +298,7 @@ class Search
         self::addRepos($repos, 's ');
     }
 
-    private static function addUserSearchCommands()
+    private static function addUserSearchCommands(): void
     {
         $q = substr(self::$query, 3);
         $users = Workflow::requestApi('/search/users?q='.urlencode($q), null, null, true);
@@ -306,7 +306,7 @@ class Search
         self::addUsers($users, 's @');
     }
 
-    private static function addRepos($repos, $comparatorPrefix = '')
+    private static function addRepos($repos, $comparatorPrefix = ''): void
     {
         foreach ($repos as $repo) {
             $icon = 'repo';
@@ -330,7 +330,7 @@ class Search
         }
     }
 
-    private static function addUsers($users, $comparatorPrefix = '')
+    private static function addUsers($users, $comparatorPrefix = ''): void
     {
         foreach ($users as $user) {
             Workflow::addItemIfMatches(Item::create()
@@ -341,12 +341,12 @@ class Search
                 ->subtitle($user->type)
                 ->arg($user->html_url)
                 ->icon(lcfirst($user->type))
-                ->prio(isset($user->score) ? $user->score : 200)
+                ->prio($user->score ?? 200)
             );
         }
     }
 
-    private static function addRepoSubCommands()
+    private static function addRepoSubCommands(): void
     {
         $parts = self::$parts;
         if (isset($parts[1][0]) && in_array($parts[1][0], ['#', '@', '*', '/'])) {
@@ -425,7 +425,7 @@ class Search
                 Workflow::addItemIfMatches(Item::create()
                     ->title($parts[0].' '.$key)
                     ->subtitle($sub[0])
-                    ->icon(isset($sub[1]) ? $sub[1] : $key)
+                    ->icon($sub[1] ?? $key)
                     ->arg('/'.$parts[0].'/'.$key)
                 );
             }
@@ -473,7 +473,7 @@ class Search
         }
     }
 
-    private static function addUserSubCommands($queryUser)
+    private static function addUserSubCommands($queryUser): void
     {
         $subs = [
             'overview' => [$queryUser, "View $queryUser's overview", 'user'],
@@ -485,7 +485,7 @@ class Search
             Workflow::addItemIfMatches(Item::create()
                 ->title('@'.$queryUser.' '.$key)
                 ->subtitle($sub[1])
-                ->icon(isset($sub[2]) ? $sub[2] : $key)
+                ->icon($sub[2] ?? $key)
                 ->arg('/'.$sub[0])
                 ->prio($prio--)
             );
@@ -509,7 +509,7 @@ class Search
         );
     }
 
-    private static function addMyCommands()
+    private static function addMyCommands(): void
     {
         $parts = self::$parts;
         if (isset($parts[2]) && in_array($parts[1], ['pulls', 'issues'])) {
@@ -566,7 +566,7 @@ class Search
             Workflow::addItemIfMatches(Item::create()
                 ->title('my '.$key)
                 ->subtitle($my[1])
-                ->icon(isset($my[2]) ? $my[2] : rtrim($key))
+                ->icon($my[2] ?? rtrim($key))
                 ->arg('/'.$my[0])
                 ->prio(1)
             );
@@ -588,7 +588,7 @@ class Search
         );
     }
 
-    private static function addSystemCommands()
+    private static function addSystemCommands(): void
     {
         $cmds = [
             'delete cache' => 'Delete GitHub Cache',

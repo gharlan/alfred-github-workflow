@@ -152,7 +152,7 @@ class Item
                 $arg = $item->arg;
                 if ('/' === $arg[0]) {
                     $arg = $baseUrl.$arg;
-                } elseif (false === strpos($arg, '://')) {
+                } elseif (!str_contains($arg, '://')) {
                     $arg = ($enterprise ? 'e ' : '').$arg;
                 }
                 $c->addAttribute('arg', $arg);

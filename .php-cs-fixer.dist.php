@@ -5,13 +5,32 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,
+        '@PHP8x2Migration' => true,
+        '@PHP8x2Migration:risky' => true,
+
+        'declare_strict_types' => ['strategy' => 'remove'],
         'empty_loop_body' => ['style' => 'semicolon'],
         'method_argument_space' => false,
-        'modernize_strpos' => false,
         'native_constant_invocation' => false,
-        'no_superfluous_phpdoc_tags' => false,
+        'phpdoc_align' => ['align' => 'left'],
+        'phpdoc_line_span' => [
+            'class' => 'single',
+            'trait_import' => 'single',
+            'const' => 'single',
+            'case' => 'single',
+            'property' => 'single',
+            'method' => 'single',
+            'other' => 'single',
+        ],
+        'phpdoc_separation' => false,
         'psr_autoloading' => false,
-        'no_useless_else' => true,
+        'single_line_empty_body' => true,
+        'use_arrow_functions' => false,
+        'void_return' => false,
     ])
-    ->setFinder((new PhpCsFixer\Finder())->in(__DIR__))
+    ->setFinder(
+        (new PhpCsFixer\Finder())
+            ->in(__DIR__)
+            ->append(['bin/build'])
+    )
 ;

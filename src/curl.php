@@ -1,13 +1,13 @@
 <?php
 
-class Curl
+final class Curl
 {
-    /** @var CurlRequest[] */
-    private $requests = [];
-    private $running = false;
-    private $debug = false;
+    /** @var array<string, CurlRequest> */
+    private array $requests = [];
+    private bool $running = false;
+    private bool $debug = false;
 
-    private static $multiHandle;
+    private static ?CurlMultiHandle $multiHandle = null;
 
     public function add(CurlRequest $request): void
     {
@@ -17,10 +17,10 @@ class Curl
         }
     }
 
-    public function execute()
+    public function execute(): bool
     {
         $this->running = true;
-        if (!is_resource(self::$multiHandle)) {
+        if (null === self::$multiHandle) {
             self::$multiHandle = curl_multi_init();
         }
 
@@ -111,7 +111,7 @@ class Curl
         curl_multi_add_handle(self::$multiHandle, $ch);
     }
 
-    public static function getHeader($header, $key)
+    public static function getHeader(string $header, string $key): ?string
     {
         if (preg_match('/^' . preg_quote($key, '/') . ': (\V*)/mi', $header, $match)) {
             return $match[1];
@@ -121,29 +121,22 @@ class Curl
     }
 }
 
-class CurlRequest
+final readonly class CurlRequest
 {
-    public $url;
-    public $etag;
-    public $token;
-    public $callback;
-
-    public function __construct($url, $etag, $token, $callback)
-    {
-        $this->url = $url;
-        $this->etag = $etag;
-        $this->token = $token;
-        $this->callback = $callback;
-    }
+    public function __construct(
+        public string $url,
+        public ?string $etag,
+        public ?string $token,
+        public Closure $callback,
+    ) {}
 }
 
-class CurlResponse
+final class CurlResponse
 {
-    /** @var CurlRequest */
-    public $request;
-    public $status;
-    public $contentType;
-    public $etag;
-    public $link;
-    public $content;
+    public CurlRequest $request;
+    public int $status;
+    public ?string $contentType = null;
+    public ?string $etag = null;
+    public ?string $link = null;
+    public ?string $content = null;
 }

@@ -3,33 +3,34 @@
 require __DIR__ . '/item.php';
 require __DIR__ . '/fetcher.php';
 
-class Workflow
+final class Workflow
 {
     public const VERSION = '1.9.2';
     public const BUNDLE = 'de.gh01.alfred.github';
 
-    private static $filePids;
+    private static string $filePids;
 
-    private static $fileDb;
-    /** @var ?PDO */
-    private static $db;
-    /** @var PDOStatement[] */
-    private static $statements = [];
+    private static string $fileDb;
+    private static ?PDO $db = null;
+    /** @var array<string, PDOStatement> */
+    private static array $statements = [];
 
-    private static $enterprise;
-    private static $baseUrl = 'https://github.com';
-    private static $apiUrl = 'https://api.github.com';
-    private static $gistUrl = 'https://gist.github.com';
+    private static bool $enterprise = false;
+    private static ?string $baseUrl = 'https://github.com';
+    private static ?string $apiUrl = 'https://api.github.com';
+    private static ?string $gistUrl = 'https://gist.github.com';
 
-    private static $query;
-    private static $hotkey;
-    private static $items = [];
+    private static string $query = '';
+    private static bool|string $hotkey = false;
+    /** @var list<Item> */
+    private static array $items = [];
 
-    private static $refreshUrls = [];
+    /** @var array<string, true> */
+    private static array $refreshUrls = [];
 
-    private static $debug = false;
+    private static bool $debug = false;
 
-    public static function init($enterprise = false, $query = null, $hotkey = false): void
+    public static function init(bool $enterprise = false, ?string $query = null, bool|string $hotkey = false): void
     {
         date_default_timezone_set('UTC');
 
@@ -77,12 +78,12 @@ class Workflow
         }
     }
 
-    public static function setConfig($key, $value): void
+    public static function setConfig(string $key, string|int $value): void
     {
         self::getStatement('REPLACE INTO config VALUES(?, ?)')->execute([$key, $value]);
     }
 
-    public static function getConfig($key, $default = null)
+    public static function getConfig(string $key, mixed $default = null): mixed
     {
         $stmt = self::getStatement('SELECT value FROM config WHERE key = ?');
         $stmt->execute([$key]);
@@ -91,17 +92,17 @@ class Workflow
         return false !== $value ? $value : $default;
     }
 
-    public static function removeConfig($key): void
+    public static function removeConfig(string $key): void
     {
         self::getStatement('DELETE FROM config WHERE key = ?')->execute([$key]);
     }
 
-    public static function getBaseUrl()
+    public static function getBaseUrl(): ?string
     {
         return self::$baseUrl;
     }
 
-    public static function getApiUrl($path = null)
+    public static function getApiUrl(?string $path = null): ?string
     {
         $url = self::$apiUrl;
 
@@ -113,17 +114,17 @@ class Workflow
         return $url;
     }
 
-    public static function getGistUrl()
+    public static function getGistUrl(): ?string
     {
         return self::$gistUrl;
     }
 
-    public static function setAccessToken($token): void
+    public static function setAccessToken(string $token): void
     {
         self::setConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token', $token);
     }
 
-    public static function getAccessToken()
+    public static function getAccessToken(): ?string
     {
         return self::getConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
@@ -179,7 +180,7 @@ class Workflow
         }
     }
 
-    public static function checkUpdate()
+    public static function checkUpdate(): bool
     {
         if (self::VERSION !== self::getConfig('version')) {
             self::setConfig('version', self::VERSION);
@@ -242,24 +243,19 @@ class Workflow
         usort(self::$items, static fn (Item $a, Item $b) => $a->compare($b));
     }
 
-    public static function getItemsAsXml()
+    public static function getItemsAsXml(): string|false
     {
         return Item::toXml(self::$items, self::$enterprise, self::$hotkey, self::getBaseUrl());
     }
 
-    public static function log($msg, ...$args): void
+    public static function log(string $msg, mixed ...$args): void
     {
         if (self::$debug) {
             fwrite(STDERR, "\n" . sprintf($msg, ...$args));
         }
     }
 
-    /**
-     * @param string $query
-     *
-     * @return PDOStatement
-     */
-    public static function getStatement($query)
+    public static function getStatement(string $query): PDOStatement
     {
         if (!isset(self::$statements[$query])) {
             self::$statements[$query] = self::$db->prepare($query);
@@ -268,7 +264,7 @@ class Workflow
         return self::$statements[$query];
     }
 
-    protected static function closeCursors(): void
+    private static function closeCursors(): void
     {
         foreach (self::$statements as $statement) {
             $statement->closeCursor();

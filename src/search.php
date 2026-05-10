@@ -2,14 +2,15 @@
 
 require __DIR__ . '/workflow.php';
 
-class Search
+final class Search
 {
-    private static $enterprise;
-    private static $query;
-    private static $parts;
-    private static $user;
+    private static bool $enterprise;
+    private static string $query;
+    /** @var list<string> */
+    private static array $parts;
+    private static stdClass $user;
 
-    public static function run($scope, $query, $hotkey)
+    public static function run(string $scope, string $query, bool|string $hotkey): void
     {
         self::$enterprise = 'enterprise' === $scope;
 
@@ -19,10 +20,10 @@ class Search
             if ('' === $query) {
                 self::addEmptyQueryCommand();
 
-                return Workflow::getItemsAsXml();
+                return;
             }
             if (' ' !== $query[0]) {
-                return '';
+                return;
             }
         }
 
@@ -219,7 +220,7 @@ class Search
         }
     }
 
-    private static function addDefaultCommands($isSearch, $isUser, $isRepo, $queryUser): void
+    private static function addDefaultCommands(bool $isSearch, bool $isUser, bool $isRepo, ?string $queryUser): void
     {
         $users = [];
         $repos = [];
@@ -306,7 +307,8 @@ class Search
         self::addUsers($users, 's @');
     }
 
-    private static function addRepos($repos, $comparatorPrefix = ''): void
+    /** @param iterable<stdClass> $repos */
+    private static function addRepos(iterable $repos, string $comparatorPrefix = ''): void
     {
         foreach ($repos as $repo) {
             $icon = 'repo';
@@ -330,7 +332,8 @@ class Search
         }
     }
 
-    private static function addUsers($users, $comparatorPrefix = ''): void
+    /** @param iterable<stdClass> $users */
+    private static function addUsers(iterable $users, string $comparatorPrefix = ''): void
     {
         foreach ($users as $user) {
             Workflow::addItemIfMatches(Item::create()
@@ -479,7 +482,7 @@ class Search
         }
     }
 
-    private static function addUserSubCommands($queryUser): void
+    private static function addUserSubCommands(string $queryUser): void
     {
         $subs = [
             'overview' => [$queryUser, "View $queryUser's overview", 'user'],

@@ -1,35 +1,35 @@
 <?php
 
-class Item
+final class Item
 {
-    private $randomUid = false;
-    private $prefix = '';
-    private $prefixOnlyTitle = true;
-    private $title;
-    private $comparator;
-    private $subtitle;
-    private $icon;
-    private $arg;
-    private $valid = true;
-    private $add = '…';
-    private $autocomplete = true;
-    private $prio = 0;
-    private $missingChars = 0;
-    private $sameChars = 0;
+    private bool $randomUid = false;
+    private string $prefix = '';
+    private bool $prefixOnlyTitle = true;
+    private ?string $title = null;
+    private ?string $comparator = null;
+    private ?string $subtitle = null;
+    private ?string $icon = null;
+    private ?string $arg = null;
+    private bool $valid = true;
+    private string $add = '…';
+    private bool|string $autocomplete = true;
+    private int $prio = 0;
+    private int $missingChars = 0;
+    private int $sameChars = 0;
 
-    public static function create()
+    public static function create(): self
     {
         return new self();
     }
 
-    public function randomUid()
+    public function randomUid(): self
     {
         $this->randomUid = true;
 
         return $this;
     }
 
-    public function prefix($prefix, $onlyTitle = true)
+    public function prefix(string $prefix, bool $onlyTitle = true): self
     {
         $this->prefix = $prefix;
         $this->prefixOnlyTitle = $onlyTitle;
@@ -37,64 +37,64 @@ class Item
         return $this;
     }
 
-    public function title($title)
+    public function title(string $title): self
     {
         $this->title = $title;
 
         return $this;
     }
 
-    public function comparator($comparator)
+    public function comparator(string $comparator): self
     {
         $this->comparator = $comparator;
 
         return $this;
     }
 
-    public function subtitle($subtitle)
+    public function subtitle(string $subtitle): self
     {
         $this->subtitle = $subtitle;
 
         return $this;
     }
 
-    public function icon($icon)
+    public function icon(string $icon): self
     {
         $this->icon = $icon;
 
         return $this;
     }
 
-    public function arg($arg)
+    public function arg(string $arg): self
     {
         $this->arg = $arg;
 
         return $this;
     }
 
-    public function valid($valid, $add = '…')
+    public function valid(bool $valid, string $add = '…'): self
     {
-        $this->valid = (bool) $valid;
+        $this->valid = $valid;
         $this->add = $add;
 
         return $this;
     }
 
-    public function autocomplete($autocomplete = true)
+    public function autocomplete(bool|string $autocomplete = true): self
     {
         $this->autocomplete = $autocomplete;
 
         return $this;
     }
 
-    public function prio($prio)
+    public function prio(int $prio): self
     {
         $this->prio = $prio;
 
         return $this;
     }
 
-    public function match($query)
+    public function match(string $query): bool
     {
         $comparator = strtolower($this->comparator ?: $this->title);
         $query = strtolower($query);
@@ -118,7 +118,7 @@ class Item
         return true;
     }
 
-    public function compare(self $another)
+    public function compare(self $another): int
     {
         if ($this->sameChars != $another->sameChars) {
             return $this->sameChars < $another->sameChars ? 1 : -1;
@@ -135,7 +135,7 @@ class Item
      *
      * @return string
      */
-    public static function toXml(array $items, $enterprise, $hotkey, $baseUrl)
+    public static function toXml(array $items, bool $enterprise, bool|string $hotkey, ?string $baseUrl): string|false
     {
         $xml = new SimpleXMLElement('<items></items>');
         $prefix = $hotkey ? '' : ' ';

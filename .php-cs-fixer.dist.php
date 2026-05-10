@@ -14,6 +14,7 @@ return (new PhpCsFixer\Config())
         'empty_loop_body' => ['style' => 'semicolon'],
         'method_argument_space' => false,
         'native_constant_invocation' => false,
+        'no_null_property_initialization' => false,
         'phpdoc_align' => false,
         'phpdoc_line_span' => [
             'class' => 'single',

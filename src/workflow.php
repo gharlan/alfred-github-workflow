@@ -1,7 +1,7 @@
 <?php
 
-require __DIR__ . '/item.php';
-require __DIR__ . '/fetcher.php';
+require_once __DIR__ . '/item.php';
+require_once __DIR__ . '/fetcher.php';
 
 final class Workflow
 {

@@ -5,3 +5,4 @@ parameters:
         - bin
         - bin/build
         - src
+        - tests

@@ -1,7 +1,7 @@
 GitHub Workflow for [Alfred](http://www.alfredapp.com)
 ============================
 
-You can search through GitHub (`gh`) and your GitHub Enterprise instance (`ghe`).
+You can search through GitHub (`gh`) and your GitHub Enterprise Cloud/self-hosted instance (`ghe`).
 
 **[DOWNLOAD](https://github.com/gharlan/alfred-github-workflow/releases)**
 
@@ -15,14 +15,21 @@ You can install it via [Homebrew](https://brew.sh) (`brew install php`).
 
 ### For github.com
 
-In Alfred type (`gh > login`) to authenticate against your account. The login uses OAuth, so you do not have to enter your credentials.
+In Alfred type `gh > login` to authenticate against your account. The login uses OAuth, so you do not have to enter your credentials.
 
-### For github enterprise
+### For GitHub Enterprise Cloud
 
-1. In Alfred type (`ghe > url https://github.mycompany.com`)
+1. In Alfred type `ghe > url https://github.com/enterprises/<enterprise-slug>`.
+2. Create a new Personal Access Token (`ghe > generate token` or https://github.com/settings/tokens). It only needs access to your repos. If your enterprise enforces SAML SSO, make sure to authorize the token for the relevant organizations.
+3. In Alfred type (`ghe > login <paste token here>`)
+4. You can now use `ghe your_enterprise_repo_name`
+
+### For GitHub Enterprise Server (self-hosted)
+
+1. In Alfred type `ghe > url https://github.mycompany.com`
 2. Create a new Personal Access Token (`ghe > generate token` or `https://github.mycompany.com/settings/applications`). It only needs access to your repos. Copy this token to your clipboard.
 3. In Alfred type (`ghe > login <paste token here>`)
-4. You can now `ghe your_enterprise_repo_name`
+4. You can now use `ghe your_enterprise_repo_name`
 
 ### Access to private repositories in organizations
 

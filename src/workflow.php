@@ -60,9 +60,13 @@ final class Workflow
         }
 
         if (self::$enterprise) {
-            self::$baseUrl = self::getConfig('enterprise_url');
-            self::$apiUrl = self::$baseUrl ? self::$baseUrl . '/api/v3' : null;
-            self::$gistUrl = self::$baseUrl ? self::$baseUrl . '/gist' : null;
+            $url = self::getConfig('enterprise_url');
+            $slug = self::parseEnterpriseSlug($url);
+            if (!$slug) {
+                self::$baseUrl = $url;
+                self::$apiUrl = $url ? $url . '/api/v3' : null;
+                self::$gistUrl = $url ? $url . '/gist' : null;
+            }
         }
 
         self::$debug = getenv('alfred_debug') && defined('STDERR');
@@ -272,5 +276,22 @@ final class Workflow
             $statement->closeCursor();
         }
         self::$statements = [];
+    }
+
+    private static function parseEnterpriseSlug(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if (!is_array($parts) || 'github.com' !== ($parts['host'] ?? null)) {
+            return null;
+        }
+        if (!preg_match('#^/enterprises/([^/]+)#', $parts['path'] ?? '', $match)) {
+            return null;
+        }
+
+        return $match[1];
     }
 }

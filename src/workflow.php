@@ -5,7 +5,7 @@ require_once __DIR__ . '/fetcher.php';
 
 final class Workflow
 {
-    public const VERSION = '1.9.2';
+    public const VERSION = '1.10';
     public const BUNDLE = 'de.gh01.alfred.github';
 
     private static string $filePids;

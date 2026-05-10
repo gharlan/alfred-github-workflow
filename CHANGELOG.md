@@ -1,6 +1,24 @@
 Changelog
 =========
 
+Version 1.10 – 2026-05-10
+-------------------------
+
+### Features
+
+* Support for GitHub Enterprise Cloud (#147)
+* Better search ranking for partial matches inside results (#152)
+* Faster and lighter on memory for repos with lots of commits, issues or branches (#159)
+* Requires PHP 8.2 or newer
+
+### Bugfixes
+
+* No more recurring crashes that previously required deleting the workflow data directory (#82)
+* Fewer "database is locked" errors when typing fast (#82)
+* Escape ANSI escape codes in item titles (#160)
+* Fix occasional crash when reading paginated cached data (#156)
+
+
 Version 1.9.2 – 2026-03-15
 --------------------------
 

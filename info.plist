@@ -444,6 +444,24 @@ echo Workflow::getItemsAsXml();</string>
 	<string>Changelog
 =========
 
+Version 1.10 – 2026-05-10
+-------------------------
+
+### Features
+
+* Support for GitHub Enterprise Cloud (#147)
+* Better search ranking for partial matches inside results (#152)
+* Faster and lighter on memory for repos with lots of commits, issues or branches (#159)
+* Requires PHP 8.2 or newer
+
+### Bugfixes
+
+* No more recurring crashes that previously required deleting the workflow data directory (#82)
+* Fewer "database is locked" errors when typing fast (#82)
+* Escape ANSI escape codes in item titles (#160)
+* Fix occasional crash when reading paginated cached data (#156)
+
+
 Version 1.9.2 – 2026-03-15
 --------------------------
 
@@ -520,7 +538,7 @@ Version 1.6.2 – 2018-02-13
 
 ### Bugfixes
 
-* Api pagination didnt work correctly anymore (missing results from page &gt; 2)
+* Api pagination didn't work correctly anymore (missing results from page &gt; 2)
 
 
 Version 1.6.1 – 2017-09-23
@@ -543,7 +561,7 @@ Version 1.6 – 2017-05-07
 
 ### Bugfixes
 
-* On macOS 10.12.5 Beta URLs didnt opened in browser anymore
+* On macOS 10.12.5 Beta URLs didn't opened in browser anymore
 
 
 Version 1.5 – 2016-12-13
@@ -560,7 +578,7 @@ Version 1.5 – 2016-12-13
 
 * in some situations private repos were missing (@lxynox)
 * after saving GitHub Enterprise url the workflow didn't reopen correctly
-* updated user sub commands (Activity tab does not exist any more on GitHub)
+* updated user sub commands ("Activity" tab does not exist any more on GitHub)
 
 
 Version 1.4.1 – 2016-22-07
@@ -710,7 +728,7 @@ Version 1.1 – 2015-01-10
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.9.2</string>
+	<string>1.10</string>
 	<key>webaddress</key>
 	<string>https://github.com/gharlan/alfred-github-workflow</string>
 </dict>

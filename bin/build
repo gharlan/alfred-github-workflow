@@ -11,8 +11,13 @@ exec(sprintf('/usr/libexec/PlistBuddy -c "Set :version %s" %s', Workflow::VERSIO
 
 $changelog = file_get_contents($dir . '/CHANGELOG.md');
 assert(is_string($changelog));
-$changelog = str_replace("\n", '\n', $changelog);
-exec(sprintf('/usr/libexec/PlistBuddy -c "Set :readme \"%s\"" %s', escapeshellcmd($changelog), escapeshellarg($plist)));
+$changelog = strtr($changelog, [
+    '\\' => '\\\\',
+    '"' => '\\"',
+    "'" => "\\'",
+    "\n" => '\n',
+]);
+exec(sprintf('/usr/libexec/PlistBuddy -c %s %s', escapeshellarg('Set :readme "' . $changelog . '"'), escapeshellarg($plist)));
 
 $zipFile = $dir . '/github.zip';
 if (file_exists($zipFile)) {

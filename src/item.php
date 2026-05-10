@@ -143,7 +143,7 @@ final class Item
             $c = $xml->addChild('item');
             $title = $item->prefix . $item->title;
             $c->addAttribute('uid', $item->randomUid ? md5(time() . $title) : md5($title));
-            if ($item->icon && file_exists(__DIR__ . '/icons/' . $item->icon . '.png')) {
+            if ($item->icon && file_exists(__DIR__ . '/../icons/' . $item->icon . '.png')) {
                 $c->addChild('icon', 'icons/' . $item->icon . '.png');
             } else {
                 $c->addChild('icon', 'icon.png');

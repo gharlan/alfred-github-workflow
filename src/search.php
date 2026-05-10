@@ -228,13 +228,16 @@ final class Search
         $fetcher = new Fetcher();
 
         if (!$isSearch && !$isUser) {
-            $getRepos = static function ($url, $prio) use ($fetcher, &$repos) {
+            $repoListOptions = new FetchOptions(fields: [
+                'id', 'fork', 'mirror_url', 'private', 'full_name', 'archived', 'description',
+            ]);
+            $getRepos = static function ($url, $prio) use ($fetcher, &$repos, $repoListOptions) {
                 $fetcher->queueApi($url, static function ($urlRepos) use (&$repos, $prio) {
                     foreach ($urlRepos as $repo) {
                         $repo->score = 300 + $prio + ($repo->fork ? 0 : 10);
                         $repos[$repo->id] = $repo;
                     }
-                });
+                }, $repoListOptions);
             };
             if ($isRepo) {
                 if ($queryUser != self::$user->login) {
@@ -258,7 +261,7 @@ final class Search
         if (!$isSearch && !$isRepo) {
             $fetcher->queueApi('/user/following', static function ($urlUsers) use (&$users) {
                 $users = $urlUsers;
-            });
+            }, new FetchOptions(fields: ['login', 'type', 'html_url']));
         }
 
         $fetcher->run();
@@ -294,7 +297,10 @@ final class Search
     private static function addRepoSearchCommands(): void
     {
         $q = substr(self::$query, 2);
-        $repos = Fetcher::requestApi('/search/repositories?q=' . urlencode($q), new FetchOptions(firstPageOnly: true));
+        $repos = Fetcher::requestApi('/search/repositories?q=' . urlencode($q), new FetchOptions(
+            firstPageOnly: true,
+            fields: ['fork', 'mirror_url', 'private', 'full_name', 'archived', 'description', 'score'],
+        ));
 
         self::addRepos($repos, 's ');
     }
@@ -302,7 +308,10 @@ final class Search
     private static function addUserSearchCommands(): void
     {
         $q = substr(self::$query, 3);
-        $users = Fetcher::requestApi('/search/users?q=' . urlencode($q), new FetchOptions(firstPageOnly: true));
+        $users = Fetcher::requestApi('/search/users?q=' . urlencode($q), new FetchOptions(
+            firstPageOnly: true,
+            fields: ['login', 'type', 'html_url', 'score'],
+        ));
 
         self::addUsers($users, 's @');
     }
@@ -371,7 +380,10 @@ final class Search
                     }
                     break;
                 case '@':
-                    $branches = Fetcher::streamApi('/repos/' . $parts[0] . '/branches');
+                    $branches = Fetcher::streamApi('/repos/' . $parts[0] . '/branches', new FetchOptions(fields: [
+                        'name',
+                        'commit' => ['sha'],
+                    ]));
                     foreach ($branches as $branch) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title('@' . $branch->name)
@@ -383,8 +395,10 @@ final class Search
                     }
                     break;
                 case '/':
-                    $repo = Fetcher::requestApi('/repos/' . $parts[0]);
-                    $files = Fetcher::requestApi('/repos/' . $parts[0] . '/git/trees/' . $repo->default_branch . '?recursive=1');
+                    $repo = Fetcher::requestApi('/repos/' . $parts[0], new FetchOptions(fields: ['default_branch']));
+                    $files = Fetcher::requestApi('/repos/' . $parts[0] . '/git/trees/' . $repo->default_branch . '?recursive=1', new FetchOptions(fields: [
+                        'tree' => ['path', 'type'],
+                    ]));
                     foreach ($files->tree as $file) {
                         if ('blob' === $file->type) {
                             Workflow::addItemIfMatches(Item::create()

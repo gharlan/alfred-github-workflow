@@ -61,11 +61,12 @@ switch ($parts[1]) {
         break;
 
     case 'refresh-cache':
-        $curl = new Curl();
+        $fetcher = new Fetcher();
+        $options = new FetchOptions(maxAgeMinutes: 0, refreshInBackground: false);
         foreach (explode(',', $parts[2]) as $url) {
-            Workflow::requestCache($url, $curl, null, false, 0, false);
+            $fetcher->queueUrl($url, null, $options);
         }
-        $curl->execute();
+        $fetcher->run();
         Workflow::cleanCache();
         break;
 
@@ -80,12 +81,12 @@ switch ($parts[1]) {
         break;
 
     case 'update':
-        $release = json_decode(Workflow::request('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest'));
+        $release = json_decode(Fetcher::requestRaw('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest'));
         if (!isset($release->assets[0]->browser_download_url)) {
             echo 'Update failed';
             exit;
         }
-        $response = Workflow::request($release->assets[0]->browser_download_url, null, null, false);
+        $response = Fetcher::requestRaw($release->assets[0]->browser_download_url, auth: false);
         if (!$response) {
             echo 'Update failed';
             exit;

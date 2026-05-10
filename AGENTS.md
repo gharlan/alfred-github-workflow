@@ -29,16 +29,22 @@ Alfred calls one of two PHP scripts via `info.plist` script filter / action bind
 
 ## Core architecture
 
-**`Workflow` (workflow.php)** — static singleton. Owns the SQLite DB at `$alfred_workflow_data/db.sqlite` (tables: `config`, `request_cache`). Holds the access token, base URLs, and the items list. The enterprise flag flips `$baseUrl` / `$apiUrl` / `$gistUrl` and which token key is used (`access_token` vs `enterprise_access_token`).
+**`Workflow` (workflow.php)** — static singleton. Owns the SQLite DB at `$alfred_workflow_data/db.sqlite` (tables: `config`, `request_cache`), holds the access token, base URLs, and the items list. The enterprise flag flips `$baseUrl` / `$apiUrl` / `$gistUrl` and which token key is used (`access_token` vs `enterprise_access_token`).
 
-**`Curl` (curl.php)** — wrapper around `curl_multi_*`. All API requests are batched: `Search` queues multiple `Workflow::requestApi(...)` calls into one `Curl` instance, then `$curl->execute()` runs them in parallel. Responses come back via per-request callbacks. The `X-Url` request header is used to map response → request inside the multi-handle loop.
+**`Fetcher` (fetcher.php)** — the cache-aware HTTP layer. Two faces of the same class:
+- **Static** for synchronous single-shot calls (most common): `Fetcher::requestApi($path)`, `Fetcher::requestUrl($url)`, `Fetcher::streamApi($path)` (returns `Generator`, page-by-page from cache, bounded memory), `Fetcher::requestRaw($url)` (uncached, raw body — used for the update download).
+- **Instance** for parallel batch: `$f = new Fetcher(); $f->queueApi($path, $cb)->queueUrl($url, $cb2)->run();` — multiple URLs go through one `curl_multi_*` loop, callbacks fire as responses come in.
 
-**`Workflow::requestCache()`** — the heart of the caching layer. For each URL:
-1. Look up `request_cache` row. If fresh (`timestamp > now - maxAge*60`), serve cached content + walk the `parent` chain to merge paginated pages.
-2. If stale but content exists and `refresh < now - 3min`, mark for background refresh and **still serve cached** (stale-while-revalidate). The refresh URL is queued in `self::$refreshUrls`; on shutdown, `action.php "> refresh-cache <urls>"` is spawned in background.
+`FetchOptions` controls per-request behavior: `firstPageOnly`, `maxAgeMinutes` (default 10), `refreshInBackground`, `fields` (declarative whitelist applied before storing — keeps cached/in-memory size down on huge lists like `/commits`), `stream`.
+
+**`Curl` (curl.php)** — low-level wrapper around `curl_multi_*`, used internally by `Fetcher`. The `X-Url` request header is what maps response → request inside the multi-handle loop.
+
+**Caching algorithm** (in `Fetcher::enqueue()` + `handleResponse()`). For each URL:
+1. Look up `request_cache` row. If fresh (`timestamp > now - maxAge*60`), serve cached content + walk the `parent` chain to merge paginated pages (or yield page-by-page if `stream`).
+2. If stale but content exists and `refresh < now - 3min`, mark for background refresh via `Workflow::markUrlForBackgroundRefresh()` and **still serve cached** (stale-while-revalidate). On shutdown, `action.php "> refresh-cache <urls>"` is spawned in background.
 3. If no cached content, do a live request with `If-None-Match: <etag>`. On `200`, store; on `304`, reuse stored content; follow `Link: rel="next"` for pagination, storing each page with `parent = previous_url`.
 
-The pagination model means every "list" response is actually a chain of cache rows linked by `parent`. `cleanCache()` drops rows older than 100 days; `deleteCache()` truncates the table.
+The pagination model means every "list" response is actually a chain of cache rows linked by `parent`. `Workflow::cleanCache()` drops rows older than 100 days; `Workflow::deleteCache()` truncates the table.
 
 **`Item` (item.php)** — fluent builder for one Alfred result row. Two non-obvious bits:
 - `match($query)` is a custom subsequence matcher that ranks by *consecutive same-position chars* (`sameChars`) first, then by `prio`, then by length distance. This is what makes `gh user/r` rank `user/repo` above `user/something-with-r-later`.
@@ -51,5 +57,5 @@ The pagination model means every "list" response is actually a chain of cache ro
 - `bin/build` has an explicit file allowlist; new top-level PHP/asset files must be added there or they won't be in the release.
 - Code style is enforced by php-cs-fixer with `@Symfony` + `@Symfony:risky` and a few overrides; run it before committing.
 - API URLs go through `Workflow::getApiUrl()` which appends `per_page=100` — don't construct API URLs by hand.
-- New cached endpoints should use `Workflow::requestApi()` (cached) or `Workflow::request()` (uncached, e.g. for the update download), not raw curl.
+- New cached endpoints should go through `Fetcher`: `Fetcher::requestApi()` (cached, returns merged result), `Fetcher::streamApi()` (cached, returns `Generator` — use for paginated lists where a `foreach` consumer doesn't need an array), `Fetcher::requestRaw()` (uncached, raw body — e.g. update download), or `new Fetcher() + ->queueApi()/->queueUrl() + ->run()` for parallel batches. Don't call `Curl` directly.
 - Icons are PNGs under `icons/`; the file basename is the string passed to `Item::icon('foo')`. Add new ones to `bin/create_icons.php` and regenerate, don't hand-edit PNGs.

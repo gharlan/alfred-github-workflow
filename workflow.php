@@ -1,13 +1,12 @@
 <?php
 
 require 'item.php';
-require 'curl.php';
+require 'fetcher.php';
 
 class Workflow
 {
     public const VERSION = '1.9.2';
     public const BUNDLE = 'de.gh01.alfred.github';
-    public const DEFAULT_CACHE_MAX_AGE = 10;
 
     private static $filePids;
 
@@ -134,202 +133,9 @@ class Workflow
         self::removeConfig(self::$enterprise ? 'enterprise_access_token' : 'access_token');
     }
 
-    public static function request(string $url, ?Curl $curl = null, $callback = null, bool $withAuthorization = true)
+    public static function markUrlForBackgroundRefresh(string $url): void
     {
-        self::log('loading content for %s', $url);
-
-        $return = false;
-        $returnValue = null;
-        if (!$curl) {
-            $curl = new Curl();
-            $return = true;
-            $callback = static function ($content) use (&$returnValue) {
-                $returnValue = $content;
-            };
-        }
-
-        $token = $withAuthorization ? self::getAccessToken() : null;
-        $curl->add(new CurlRequest($url, null, $token, static function (CurlResponse $response) use ($callback) {
-            if (is_callable($callback) && isset($response->content)) {
-                $callback($response->content);
-            }
-        }));
-
-        if ($return) {
-            $curl->execute();
-        }
-
-        return $returnValue;
-    }
-
-    /**
-     * @param callable|null $callback
-     * @param array|null $fields declarative field whitelist applied before storing in the cache, so large list endpoints (commits, issues)
-     *                           only persist what the consumer actually reads. Mix flat names and nested specs:
-     *                           `['sha', 'commit' => ['message', 'author' => ['date']]]`
-     */
-    public static function requestCache(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, bool $refreshInBackground = true, ?array $fields = null)
-    {
-        $return = false;
-        $returnValue = null;
-        if (!$curl) {
-            $curl = new Curl();
-            $return = true;
-            $callback = static function ($content) use (&$returnValue) {
-                $returnValue = $content;
-            };
-        }
-
-        $stmt = self::getStatement('SELECT * FROM request_cache WHERE url = ?');
-        $stmt->execute([$url]);
-        $stmt->bindColumn('timestamp', $timestamp);
-        $stmt->bindColumn('etag', $etag);
-        $stmt->bindColumn('content', $content);
-        $stmt->bindColumn('refresh', $refresh);
-        $stmt->fetch(PDO::FETCH_BOUND);
-
-        $shouldRefresh = $timestamp < time() - 60 * $maxAge;
-        $refreshInBackground = $refreshInBackground && null !== $content;
-
-        if ($shouldRefresh && $refreshInBackground && $refresh < time() - 3 * 60) {
-            self::getStatement('UPDATE request_cache SET refresh = ? WHERE url = ?')->execute([time(), $url]);
-            self::$refreshUrls[$url] = true;
-        }
-
-        if (!$shouldRefresh || $refreshInBackground) {
-            self::log('using cached content for %s', $url);
-            $content = json_decode($content);
-
-            if (!$firstPageOnly) {
-                $stmt = self::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-                while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
-                    $content = array_merge($content, json_decode($data->content));
-                    $url = $data->url;
-                }
-            }
-
-            if (is_callable($callback)) {
-                $callback($content);
-            }
-
-            return $returnValue;
-        }
-
-        $responses = [];
-
-        $handleResponse = static function (CurlResponse $response, $content, $parent = null) use (&$handleResponse, $curl, &$responses, $stmt, $callback, $firstPageOnly, $fields) {
-            $url = $response->request->url;
-            if ($response && in_array($response->status, [200, 304])) {
-                $checkNext = false;
-                if (304 == $response->status) {
-                    $response->content = $content;
-                    $checkNext = true;
-                } elseif (false === stripos($response->contentType, 'json')) {
-                    $response->content = json_encode($response->content);
-                }
-                $response->content = json_decode($response->content);
-                if (isset($response->content->items)) {
-                    $response->content = $response->content->items;
-                }
-                if ($fields && 200 == $response->status) {
-                    $response->content = self::pickFields($fields, $response->content);
-                }
-                $responses[] = $response->content;
-                self::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
-                    ->execute([$url, time(), $response->etag, json_encode($response->content), $parent]);
-
-                if ($firstPageOnly) {
-                    // do nothing
-                } elseif ($checkNext || $response->link && preg_match('/<([^<>]+)>; rel="next"/U', $response->link, $match)) {
-                    $stmt = self::getStatement('SELECT * FROM request_cache WHERE parent = ?');
-                    $stmt->execute([$url]);
-                    if ($checkNext) {
-                        $stmt->bindColumn('url', $nextUrl);
-                    } else {
-                        $nextUrl = $match[1];
-                    }
-                    $stmt->bindColumn('etag', $etag);
-                    $stmt->bindColumn('content', $content);
-                    $stmt->fetch(PDO::FETCH_BOUND);
-                    if ($nextUrl) {
-                        $curl->add(new CurlRequest($nextUrl, $etag, self::getAccessToken(), static function (CurlResponse $response) use ($handleResponse, $url, $content) {
-                            $handleResponse($response, $content, $url);
-                        }));
-
-                        return;
-                    }
-                } else {
-                    self::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute([$url]);
-                }
-            } else {
-                self::getStatement('DELETE FROM request_cache WHERE url = ?')->execute([$url]);
-                $url = null;
-            }
-
-            if (is_callable($callback)) {
-                if (empty($responses)) {
-                    $callback([]);
-
-                    return;
-                }
-                if (1 === count($responses)) {
-                    $callback($responses[0]);
-
-                    return;
-                }
-                $callback(array_reduce($responses, static fn ($content, $response) => array_merge($content, $response), []));
-            }
-        };
-
-        self::log('loading content for %s', $url);
-        $curl->add(new CurlRequest($url, $etag, self::getAccessToken(), static function (CurlResponse $response) use (&$responses, $handleResponse, $content) {
-            $handleResponse($response, $content);
-        }));
-
-        if ($return) {
-            $curl->execute();
-        }
-
-        return $returnValue;
-    }
-
-    public static function requestApi(string $url, ?Curl $curl = null, $callback = null, bool $firstPageOnly = false, int $maxAge = self::DEFAULT_CACHE_MAX_AGE, ?array $fields = null)
-    {
-        $url = self::getApiUrl($url);
-
-        return self::requestCache($url, $curl, $callback, $firstPageOnly, $maxAge, fields: $fields);
-    }
-
-    /**
-     * Apply a declarative pick-fields whitelist to an API response, preserving the original nested structure.
-     *
-     * Spec format: a list of property names, optionally `name => subSpec` for nested objects.
-     * An empty subSpec keeps the property as an empty stdClass (useful for `isset` markers).
-     *
-     * @param mixed $value stdClass, array of stdClass, or scalar — arrays are mapped element-wise
-     */
-    private static function pickFields(array $spec, mixed $value): mixed
-    {
-        if (is_array($value)) {
-            return array_map(static fn ($item) => self::pickFields($spec, $item), $value);
-        }
-
-        if (!$value instanceof stdClass) {
-            return $value;
-        }
-
-        $picked = new stdClass();
-        foreach ($spec as $key => $sub) {
-            if (is_int($key)) {
-                if (property_exists($value, $sub)) {
-                    $picked->$sub = $value->$sub;
-                }
-            } elseif (property_exists($value, $key)) {
-                $picked->$key = self::pickFields($sub, $value->$key);
-            }
-        }
-
-        return $picked;
+        self::$refreshUrls[$url] = true;
     }
 
     public static function cleanCache(): void
@@ -380,7 +186,7 @@ class Workflow
         if (!self::getConfig('autoupdate', 1)) {
             return false;
         }
-        $release = self::requestCache('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', null, null, true, 1440);
+        $release = Fetcher::requestUrl('https://api.github.com/repos/gharlan/alfred-github-workflow/releases/latest', new FetchOptions(firstPageOnly: true, maxAgeMinutes: 1440));
         if (!$release) {
             return false;
         }

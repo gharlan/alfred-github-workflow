@@ -24,6 +24,7 @@ $files = [
     'action.php',
     'CHANGELOG.md',
     'curl.php',
+    'fetcher.php',
     'icon.png',
     'info.plist',
     'item.php',

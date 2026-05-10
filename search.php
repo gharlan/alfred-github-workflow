@@ -42,7 +42,7 @@ class Search
             return;
         }
 
-        if (!Workflow::getAccessToken() || !(self::$user = Workflow::requestApi('/user'))) {
+        if (!Workflow::getAccessToken() || !(self::$user = Fetcher::requestApi('/user'))) {
             self::addLoginCommands();
 
             return;
@@ -224,11 +224,11 @@ class Search
         $users = [];
         $repos = [];
 
-        $curl = new Curl();
+        $fetcher = new Fetcher();
 
         if (!$isSearch && !$isUser) {
-            $getRepos = static function ($url, $prio) use ($curl, &$repos) {
-                Workflow::requestApi($url, $curl, static function ($urlRepos) use (&$repos, $prio) {
+            $getRepos = static function ($url, $prio) use ($fetcher, &$repos) {
+                $fetcher->queueApi($url, static function ($urlRepos) use (&$repos, $prio) {
                     foreach ($urlRepos as $repo) {
                         $repo->score = 300 + $prio + ($repo->fork ? 0 : 10);
                         $repos[$repo->id] = $repo;
@@ -242,7 +242,7 @@ class Search
                     $urls = ['/user/repos'];
                 }
             } else {
-                Workflow::requestApi('/user/orgs', $curl, static function ($orgs) use ($getRepos) {
+                $fetcher->queueApi('/user/orgs', static function ($orgs) use ($getRepos) {
                     foreach ($orgs as $org) {
                         $getRepos('/orgs/'.$org->login.'/repos', 0);
                     }
@@ -255,12 +255,12 @@ class Search
         }
 
         if (!$isSearch && !$isRepo) {
-            Workflow::requestApi('/user/following', $curl, static function ($urlUsers) use (&$users) {
+            $fetcher->queueApi('/user/following', static function ($urlUsers) use (&$users) {
                 $users = $urlUsers;
             });
         }
 
-        $curl->execute();
+        $fetcher->run();
 
         self::addRepos($repos);
 
@@ -293,7 +293,7 @@ class Search
     private static function addRepoSearchCommands(): void
     {
         $q = substr(self::$query, 2);
-        $repos = Workflow::requestApi('/search/repositories?q='.urlencode($q), null, null, true);
+        $repos = Fetcher::requestApi('/search/repositories?q='.urlencode($q), new FetchOptions(firstPageOnly: true));
 
         self::addRepos($repos, 's ');
     }
@@ -301,7 +301,7 @@ class Search
     private static function addUserSearchCommands(): void
     {
         $q = substr(self::$query, 3);
-        $users = Workflow::requestApi('/search/users?q='.urlencode($q), null, null, true);
+        $users = Fetcher::requestApi('/search/users?q='.urlencode($q), new FetchOptions(firstPageOnly: true));
 
         self::addUsers($users, 's @');
     }
@@ -352,10 +352,10 @@ class Search
         if (isset($parts[1][0]) && in_array($parts[1][0], ['#', '@', '*', '/'])) {
             switch ($parts[1][0]) {
                 case '*':
-                    $commits = Workflow::requestApi('/repos/'.$parts[0].'/commits', fields: [
+                    $commits = Fetcher::streamApi('/repos/'.$parts[0].'/commits', new FetchOptions(fields: [
                         'sha',
                         'commit' => ['message', 'author' => ['date']],
-                    ]);
+                    ]));
                     foreach ($commits as $commit) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title($commit->commit->message)
@@ -368,7 +368,7 @@ class Search
                     }
                     break;
                 case '@':
-                    $branches = Workflow::requestApi('/repos/'.$parts[0].'/branches');
+                    $branches = Fetcher::streamApi('/repos/'.$parts[0].'/branches');
                     foreach ($branches as $branch) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title('@'.$branch->name)
@@ -380,8 +380,8 @@ class Search
                     }
                     break;
                 case '/':
-                    $repo = Workflow::requestApi('/repos/'.$parts[0]);
-                    $files = Workflow::requestApi('/repos/'.$parts[0].'/git/trees/'.$repo->default_branch.'?recursive=1');
+                    $repo = Fetcher::requestApi('/repos/'.$parts[0]);
+                    $files = Fetcher::requestApi('/repos/'.$parts[0].'/git/trees/'.$repo->default_branch.'?recursive=1');
                     foreach ($files->tree as $file) {
                         if ('blob' === $file->type) {
                             Workflow::addItemIfMatches(Item::create()
@@ -395,10 +395,10 @@ class Search
                     }
                     break;
                 case '#':
-                    $issues = Workflow::requestApi('/repos/'.$parts[0].'/issues?sort=updated&state=all', fields: [
+                    $issues = Fetcher::streamApi('/repos/'.$parts[0].'/issues?sort=updated&state=all', new FetchOptions(fields: [
                         'number', 'title', 'html_url', 'updated_at',
                         'pull_request' => [],
-                    ]);
+                    ]));
                     foreach ($issues as $issue) {
                         Workflow::addItemIfMatches(Item::create()
                             ->title($issue->title)

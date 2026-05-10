@@ -9,15 +9,22 @@ Workflow for [Alfred](https://www.alfredapp.com) to search GitHub and GitHub Ent
 ## Common commands
 
 ```bash
-composer install          # install dev deps (php-cs-fixer, phpstan)
+composer install          # install dev deps (php-cs-fixer, phpstan, phpunit)
 composer cs-fixer         # apply code style (see .php-cs-fixer.dist.php)
 composer phpstan          # static analysis (see phpstan.dist.neon)
+composer phpunit          # run the test suite (see phpunit.dist.xml)
 npm install               # pulls @primer/octicons (only needed when regenerating icons)
 bin/create_icons.php      # regenerate icons/*.png from octicons SVGs (needs Imagick + rsvg-convert)
 bin/build                 # bundles release into github.alfredworkflow, writes VERSION + CHANGELOG into info.plist
 ```
 
-There are no tests.
+## Tests
+
+Tests live under `tests/`, bootstrapped via `tests/bootstrap.php` (loads `src/workflow.php`, which transitively pulls in `item.php`, `fetcher.php`, `curl.php`). PHPUnit ^11.5 (PHP 8.2 compatible) drives them, CI runs the suite on PHP 8.2 – 8.6.
+
+- **Pure unit tests**: `ItemTest` (matching, ranking, XML serialization), `WorkflowTest` (config scoping, enterprise URL derivation, `getApiUrl` query handling, version compare via cached release).
+- **Integration tests against a local `php -S` server**: `CurlTest` (status, headers, ETag/304, auth) and `FetcherTest` (cache hit/miss, pagination chain, stale-while-revalidate, field whitelist, `streamUrl`). The server boilerplate (free port, spawn, ready-poll, teardown) is in `HttpServerTestCase`; subclasses just declare a router fixture under `tests/fixtures/`.
+- `WorkflowTest` and `FetcherTest` initialize `Workflow` against a per-class tmpdir so the SQLite DB is fresh.
 
 ## Entry points and request flow
 

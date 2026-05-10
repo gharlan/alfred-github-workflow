@@ -11,7 +11,7 @@ class Workflow
     private static $filePids;
 
     private static $fileDb;
-    /** @var PDO */
+    /** @var ?PDO */
     private static $db;
     /** @var PDOStatement[] */
     private static $statements = [];

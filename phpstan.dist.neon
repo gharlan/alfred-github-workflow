@@ -1,0 +1,12 @@
+parameters:
+    level: 5
+    tmpDir: .cache/phpstan
+    paths:
+        - action.php
+        - curl.php
+        - fetcher.php
+        - item.php
+        - search.php
+        - server.php
+        - workflow.php
+        - bin

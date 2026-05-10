@@ -2,6 +2,7 @@
 
 require 'workflow.php';
 
+assert(isset($argv[1]));
 $query = trim($argv[1]);
 
 if ('>' !== $query[0] && !str_starts_with($query, 'e >')) {

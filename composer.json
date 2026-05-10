@@ -3,12 +3,25 @@
         "php": ">=8.2"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.95"
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.1"
     },
     "config": {
         "platform": {
             "php": "8.2.10"
         },
         "sort-packages": true
+    },
+    "scripts": {
+        "cs-fixer": "php-cs-fixer fix -v",
+        "cs-fixer:no-cache": [
+            "rm -f .cache/php-cs-fixer.cache",
+            "php-cs-fixer fix --using-cache=no -v"
+        ],
+        "phpstan": "phpstan analyse -v",
+        "phpstan:no-cache": [
+            "phpstan clear-result-cache --no-interaction",
+            "phpstan analyse -v"
+        ]
     }
 }

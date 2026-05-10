@@ -9,8 +9,9 @@ Workflow for [Alfred](https://www.alfredapp.com) to search GitHub and GitHub Ent
 ## Common commands
 
 ```bash
-composer install          # install php-cs-fixer (only dev dep)
-vendor/bin/php-cs-fixer fix   # apply code style (Symfony + risky, see .php-cs-fixer.dist.php)
+composer install          # install dev deps (php-cs-fixer, phpstan)
+composer cs-fixer         # apply code style (see .php-cs-fixer.dist.php)
+composer phpstan          # static analysis (see phpstan.dist.neon)
 npm install               # pulls @primer/octicons (only needed when regenerating icons)
 bin/create_icons.php      # regenerate icons/*.png from octicons SVGs (needs Imagick + rsvg-convert)
 bin/build                 # bundles release into github.alfredworkflow, writes VERSION + CHANGELOG into info.plist

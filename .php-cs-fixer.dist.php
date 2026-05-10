@@ -1,6 +1,7 @@
 <?php
 
 return (new PhpCsFixer\Config())
+    ->setCacheFile('.cache/php-cs-fixer.cache')
     ->setRiskyAllowed(true)
     ->setRules([
         '@Symfony' => true,

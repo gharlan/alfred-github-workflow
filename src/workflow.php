@@ -53,6 +53,8 @@ final class Workflow
         $exists = file_exists(self::$fileDb);
         self::$db = new PDO('sqlite:' . self::$fileDb, null, null);
         self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        self::$db->exec('PRAGMA busy_timeout = 5000');
+        self::$db->exec('PRAGMA journal_mode = WAL');
 
         if (!$exists) {
             self::createTables();

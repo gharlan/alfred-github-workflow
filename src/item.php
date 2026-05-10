@@ -103,7 +103,8 @@ final class Item
         }
         $this->sameChars = 0;
         $queryLength = strlen($query);
-        for ($i = 0, $k = 0; $i < $queryLength; ++$i, $k++) {
+        $prevK = -2;
+        for ($i = 0, $k = 0; $i < $queryLength; ++$i, ++$k) {
             for (; isset($comparator[$k]) && $comparator[$k] !== $query[$i]; ++$k);
 
             if (!isset($comparator[$k])) {
@@ -112,6 +113,10 @@ final class Item
             if ($i === $k) {
                 ++$this->sameChars;
             }
+            if ($k === $prevK + 1) {
+                ++$this->sameChars;
+            }
+            $prevK = $k;
         }
         $this->missingChars = strlen($comparator) - $queryLength;
 

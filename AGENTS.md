@@ -55,7 +55,7 @@ All shipped PHP lives under `src/`. Alfred calls one of two PHP scripts via `inf
 The pagination model means every "list" response is actually a chain of cache rows linked by `parent`. `Workflow::cleanCache()` drops rows older than 100 days; `Workflow::deleteCache()` truncates the table.
 
 **`Item` (src/item.php)** — fluent builder for one Alfred result row. Two non-obvious bits:
-- `match($query)` is a custom subsequence matcher that ranks by *consecutive same-position chars* (`sameChars`) first, then by `prio`, then by length distance. This is what makes `gh user/r` rank `user/repo` above `user/something-with-r-later`.
+- `match($query)` is a custom subsequence matcher that ranks by *consecutive query-char transitions in the matched sequence* (`sameChars`) first, then by `prio`, then by length distance. This is what makes `gh user/r` rank `user/repo` above `user/something-with-r-later`, and also makes a substring match like `gh react` rank `user/react` above a fuzzy `rxxxeact` even though the substring doesn't start at position 0.
 - `toXml()` serializes items, prepending the enterprise prefix (`e `) to non-URL args so `action.php` can detect scope.
 
 ## Conventions to keep in mind

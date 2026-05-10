@@ -74,6 +74,16 @@ final class ItemTest extends TestCase
                 ['user/something-with-r-later', 'user/repo'],
                 ['user/repo', 'user/something-with-r-later'],
             ],
+            'substring after separator beats single-letter fuzzy prefix' => [
+                'react',
+                ['rxexaxcxt', 'user/react'],
+                ['user/react', 'rxexaxcxt'],
+            ],
+            'prefix run beats interspersed competitor' => [
+                'abco',
+                ['azbco', 'abxxx/core'],
+                ['abxxx/core', 'azbco'],
+            ],
             'shorter title wins on equal sameChars' => [
                 'rep',
                 ['repository', 'repo'],

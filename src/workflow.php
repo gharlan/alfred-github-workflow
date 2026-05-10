@@ -162,7 +162,7 @@ final class Workflow
         self::stopServer();
         shell_exec(sprintf(
             'alfred_workflow_data=%s %s -d variables_order=EGPCS -S localhost:2233 %s > /dev/null 2>&1 & echo $! >> %s',
-            escapeshellarg(getenv('alfred_workflow_data')),
+            escapeshellarg(getenv('alfred_workflow_data')), // @phpstan-ignore argument.type
             escapeshellarg(PHP_BINARY),
             escapeshellarg(__DIR__ . '/server.php'),
             escapeshellarg(self::$filePids)
@@ -173,6 +173,7 @@ final class Workflow
     {
         if (file_exists(self::$filePids)) {
             $pids = file(self::$filePids);
+            assert(is_array($pids));
             foreach ($pids as $pid) {
                 shell_exec('kill -9 ' . $pid);
             }

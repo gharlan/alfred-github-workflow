@@ -10,6 +10,7 @@ $plist = $dir . '/info.plist';
 exec(sprintf('/usr/libexec/PlistBuddy -c "Set :version %s" %s', Workflow::VERSION, escapeshellarg($plist)));
 
 $changelog = file_get_contents($dir . '/CHANGELOG.md');
+assert(is_string($changelog));
 $changelog = str_replace("\n", '\n', $changelog);
 exec(sprintf('/usr/libexec/PlistBuddy -c "Set :readme \"%s\"" %s', escapeshellcmd($changelog), escapeshellarg($plist)));
 
@@ -31,10 +32,10 @@ $files = [
 foreach ($files as $file) {
     $zip->addFile($dir . '/' . $file, $file);
 }
-foreach (glob($dir . '/src/*.php') as $path) {
+foreach (glob($dir . '/src/*.php') as $path) { // @phpstan-ignore foreach.nonIterable
     $zip->addFile($path, 'src/' . basename($path));
 }
-foreach (glob($dir . '/icons/*.png') as $path) {
+foreach (glob($dir . '/icons/*.png') as $path) { // @phpstan-ignore foreach.nonIterable
     $zip->addFile($path, 'icons/' . basename($path));
 }
 

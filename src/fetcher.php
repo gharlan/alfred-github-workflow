@@ -222,7 +222,7 @@ final readonly class Fetcher
         if ($isNotModified) {
             $response->content = $cachedContent;
         } elseif (false === stripos((string) $response->contentType, 'json')) {
-            $response->content = json_encode($response->content);
+            $response->content = json_encode($response->content, JSON_THROW_ON_ERROR);
         }
 
         $decoded = json_decode((string) $response->content);
@@ -326,6 +326,7 @@ final readonly class Fetcher
             if (false === $content) {
                 return;
             }
+            assert(is_string($content));
             $page = json_decode($content);
             if (is_array($page)) {
                 foreach ($page as $item) {
@@ -368,10 +369,16 @@ final readonly class Fetcher
         $picked = new stdClass();
         foreach ($spec as $key => $sub) {
             if (is_int($key)) {
+                assert(is_string($sub));
                 if (property_exists($value, $sub)) {
                     $picked->$sub = $value->$sub;
                 }
-            } elseif (property_exists($value, $key)) {
+
+                continue;
+            }
+
+            assert(is_array($sub));
+            if (property_exists($value, $key)) {
                 $picked->$key = self::pickFields($sub, $value->$key);
             }
         }

@@ -63,9 +63,17 @@ foreach ($icons as $color => $set) {
         $img = clone $baseImg;
 
         $file = file_get_contents(__DIR__ . '/../node_modules/@primer/octicons/build/svg/' . $svgName . '.svg');
+        if (false === $file) {
+            fwrite(STDERR, "octicon $svgName not found — run `npm install` first\n");
+            exit(1);
+        }
         $file = str_replace('<path ', '<path fill="' . $color . '" ', $file);
 
         $png = shell_exec('echo ' . escapeshellarg($file) . ' | rsvg-convert -w 170');
+        if (!is_string($png)) {
+            fwrite(STDERR, "rsvg-convert failed for $svgName\n");
+            exit(1);
+        }
 
         $svg = new Imagick();
         $svg->setBackgroundColor(new ImagickPixel('transparent'));

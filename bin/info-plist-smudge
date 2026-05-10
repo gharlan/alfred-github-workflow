@@ -1,0 +1,42 @@
+#!/bin/sh
+# Git smudge filter: restores personal Alfred hotkey bindings from the
+# existing working-tree info.plist into the incoming blob's placeholders,
+# so checkout/pull doesn't wipe out locally-bound hotkeys.
+#
+# args: $1 = path of the file being checked out (passed via %f in git config)
+# stdin: blob content (with placeholders)
+# stdout: blob with hotkey values re-injected from the working tree, if any
+
+file="$1"
+
+if [ -z "$file" ] || [ ! -f "$file" ]; then
+    exec cat
+fi
+
+exec awk -v workfile="$file" '
+    BEGIN {
+        n = 0
+        prev = ""
+        while ((getline line < workfile) > 0) {
+            if (prev ~ /<key>(hotkey|hotmod)<\/key>/ && line ~ /<integer>/) {
+                vals[n++] = line
+            } else if (prev ~ /<key>hotstring<\/key>/ && line ~ /<string>/) {
+                vals[n++] = line
+            }
+            prev = line
+        }
+        close(workfile)
+        idx = 0
+        prev = ""
+    }
+    {
+        if (prev ~ /<key>(hotkey|hotmod)<\/key>/ && /<integer>/ && idx < n) {
+            print vals[idx++]
+        } else if (prev ~ /<key>hotstring<\/key>/ && /<string>/ && idx < n) {
+            print vals[idx++]
+        } else {
+            print
+        }
+        prev = $0
+    }
+'

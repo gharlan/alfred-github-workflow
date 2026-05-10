@@ -21,17 +21,19 @@ if (file_exists($zipFile)) {
 
 $zip = new PharData($zipFile);
 
-$files = [
+$cleanedPlist = shell_exec(sprintf('%s < %s', escapeshellarg($dir . '/bin/info-plist-clean'), escapeshellarg($plist)));
+assert(is_string($cleanedPlist) && '' !== $cleanedPlist);
+$zip->addFromString('info.plist', $cleanedPlist);
+
+foreach ([
     'CHANGELOG.md',
     'icon.png',
-    'info.plist',
     'LICENSE',
     'README.md',
-];
-
-foreach ($files as $file) {
+] as $file) {
     $zip->addFile($dir . '/' . $file, $file);
 }
+
 foreach (glob($dir . '/src/*.php') as $path) { // @phpstan-ignore foreach.nonIterable
     $zip->addFile($path, 'src/' . basename($path));
 }

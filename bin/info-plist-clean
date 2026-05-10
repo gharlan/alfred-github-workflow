@@ -1,0 +1,8 @@
+#!/bin/sh
+# Git clean filter: normalize personal Alfred hotkey bindings in info.plist.
+# Only touches trigger-config keys (hotkey/hotmod = integer, hotstring = string),
+# so the "variables" dict entries (which are <string>) are left alone.
+exec sed \
+    -e '/<key>hotkey<\/key>/{N;s|<integer>[^<]*</integer>|<integer>0</integer>|;}' \
+    -e '/<key>hotmod<\/key>/{N;s|<integer>[^<]*</integer>|<integer>0</integer>|;}' \
+    -e '/<key>hotstring<\/key>/{N;s|<string>[^<]*</string>|<string></string>|;}'

@@ -18,6 +18,24 @@ bin/create_icons.php      # regenerate icons/*.png from octicons SVGs (needs Ima
 bin/build                 # bundles release into github.alfredworkflow, writes VERSION + CHANGELOG into info.plist
 ```
 
+## Local hotkeys in info.plist
+
+When the working copy lives inside `Alfred.alfredpreferences/workflows/...`, Alfred writes personal hotkey bindings (`hotkey`, `hotmod`, `hotstring`) directly into `info.plist`. Those are local-only and must not be committed. A pair of git filters keeps them invisible to the index but preserved across checkouts:
+
+- **clean** (`bin/info-plist-clean`) normalizes hotkey values to neutral placeholders on stage/diff, so `git status` only shows real, non-hotkey changes.
+- **smudge** (`bin/info-plist-smudge`) re-injects hotkey values from the existing working-tree file when a checkout/pull would otherwise overwrite them with placeholders.
+
+One-time setup per clone:
+
+```bash
+git config filter.alfred-plist.clean  ./bin/info-plist-clean
+git config filter.alfred-plist.smudge './bin/info-plist-smudge %f'
+```
+
+`.gitattributes` wires `info.plist` to the filter; both scripts live in `bin/`. The filter is not marked `required`, so contributors who don't set it up get a passthrough — they'll just see the placeholder values in their working copy after clone, which is the desired state for them.
+
+`bin/build` runs the same clean script on `info.plist` before bundling it into the release zip, so shipped workflows never carry the maintainer's personal hotkeys regardless of the local git config.
+
 ## Tests
 
 Tests live under `tests/`, bootstrapped via `tests/bootstrap.php` (loads `src/workflow.php`, which transitively pulls in `item.php`, `fetcher.php`, `curl.php`). PHPUnit ^11.5 (PHP 8.2 compatible) drives them, CI runs the suite on PHP 8.2 – 8.6.

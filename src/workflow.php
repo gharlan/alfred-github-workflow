@@ -55,7 +55,7 @@ final class Workflow
         self::$db->exec('PRAGMA busy_timeout = 5000');
         self::$db->exec('PRAGMA journal_mode = WAL');
 
-        if (!self::$db->query("SELECT 1 FROM sqlite_master WHERE name = 'config'")->fetchColumn()) {
+        if (!self::$db->query("SELECT 1 FROM sqlite_master WHERE name = 'config'")->fetchColumn()) { // @phpstan-ignore method.nonObject
             self::createTables();
         }
 

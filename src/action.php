@@ -1,6 +1,6 @@
 <?php
 
-require 'workflow.php';
+require __DIR__.'/workflow.php';
 
 assert(isset($argv[1]));
 $query = trim($argv[1]);

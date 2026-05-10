@@ -1,6 +1,6 @@
 <?php
 
-require_once 'curl.php';
+require_once __DIR__.'/curl.php';
 
 /** @phpstan-type TFields array<int|string, string|array<int|string, mixed>> */
 final readonly class FetchOptions

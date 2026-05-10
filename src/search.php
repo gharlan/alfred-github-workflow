@@ -1,6 +1,6 @@
 <?php
 
-require 'workflow.php';
+require __DIR__.'/workflow.php';
 
 class Search
 {

@@ -204,7 +204,7 @@
 				<key>script</key>
 				<string>&lt;?php
 
-require 'search.php';
+require 'src/search.php';
 
 Search::run('github', $argv[1], getenv('hotkey'));
 
@@ -239,7 +239,7 @@ echo Workflow::getItemsAsXml();</string>
 				<key>script</key>
 				<string>&lt;?php
 
-require 'action.php';</string>
+require 'src/action.php';</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -356,7 +356,7 @@ require 'action.php';</string>
 				<key>script</key>
 				<string>&lt;?php
 
-require 'search.php';
+require 'src/search.php';
 
 Search::run('enterprise', $argv[1], getenv('hotkey'));
 

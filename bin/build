@@ -3,7 +3,7 @@
 
 $dir = dirname(__DIR__);
 
-require $dir.'/workflow.php';
+require $dir.'/src/workflow.php';
 
 $plist = $dir.'/info.plist';
 
@@ -21,22 +21,18 @@ if (file_exists($zipFile)) {
 $zip = new PharData($zipFile);
 
 $files = [
-    'action.php',
     'CHANGELOG.md',
-    'curl.php',
-    'fetcher.php',
     'icon.png',
     'info.plist',
-    'item.php',
     'LICENSE',
     'README.md',
-    'search.php',
-    'server.php',
-    'workflow.php',
 ];
 
 foreach ($files as $file) {
     $zip->addFile($dir.'/'.$file, $file);
+}
+foreach (glob($dir.'/src/*.php') as $path) {
+    $zip->addFile($path, 'src/'.basename($path));
 }
 foreach (glob($dir.'/icons/*.png') as $path) {
     $zip->addFile($path, 'icons/'.basename($path));

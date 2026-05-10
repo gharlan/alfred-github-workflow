@@ -181,8 +181,13 @@ final readonly class Fetcher
 
         if (!$options->firstPageOnly) {
             $stmt = Workflow::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
+            $hasChildren = false;
             while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
-                $merged = array_merge($merged, json_decode($data->content));
+                if (!$hasChildren) {
+                    $merged = self::asList($merged);
+                    $hasChildren = true;
+                }
+                $merged = array_merge($merged, self::asList(json_decode($data->content)));
                 $url = $data->url;
             }
         }
@@ -303,7 +308,7 @@ final readonly class Fetcher
 
             return;
         }
-        $callback(array_reduce($accumulator, static fn ($carry, $page) => array_merge($carry, $page), []));
+        $callback(array_reduce($accumulator, static fn ($carry, $page) => array_merge($carry, self::asList($page)), []));
     }
 
     /**
@@ -345,6 +350,23 @@ final readonly class Fetcher
             }
             $url = $next;
         }
+    }
+
+    /**
+     * Coerce decoded JSON to a list so it can be safely merged during pagination.
+     *
+     * Defends against corrupt cache rows (null) or endpoints that occasionally return a single
+     * object where a list was expected — both used to crash array_merge.
+     *
+     * @return list<mixed>
+     */
+    private static function asList(mixed $value): array
+    {
+        if (null === $value) {
+            return [];
+        }
+
+        return is_array($value) ? array_values($value) : [$value];
     }
 
     /**

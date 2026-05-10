@@ -1,9 +1,13 @@
 {
     "type": "project",
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "ext-curl": "*",
+        "ext-pdo": "*",
+        "ext-simplexml": "*"
     },
     "require-dev": {
+        "ext-imagick": "*",
         "friendsofphp/php-cs-fixer": "^3.95.1",
         "phpstan/phpstan": "^2.1.54"
     },

@@ -9,7 +9,8 @@
     "require-dev": {
         "ext-imagick": "*",
         "friendsofphp/php-cs-fixer": "^3.95.1",
-        "phpstan/phpstan": "^2.1.54"
+        "phpstan/phpstan": "^2.1.54",
+        "phpunit/phpunit": "^11.5.55"
     },
     "config": {
         "platform": {
@@ -28,6 +29,7 @@
         "phpstan:no-cache": [
             "phpstan clear-result-cache --no-interaction",
             "phpstan analyse -v"
-        ]
+        ],
+        "phpunit": "phpunit"
     }
 }

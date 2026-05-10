@@ -50,13 +50,12 @@ final class Workflow
         self::$filePids = $dataDir . '/pid';
 
         self::$fileDb = $dataDir . '/db.sqlite';
-        $exists = file_exists(self::$fileDb);
         self::$db = new PDO('sqlite:' . self::$fileDb, null, null);
         self::$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         self::$db->exec('PRAGMA busy_timeout = 5000');
         self::$db->exec('PRAGMA journal_mode = WAL');
 
-        if (!$exists) {
+        if (!self::$db->query("SELECT 1 FROM sqlite_master WHERE name = 'config'")->fetchColumn()) {
             self::createTables();
         }
 

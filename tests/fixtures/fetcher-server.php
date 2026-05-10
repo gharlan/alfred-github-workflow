@@ -88,7 +88,7 @@ switch ($path) {
         return true;
 
     case '/slow':
-        usleep(20_000);
+        usleep(100_000);
         header('Content-Type: application/json');
         echo json_encode(['id' => $_GET['id'] ?? '']);
 

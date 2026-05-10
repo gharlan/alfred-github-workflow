@@ -36,8 +36,8 @@ switch ($path) {
     case '/echo-id':
         $id = $_GET['id'] ?? '';
         header('Content-Type: text/plain');
-        // Light delay so parallel requests actually overlap.
-        usleep(20_000);
+        // Delay so parallel requests have a clear sequential baseline to beat.
+        usleep(100_000);
         echo 'id-' . $id;
 
         return true;

@@ -273,7 +273,8 @@ final class FetcherTest extends HttpServerTestCase
             ['a' => 'a', 'b' => 'b', 'c' => 'c', 'd' => 'd', 'e' => 'e'],
             $bodies,
         );
-        // Each request sleeps 20ms server-side. Sequential = ~100ms; parallel ≈ ~20-40ms.
-        self::assertLessThan(0.08, $elapsed, "5 parallel requests took {$elapsed}s, expected < 0.08s");
+        // Each request sleeps 100ms server-side. Sequential = ~500ms; parallel ≈ ~200ms.
+        // 350ms ceiling tolerates noisy CI runners while still catching a regression to sequential.
+        self::assertLessThan(0.35, $elapsed, "5 parallel requests took {$elapsed}s, expected < 0.35s");
     }
 }

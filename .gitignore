@@ -1,10 +1,8 @@
 /.cache/
 
-/composer.lock
-/vendor/
-
 /package-lock.json
 /node_modules/
+/vendor/
 
 /.claude/*
 !/.claude/CLAUDE.md

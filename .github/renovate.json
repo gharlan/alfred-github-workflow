@@ -1,0 +1,39 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:best-practices"
+    ],
+    "dependencyDashboard": false,
+    "enabledManagers": [
+        "composer",
+        "github-actions"
+    ],
+    "timezone": "Europe/Berlin",
+    "schedule": [
+        "before 5am on the first day of the month"
+    ],
+    "lockFileMaintenance": {
+        "enabled": true,
+        "schedule": [
+            "before 5am on the first day of the month"
+        ]
+    },
+    "ignoreDeps": [
+        "php"
+    ],
+    "packageRules": [
+        {
+            "matchManagers": [
+                "composer"
+            ],
+            "rangeStrategy": "bump"
+        },
+        {
+            "matchManagers": [
+                "composer",
+                "github-actions"
+            ],
+            "groupName": "tools"
+        }
+    ]
+}

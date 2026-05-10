@@ -1,15 +1,17 @@
 {
+    "type": "project",
     "require": {
         "php": ">=8.2"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.95",
-        "phpstan/phpstan": "^2.1"
+        "friendsofphp/php-cs-fixer": "^3.95.1",
+        "phpstan/phpstan": "^2.1.54"
     },
     "config": {
         "platform": {
             "php": "8.2.10"
         },
+        "bump-after-update": true,
         "sort-packages": true
     },
     "scripts": {

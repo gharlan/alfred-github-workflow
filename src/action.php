@@ -1,15 +1,15 @@
 <?php
 
-require __DIR__.'/workflow.php';
+require __DIR__ . '/workflow.php';
 
 assert(isset($argv[1]));
 $query = trim($argv[1]);
 
 if ('>' !== $query[0] && !str_starts_with($query, 'e >')) {
     if ('.git' == substr($query, -4)) {
-        $query = 'x-github-client://openRepo/'.substr($query, 0, -4);
+        $query = 'x-github-client://openRepo/' . substr($query, 0, -4);
     }
-    exec('open '.$query);
+    exec('open ' . $query);
 
     return;
 }
@@ -40,8 +40,8 @@ switch ($parts[1]) {
             echo 'Successfully logged in';
         } elseif (!$enterprise) {
             Workflow::startServer();
-            $url = Workflow::getBaseUrl().'/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo';
-            exec('open '.escapeshellarg($url));
+            $url = Workflow::getBaseUrl() . '/login/oauth/authorize?client_id=2d4f43826cb68e11c17c&scope=repo';
+            exec('open ' . escapeshellarg($url));
         }
         break;
 
@@ -92,8 +92,8 @@ switch ($parts[1]) {
             echo 'Update failed';
             exit;
         }
-        $path = getenv('alfred_workflow_data').'/github.alfredworkflow';
+        $path = getenv('alfred_workflow_data') . '/github.alfredworkflow';
         file_put_contents($path, $response);
-        exec('open '.escapeshellarg($path));
+        exec('open ' . escapeshellarg($path));
         break;
 }

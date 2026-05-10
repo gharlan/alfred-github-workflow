@@ -47,7 +47,7 @@ $icons = [
     ],
 ];
 
-$dir = __DIR__.'/../icons/';
+$dir = __DIR__ . '/../icons/';
 
 $baseImg = new Imagick();
 $baseImg->newImage(256, 256, new ImagickPixel('transparent'));
@@ -62,10 +62,10 @@ foreach ($icons as $color => $set) {
     foreach ($set as $svgName => $name) {
         $img = clone $baseImg;
 
-        $file = file_get_contents(__DIR__.'/../node_modules/@primer/octicons/build/svg/'.$svgName.'.svg');
-        $file = str_replace('<path ', '<path fill="'.$color.'" ', $file);
+        $file = file_get_contents(__DIR__ . '/../node_modules/@primer/octicons/build/svg/' . $svgName . '.svg');
+        $file = str_replace('<path ', '<path fill="' . $color . '" ', $file);
 
-        $png = shell_exec('echo '.escapeshellarg($file).' | rsvg-convert -w 170');
+        $png = shell_exec('echo ' . escapeshellarg($file) . ' | rsvg-convert -w 170');
 
         $svg = new Imagick();
         $svg->setBackgroundColor(new ImagickPixel('transparent'));
@@ -75,8 +75,8 @@ foreach ($icons as $color => $set) {
         $y = (int) ((256 - $svg->getImageHeight()) / 2);
 
         $img->compositeImage($svg, Imagick::COMPOSITE_DEFAULT, $x, $y);
-        $img->writeImage($dir.$name.'.png');
+        $img->writeImage($dir . $name . '.png');
     }
 }
 
-rename($dir.'github.png', __DIR__.'/../icon.png');
+rename($dir . 'github.png', __DIR__ . '/../icon.png');

@@ -4,7 +4,7 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif)$/', $_SERVER['REQUEST_URI'])) {
     return false;
 }
 
-require __DIR__.'/workflow.php';
+require __DIR__ . '/workflow.php';
 
 Workflow::init();
 

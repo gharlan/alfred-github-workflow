@@ -141,19 +141,19 @@ class Item
         $prefix = $hotkey ? '' : ' ';
         foreach ($items as $item) {
             $c = $xml->addChild('item');
-            $title = $item->prefix.$item->title;
-            $c->addAttribute('uid', $item->randomUid ? md5(time().$title) : md5($title));
-            if ($item->icon && file_exists(__DIR__.'/icons/'.$item->icon.'.png')) {
-                $c->addChild('icon', 'icons/'.$item->icon.'.png');
+            $title = $item->prefix . $item->title;
+            $c->addAttribute('uid', $item->randomUid ? md5(time() . $title) : md5($title));
+            if ($item->icon && file_exists(__DIR__ . '/icons/' . $item->icon . '.png')) {
+                $c->addChild('icon', 'icons/' . $item->icon . '.png');
             } else {
                 $c->addChild('icon', 'icon.png');
             }
             if ($item->arg) {
                 $arg = $item->arg;
                 if ('/' === $arg[0]) {
-                    $arg = $baseUrl.$arg;
+                    $arg = $baseUrl . $arg;
                 } elseif (!str_contains($arg, '://')) {
-                    $arg = ($enterprise ? 'e ' : '').$arg;
+                    $arg = ($enterprise ? 'e ' : '') . $arg;
                 }
                 $c->addAttribute('arg', $arg);
             }
@@ -165,7 +165,7 @@ class Item
                 } else {
                     $autocomplete = $item->title;
                 }
-                $c->addAttribute('autocomplete', $prefix.($item->prefixOnlyTitle ? $autocomplete : $item->prefix.$autocomplete));
+                $c->addAttribute('autocomplete', $prefix . ($item->prefixOnlyTitle ? $autocomplete : $item->prefix . $autocomplete));
             }
             if (!$item->valid) {
                 $c->addAttribute('valid', 'no');

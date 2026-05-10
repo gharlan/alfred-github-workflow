@@ -9,6 +9,7 @@ return (new PhpCsFixer\Config())
         '@PHP8x2Migration' => true,
         '@PHP8x2Migration:risky' => true,
 
+        'concat_space' => ['spacing' => 'one'],
         'declare_strict_types' => ['strategy' => 'remove'],
         'empty_loop_body' => ['style' => 'semicolon'],
         'method_argument_space' => false,

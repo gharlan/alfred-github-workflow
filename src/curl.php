@@ -99,12 +99,12 @@ class Curl
         $options = $defaultOptions;
         $options[CURLOPT_URL] = $request->url;
         $header = [];
-        $header[] = 'X-Url: '.$request->url;
+        $header[] = 'X-Url: ' . $request->url;
         if ($request->token) {
-            $header[] = 'Authorization: token '.$request->token;
+            $header[] = 'Authorization: token ' . $request->token;
         }
         if ($request->etag) {
-            $header[] = 'If-None-Match: '.$request->etag;
+            $header[] = 'If-None-Match: ' . $request->etag;
         }
         $options[CURLOPT_HTTPHEADER] = $header;
         curl_setopt_array($ch, $options);
@@ -113,7 +113,7 @@ class Curl
 
     public static function getHeader($header, $key)
     {
-        if (preg_match('/^'.preg_quote($key, '/').': (\V*)/mi', $header, $match)) {
+        if (preg_match('/^' . preg_quote($key, '/') . ': (\V*)/mi', $header, $match)) {
             return $match[1];
         }
 

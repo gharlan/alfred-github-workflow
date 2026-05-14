@@ -43,11 +43,12 @@ final class Search
             return;
         }
 
-        if (!Workflow::getAccessToken() || !(self::$user = Fetcher::requestApi('/user'))) {
+        if (!Workflow::getAccessToken() || !($fetchedUser = Fetcher::requestApi('/user'))) {
             self::addLoginCommands();
 
             return;
         }
+        self::$user = $fetchedUser;
 
         Workflow::stopServer();
 

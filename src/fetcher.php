@@ -179,14 +179,9 @@ final readonly class Fetcher
 
         $merged = json_decode((string) $rawContent);
 
-        if (!$options->firstPageOnly) {
+        if (!$options->firstPageOnly && is_array($merged)) {
             $stmt = Workflow::getStatement('SELECT url, content FROM request_cache WHERE parent = ? ORDER BY `timestamp` DESC');
-            $hasChildren = false;
             while ($stmt->execute([$url]) && $data = $stmt->fetchObject()) {
-                if (!$hasChildren) {
-                    $merged = self::asList($merged);
-                    $hasChildren = true;
-                }
                 $merged = array_merge($merged, self::asList(json_decode($data->content)));
                 $url = $data->url;
             }
@@ -244,7 +239,8 @@ final readonly class Fetcher
         Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
             ->execute([$url, time(), $response->etag, json_encode($decoded), $parent]);
 
-        if ($options->firstPageOnly) {
+        if ($options->firstPageOnly || !is_array($decoded)) {
+            Workflow::getStatement('DELETE FROM request_cache WHERE parent = ?')->execute([$url]);
             $this->finish($rootUrl, $accumulator, $callback, $options);
 
             return;

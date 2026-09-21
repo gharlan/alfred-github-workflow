@@ -43,11 +43,14 @@ final class Search
             return;
         }
 
-        if (!Workflow::getAccessToken() || !(self::$user = Fetcher::requestApi('/user'))) {
+        $user = Workflow::getAccessToken() ? Fetcher::requestApi('/user') : null;
+        if (!$user instanceof stdClass) {
+            Workflow::getStatement('DELETE FROM request_cache WHERE url = ?')->execute([Workflow::getApiUrl('/user')]);
             self::addLoginCommands();
 
             return;
         }
+        self::$user = $user;
 
         Workflow::stopServer();
 

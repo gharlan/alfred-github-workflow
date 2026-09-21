@@ -148,6 +148,39 @@ final class FetcherTest extends HttpServerTestCase
         self::assertSame(2, $this->totalHits());
     }
 
+    public function testRequestUrlDoesNotMergeCorruptChildRowsIntoObjectResponse(): void
+    {
+        $url = self::baseUrl() . '/json?id=object';
+        $childUrl = self::baseUrl() . '/json?id=child';
+
+        Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, NULL)')
+            ->execute([$url, time(), '"root"', json_encode(['id' => 'object', 'value' => 'val-object'])]);
+        Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
+            ->execute([$childUrl, time(), '"child"', json_encode([['id' => 'child']]), $url]);
+
+        $result = Fetcher::requestUrl($url);
+
+        self::assertInstanceOf(stdClass::class, $result);
+        self::assertSame('object', $result->id);
+    }
+
+    public function testRequestUrlDoesNotFollowCorruptCachedChildOnObject304(): void
+    {
+        $url = self::baseUrl() . '/etag?v=v1';
+        $childUrl = self::baseUrl() . '/json?id=child';
+
+        Fetcher::requestUrl($url);
+        Workflow::getStatement('UPDATE request_cache SET timestamp = ? WHERE url = ?')
+            ->execute([time() - 3600, $url]);
+        Workflow::getStatement('REPLACE INTO request_cache VALUES(?, ?, ?, ?, 0, ?)')
+            ->execute([$childUrl, time(), '"child"', json_encode([['id' => 'child']]), $url]);
+
+        $result = Fetcher::requestUrl($url, new FetchOptions(refreshInBackground: false));
+
+        self::assertInstanceOf(stdClass::class, $result);
+        self::assertSame('v1', $result->value);
+    }
+
     public function testRequestUrlStaleWithBackgroundRefreshServesCacheAndMarksUrl(): void
     {
         $url = self::baseUrl() . '/json?id=stale';

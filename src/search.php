@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/workflow.php';
+require_once __DIR__ . '/workflow.php';
 
 final class Search
 {
@@ -43,12 +43,13 @@ final class Search
             return;
         }
 
-        if (!Workflow::getAccessToken() || !($fetchedUser = Fetcher::requestApi('/user'))) {
+        $user = Workflow::getAccessToken() ? Fetcher::requestApi('/user') : null;
+        if (!$user instanceof stdClass) {
             self::addLoginCommands();
 
             return;
         }
-        self::$user = $fetchedUser;
+        self::$user = $user;
 
         Workflow::stopServer();
 

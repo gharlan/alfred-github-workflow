@@ -65,6 +65,10 @@ abstract class HttpServerTestCase extends TestCase
     public static function tearDownAfterClass(): void
     {
         if (is_resource(self::$serverProcess)) {
+            // With PHP_CLI_SERVER_WORKERS the master forks worker processes that survive a SIGTERM
+            // to the master (and keep inherited fds open). Kill them first, while they're still its children.
+            $pid = proc_get_status(self::$serverProcess)['pid'];
+            exec('pkill -TERM -P ' . $pid);
             proc_terminate(self::$serverProcess);
             proc_close(self::$serverProcess);
             self::$serverProcess = null;

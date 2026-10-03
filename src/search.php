@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/workflow.php';
+require_once __DIR__ . '/workflow.php';
 
 final class Search
 {
@@ -43,11 +43,13 @@ final class Search
             return;
         }
 
-        if (!Workflow::getAccessToken() || !(self::$user = Fetcher::requestApi('/user'))) {
+        $user = Workflow::getAccessToken() ? Fetcher::requestApi('/user') : null;
+        if (!$user instanceof stdClass) {
             self::addLoginCommands();
 
             return;
         }
+        self::$user = $user;
 
         Workflow::stopServer();
 
@@ -578,7 +580,7 @@ final class Search
 
         $myPages = [
             'dashboard' => ['', 'View your dashboard'],
-            'pulls ' => ['pulls', 'View your pull requests', 'pull-request'],
+            'pulls ' => ['pulls/authored', 'View your pull requests', 'pull-request'],
             'issues ' => ['issues/assigned', 'View your issues', 'issue'],
             'stars' => [self::$user->login . '?tab=stars', 'View your starred repositories'],
             'profile' => [self::$user->login, 'View your public user profile', 'user'],

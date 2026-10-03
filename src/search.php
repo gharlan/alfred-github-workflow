@@ -541,7 +541,7 @@ final class Search
             $icon = 'pulls' === $parts[1] ? 'pull-request' : 'issue';
             $items = $icon . 's';
             $subs = [
-                'created' => [$parts[1], 'View your ' . $items],
+                'created' => [$parts[1] . ('pulls' === $parts[1] ? '/authored' : '/created'), 'View your ' . $items],
                 'assigned' => [$parts[1] . '/assigned', 'View your assigned ' . $items],
                 'mentioned' => [$parts[1] . '/mentioned', 'View ' . $items . ' that mentioned you'],
             ];
@@ -581,7 +581,7 @@ final class Search
         $myPages = [
             'dashboard' => ['', 'View your dashboard'],
             'pulls ' => ['pulls/authored', 'View your pull requests', 'pull-request'],
-            'issues ' => ['issues/assigned', 'View your issues', 'issue'],
+            'issues ' => ['issues/assigned', 'View your assigned issues', 'issue'],
             'stars' => [self::$user->login . '?tab=stars', 'View your starred repositories'],
             'profile' => [self::$user->login, 'View your public user profile', 'user'],
             'settings' => ['settings', 'View or edit your account settings'],

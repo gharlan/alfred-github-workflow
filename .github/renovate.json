@@ -3,7 +3,9 @@
     "extends": [
         "config:best-practices"
     ],
-    "dependencyDashboard": false,
+    "dependencyDashboard": {
+        "enabled": false
+    },
     "enabledManagers": [
         "composer",
         "github-actions"
